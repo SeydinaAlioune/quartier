@@ -98,7 +98,7 @@ const News = () => {
             <div key={article.id} className="article-card">
               <img src={article.image} alt={article.title} />
               <div className="article-content">
-                <span className="article-date">{formatDate(article.date)}</span>
+                <span className="article-date">{format(new Date(article.date), 'd MMMM yyyy', { locale: fr })}</span>
                 <h3>{article.title}</h3>
                 <p>{article.description}</p>
                 <button className="read-more">Lire la suite</button>
