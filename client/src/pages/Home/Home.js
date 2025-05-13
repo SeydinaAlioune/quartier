@@ -60,7 +60,7 @@ const Home = () => {
           zIndex: -1
         }}></div>
         <div className="hero-content">
-          <h1>Bienvenue sur QuartierConnect</h1>
+          <h1>Bienvenue dans notre quartier la Cité gendarmerie</h1>
           <p>Une plateforme communautaire pour connecter et améliorer la vie des résidents de notre quartier</p>
           <Link to="/register" className="cta-button">
             Rejoindre la communauté
