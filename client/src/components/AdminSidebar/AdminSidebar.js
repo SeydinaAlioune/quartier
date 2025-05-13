@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './AdminSidebar.css';
 
-const AdminSidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const AdminSidebar = ({ isCollapsed }) => {
   const location = useLocation();
-
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -17,10 +12,9 @@ const AdminSidebar = () => {
   return (
     <div className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        <h2>QuartierConnect</h2>
-        <button className="toggle-btn" onClick={toggleSidebar}>
-          {isCollapsed ? '→' : '←'}
-        </button>
+        <div className="header-content">
+          <h2>QuartierConnect</h2>
+        </div>
       </div>
 
       <nav className="sidebar-nav">

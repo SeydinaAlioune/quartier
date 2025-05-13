@@ -4,7 +4,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState('utilisateurs');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Données simulées pour le tableau de bord
   const stats = {
@@ -75,11 +75,16 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
-      <div className={`admin-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className="admin-dashboard">
+      <AdminSidebar isCollapsed={isCollapsed} />
+      <div className="admin-content">
         <div className="dashboard-header">
-          <h1>Tableau de Bord Administration</h1>
+          <div className="header-left">
+            <button className="toggle-sidebar-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
+              {isCollapsed ? '☰' : '✕'}
+            </button>
+            <h1>Tableau de Bord Administration</h1>
+          </div>
           <div className="admin-profile">
             <span className="notification-badge">2</span>
             <span className="admin-name">Mohammed Diallo</span>
