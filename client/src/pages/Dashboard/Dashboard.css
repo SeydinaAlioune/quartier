@@ -1,0 +1,173 @@
+.dashboard {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard h1 {
+  margin-bottom: 2rem;
+  color: #333;
+  text-align: center;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card h2 {
+  color: #00a651;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+}
+
+/* Profile Card */
+.profile-card {
+  grid-column: span 2;
+}
+
+.profile-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.avatar img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.profile-info p {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.edit-profile-btn {
+  background-color: #00a651;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.edit-profile-btn:hover {
+  background-color: #008c44;
+}
+
+/* Messages Card */
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.message-item {
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.message-header span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.message-subject {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.message-preview {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Notifications Card */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.notification-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.notification-content p {
+  margin: 0 0 0.5rem 0;
+}
+
+.notification-content span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Activities Card */
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.activity-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.activity-content p {
+  margin: 0 0 0.5rem 0;
+}
+
+.activity-content span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.view-all-btn {
+  display: block;
+  width: 100%;
+  background-color: transparent;
+  color: #00a651;
+  border: 1px solid #00a651;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+  background-color: #00a651;
+  color: white;
+}

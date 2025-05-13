@@ -42,7 +42,7 @@ const Home = () => {
     }, 4000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [images.length]);
 
   return (
     <div className="home">

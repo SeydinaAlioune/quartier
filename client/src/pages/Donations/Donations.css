@@ -1,0 +1,173 @@
+.donations-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.donations-header {
+  text-align: center;
+  background-color: #4a4a4a;
+  color: white;
+  padding: 3rem 1rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+}
+
+.donations-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.donations-header p {
+  font-size: 1.2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.campaigns-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.campaign-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.campaign-card:hover {
+  transform: translateY(-5px);
+}
+
+.campaign-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.campaign-card h3 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #4CAF50;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.campaign-stats {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.payment-methods {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.payment-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.payment-btn.wave {
+  background-color: #00b2ff;
+  color: white;
+}
+
+.payment-btn.orange {
+  background-color: #ff6b00;
+  color: white;
+}
+
+.payment-btn.paypal {
+  background-color: #003087;
+  color: white;
+}
+
+.completed {
+  background-color: #f8f8f8;
+}
+
+.view-details {
+  background-color: #ffa726;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.create-campaign {
+  text-align: center;
+  margin: 3rem 0;
+  padding: 2rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.create-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.donations-footer {
+  text-align: center;
+  margin-top: 3rem;
+  padding: 2rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.donate-now-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .campaigns-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .donations-header h1 {
+    font-size: 2rem;
+  }
+}

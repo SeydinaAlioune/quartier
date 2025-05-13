@@ -1,0 +1,129 @@
+.directory-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.directory-header {
+  text-align: center;
+  background-color: #4a4a4a;
+  color: white;
+  padding: 3rem 1rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+}
+
+.directory-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.directory-header p {
+  font-size: 1.2rem;
+}
+
+.business-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.business-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.business-card:hover {
+  transform: translateY(-5px);
+}
+
+.business-card h3 {
+  color: #00a651;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.business-card .address,
+.business-card .phone {
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.business-card .description {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 1rem;
+}
+
+.contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.contact-category {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.contact-category h3 {
+  color: #00a651;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.contact-category ul {
+  list-style: none;
+  padding: 0;
+}
+
+.contact-category li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.contact-category li:last-child {
+  border-bottom: none;
+}
+
+.contact-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.contact-number {
+  color: #666;
+}
+
+section h2 {
+  color: #333;
+  margin: 3rem 0 1rem;
+  font-size: 1.8rem;
+}
+
+@media (max-width: 768px) {
+  .directory-container {
+    padding: 1rem;
+  }
+
+  .business-grid,
+  .contacts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .directory-header h1 {
+    font-size: 2rem;
+  }
+}

@@ -1,0 +1,166 @@
+.security-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.security-header {
+  text-align: center;
+  background-color: #4a4a4a;
+  color: white;
+  padding: 3rem 1rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+}
+
+.security-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.security-header p {
+  font-size: 1.2rem;
+}
+
+/* Section Signaler un Incident */
+.report-incident {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.report-button {
+  background-color: #00a651;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.report-button:hover {
+  background-color: #008c44;
+}
+
+/* Section Alertes */
+.real-time-alerts {
+  margin: 3rem 0;
+}
+
+.alert-card {
+  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  color: white;
+}
+
+.alert-card.high {
+  background-color: #dc3545;
+}
+
+.alert-card.medium {
+  background-color: #0088cc;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.alert-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.police-info {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.police-info h3 {
+  color: #00a651;
+  margin-bottom: 1rem;
+}
+
+.contact-info {
+  color: #666;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Section Conseils de Sécurité */
+.security-tips {
+  margin: 3rem 0;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.tip-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tip-card h3 {
+  color: #00a651;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.tip-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.tip-card li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.4;
+}
+
+.tip-card li i {
+  color: #00a651;
+  margin-top: 0.3rem;
+}
+
+section h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+@media (max-width: 768px) {
+  .security-container {
+    padding: 1rem;
+  }
+
+  .security-header h1 {
+    font-size: 2rem;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
