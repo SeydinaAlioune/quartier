@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
+import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import './Users.css';
 
 const Users = () => {
@@ -7,6 +8,7 @@ const Users = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Données simulées des utilisateurs
   const users = [
@@ -66,9 +68,14 @@ const Users = () => {
   };
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-page">
+      <AdminSidebar isCollapsed={isCollapsed} />
       <div className="admin-content">
+        <AdminHeader 
+          title="Gestion des Utilisateurs" 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={setIsCollapsed}
+        />
         <div className="users-page">
           <div className="users-header">
             <h1>Gestion des Utilisateurs</h1>

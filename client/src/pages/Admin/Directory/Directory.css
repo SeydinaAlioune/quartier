@@ -1,0 +1,19 @@
+.admin-page {
+  display: flex;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.admin-content {
+  flex: 1;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.admin-page .admin-sidebar.collapsed + .admin-content {
+  margin-left: 80px;
+}
+
+.directory-content {
+  padding: 2rem;
+}

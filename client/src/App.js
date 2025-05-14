@@ -17,6 +17,8 @@ import Users from './pages/Admin/Users/Users';
 import AdminNews from './pages/Admin/News/AdminNews';
 import AdminForum from './pages/Admin/Forum/AdminForum';
 import AdminDirectory from './pages/Admin/Directory/AdminDirectory';
+import AdminSecurity from './pages/Admin/Security/AdminSecurity';
+import AdminProjects from './pages/Admin/Projects/AdminProjects';
 import './App.css';
 
 function App() {
@@ -31,6 +33,8 @@ function App() {
             <Route path="/admin/news" element={<AdminNews />} />
             <Route path="/admin/forum" element={<AdminForum />} />
             <Route path="/admin/directory" element={<AdminDirectory />} />
+            <Route path="/admin/security" element={<AdminSecurity />} />
+            <Route path="/admin/projects" element={<AdminProjects />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/actualites" element={<News />} />
             <Route path="/forum" element={<Forum />} />

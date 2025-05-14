@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
+import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import './AdminNews.css';
 
 const AdminNews = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -165,9 +167,14 @@ const AdminNews = () => {
   );
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-page">
+      <AdminSidebar isCollapsed={isCollapsed} />
       <div className="admin-content">
+        <AdminHeader 
+          title="Gestion des Actualités" 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={setIsCollapsed}
+        />
         <div className="news-page">
           <div className="news-header">
             <div className="header-title">

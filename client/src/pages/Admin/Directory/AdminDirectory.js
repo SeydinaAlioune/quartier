@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
+import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import './AdminDirectory.css';
 
 const AdminDirectory = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Données simulées
   const directoryStats = {
@@ -16,9 +18,14 @@ const AdminDirectory = () => {
   };
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-page">
+      <AdminSidebar isCollapsed={isCollapsed} />
       <div className="admin-content">
+        <AdminHeader 
+          title="Gestion de l'Annuaire" 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={setIsCollapsed}
+        />
         <div className="directory-page">
           <div className="directory-header">
             <div className="header-title">

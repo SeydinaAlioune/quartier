@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './Dashboard.css';
+import AdminDirectory from './Directory/AdminDirectory';
+import AdminNews from './News/AdminNews';
+import AdminForum from './Forum/AdminForum';
+import Users from './Users/Users';
+import AdminSecurity from './Security/AdminSecurity';
 
 const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState('utilisateurs');
@@ -122,6 +127,11 @@ const Dashboard = () => {
         <div className="recent-activity">
           <h2>Activité Récente</h2>
           <div className="activity-tabs">
+            {selectedTab === 'users' && <Users />}
+            {selectedTab === 'actualites' && <AdminNews />}
+            {selectedTab === 'forum' && <AdminForum />}
+            {selectedTab === 'annuaire' && <AdminDirectory />}
+            {selectedTab === 'securite' && <AdminSecurity />}
             <button 
               className={selectedTab === 'utilisateurs' ? 'active' : ''} 
               onClick={() => setSelectedTab('utilisateurs')}

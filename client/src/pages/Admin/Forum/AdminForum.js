@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
+import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import './AdminForum.css';
 
 const AdminForum = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -204,9 +206,14 @@ const AdminForum = () => {
   };
 
   return (
-    <div className="admin-layout">
-      <AdminSidebar />
+    <div className="admin-page">
+      <AdminSidebar isCollapsed={isCollapsed} />
       <div className="admin-content">
+        <AdminHeader 
+          title="Gestion du Forum" 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={setIsCollapsed}
+        />
         <div className="forum-page">
           {/* Header */}
           <div className="forum-header">

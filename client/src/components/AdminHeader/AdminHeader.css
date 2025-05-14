@@ -1,0 +1,62 @@
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: white;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-left h1 {
+  font-size: 1.8rem;
+  color: #2d3748;
+  margin: 0;
+  font-weight: 600;
+}
+
+.toggle-sidebar-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #495057;
+  transition: color 0.2s ease;
+}
+
+.toggle-sidebar-btn:hover {
+  color: #00a651;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notification-badge {
+  background-color: #00a651;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.admin-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.admin-role {
+  color: #718096;
+  font-size: 0.9rem;
+}
