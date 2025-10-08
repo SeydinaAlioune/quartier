@@ -1,66 +1,86 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Projects.css';
+import api from '../../services/api';
+import { Link } from 'react-router-dom';
 
 const Projects = () => {
-  const [projects] = useState([
-    {
-      id: 1,
-      title: "Rénovation du jardin d'enfant",
-      startDate: "15 novembre 2023",
-      endDate: "15 mars 2024",
-      description: "Rénovation complète du jardin d'enfants avec installation de nouveaux équipements de jeux, création d'espaces verts et mise en place d'un environnement sécurisé pour les enfants.",
-      progress: 25,
-      image: "/images/Central.png"
-    },
-    {
-      id: 2,
-      title: "Rénovation case des tout petits",
-      startDate: "En cours",
-      endDate: "31 décembre 2023",
-      description: "Réhabilitation de la case des tout petits pour améliorer l'accueil des jeunes enfants. Rénovation des salles d'activités, mise aux normes des installations et création d'espaces adaptés aux activités éducatives.",
-      progress: 70,
-      image: "/images/residence.png"
-    },
-    {
-      id: 3,
-      title: "Rénovation mosque de la cite gendarmerie",
-      startDate: "1er février 2024",
-      endDate: "30 juin 2024",
-      description: "Travaux de rénovation de la mosquée incluant la réfection de la toiture, la peinture des murs, l'amélioration du système de ventilation et la rénovation des espaces d'ablution.",
-      progress: 10,
-      phase: "Phase de préparation",
-      image: "/images/Cyclables.png"
-    }
-  ]);
-
-  const [events] = useState([
-    {
-      title: "Réunion Publique - Parc Central",
-      description: "Présentation du projet de rénovation du parc central et consultation des habitants.",
-      date: "25 novembre 2023, 18h30",
-      location: "Salle municipale"
-    },
-    {
-      title: "Atelier Participatif - Pistes Cyclables",
-      description: "Atelier de réflexion sur le parcours idéal des futures pistes cyclables.",
-      date: "12 décembre 2023, 17h00",
-      location: "Centre culturel"
-    },
-    {
-      title: "Clôture du Programme de Rénovation Énergétique",
-      description: "Bilan du programme et présentation des résultats obtenus.",
-      date: "15 janvier 2024, 18h00",
-      location: "Mairie de quartier"
-    },
-    {
-      title: "Inauguration de la Première Phase du Parc Central",
-      description: "Ouverture de l'aire de jeux pour enfants rénovée.",
-      date: "1er mars 2024, 11h00",
-      location: "Parc Central"
-    }
-  ]);
+  const [projects, setProjects] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [projConfig, setProjConfig] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchAll = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const [prjRes, evtRes, cfgRes] = await Promise.all([
+          api.get('/api/projects'),
+          api.get('/api/events'),
+          api.get('/api/projects/config'),
+        ]);
+        if (!mounted) return;
+        const prjArr = Array.isArray(prjRes.data) ? prjRes.data : [];
+        const evtArr = Array.isArray(evtRes.data) ? evtRes.data : [];
+        const cfgObj = cfgRes?.data || null;
+        setProjConfig(cfgObj);
+        // Adapter les champs à l'UI existante
+        const base = api.defaults.baseURL || '';
+        const toAbsolute = (u) => {
+          if (!u) return '';
+          if (u.startsWith('http')) return u;
+          const sep = u.startsWith('/') ? '' : '/';
+          return `${base}${sep}${u}`;
+        };
+        setProjects(prjArr.map(p => {
+          const firstImage = Array.isArray(p.attachments) ? p.attachments.find(a => a.type === 'image' && a.url) : null;
+          const start = p?.timeline?.startDate ? new Date(p.timeline.startDate) : null;
+          const end = p?.timeline?.endDate ? new Date(p.timeline.endDate) : null;
+          let progress = 0;
+          // 1) prioriser la valeur saisie par l'admin si présente
+          if (typeof p?.progress === 'number' && !Number.isNaN(p.progress)) {
+            progress = Math.max(0, Math.min(100, Math.round(p.progress)));
+          } else if (p?.budget?.estimated > 0 && p?.budget?.collected > 0) {
+            progress = Math.min(100, Math.max(0, Math.round((p.budget.collected / p.budget.estimated) * 100)));
+          } else {
+            // fallback based on status
+            const map = cfgObj?.progressByStatus || { proposed: 5, planning: 15, in_progress: 50, completed: 100, cancelled: 0 };
+            progress = map[p.status] != null ? Number(map[p.status]) : 0;
+          }
+          const statusLabels = { in_progress: 'en cours', planning: 'planifié', completed: 'terminé', proposed: 'en attente', cancelled: 'annulé' };
+          return {
+            id: p._id || p.id,
+            raw: p,
+            title: p.title,
+            startDate: start ? start.toLocaleDateString('fr-FR') : '—',
+            endDate: end ? end.toLocaleDateString('fr-FR') : '—',
+            description: p.description,
+            progress,
+            phase: p.status,
+            phaseLabel: statusLabels[p.status] || p.status || '',
+            image: firstImage?.url ? toAbsolute(firstImage.url) : 'https://via.placeholder.com/800x400?text=Projet',
+          };
+        }));
+        setEvents(evtArr.map(e => ({
+          id: e._id || e.id,
+          title: e.title,
+          description: e.description,
+          date: e.date ? new Date(e.date).toLocaleString('fr-FR') : '—',
+          location: e.location || '—',
+        })));
+      } catch (e) {
+        if (mounted) setError("Impossible de charger les projets/événements.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchAll();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="projects-page">
@@ -71,28 +91,34 @@ const Projects = () => {
 
       <section className="projects-section">
         <h2>Projets en Cours</h2>
+        {loading && <p>Chargement des projets...</p>}
+        {!loading && error && <p className="projects-error">{error}</p>}
+        {!loading && !error && projects.length === 0 && (
+          <p>Aucun projet pour le moment. Les administrateurs pourront en ajouter prochainement.</p>
+        )}
         <div className="projects-grid">
           {projects.map(project => (
-            <div key={project.id} className="project-card" onClick={() => setSelectedProject(project)}>
-              <div 
-                className="project-image" 
-                style={{
-                  backgroundImage: `url(${project.image})`
-                }}
-              />
+            <div key={project.id} className="project-card">
+              <img className="project-image" src={project.image} alt="" />
               <div className="project-content">
                 <h3>{project.title}</h3>
                 <p className="project-dates">Du {project.startDate} au {project.endDate}</p>
                 <p className="project-description">{project.description}</p>
+                {project.raw?.budget?.estimated != null && (
+                  <div className="project-budget">Budget estimé: {project.raw.budget.estimated.toLocaleString('fr-FR')} €</div>
+                )}
                 <div className="progress-container">
                   <div className="progress-bar">
                     <div className="progress" style={{width: `${project.progress}%`}}></div>
                   </div>
                   <span className="progress-text">
-                    Avancement: {project.progress}% {project.phase ? `(${project.phase})` : ''}
+                    Avancement: {project.progress}% {project.phaseLabel ? `(${project.phaseLabel})` : ''}
                   </span>
                 </div>
-                <button className="details-button">Voir les détails</button>
+                <div style={{display:'flex', gap:'.5rem', marginTop:'.5rem'}}>
+                  <button className="details-button" onClick={() => setSelectedProject(project)} style={{flex:1}}>Voir les détails</button>
+                  <Link className="donate-button" to={`/dons?project=${project.id}`} style={{flex:1, textAlign:'center', textDecoration:'none'}}>Soutenir ce projet</Link>
+                </div>
               </div>
             </div>
           ))}
@@ -101,15 +127,17 @@ const Projects = () => {
 
       <section className="events-section">
         <h2>Calendrier des Événements</h2>
+        {loading && <p>Chargement des événements...</p>}
+        {!loading && error && <p className="projects-error">{error}</p>}
+        {!loading && !error && events.length === 0 && (
+          <p>Aucun événement planifié.</p>
+        )}
         <div className="timeline">
-          {events.map((event, index) => (
-            <div key={index} className="timeline-item">
+          {events.map((event) => (
+            <div key={event.id} className="timeline-item">
               <div className="timeline-content">
-                <h3>{event.title}</h3>
-                <p>{event.description}</p>
-                <div className="event-details">
-                  {event.date} - {event.location}
-                </div>
+                <h3>{event.title} — {event.location} — {event.date}</h3>
+                {event.description && <p>{event.description}</p>}
               </div>
             </div>
           ))}
@@ -120,21 +148,53 @@ const Projects = () => {
         <div className="project-details-modal">
           <div className="modal-content">
             <h2>{selectedProject.title}</h2>
+            {selectedProject.image && (
+              <div style={{marginBottom: '1rem'}}>
+                <img src={selectedProject.image} alt="" style={{width:'100%', maxHeight:'280px', objectFit:'cover', borderRadius:6}} />
+              </div>
+            )}
             <div className="project-info">
               <div className="info-item">
                 <h4>Budget:</h4>
-                <p>350 000 €</p>
+                <p>
+                  {selectedProject.raw?.budget?.estimated != null ? `${selectedProject.raw.budget.estimated.toLocaleString('fr-FR')} €` : '—'}
+                  {selectedProject.raw?.budget?.collected != null ? ` (collecté: ${selectedProject.raw.budget.collected.toLocaleString('fr-FR')} €)` : ''}
+                </p>
               </div>
               <div className="info-item">
-                <h4>Financement:</h4>
-                <p>Budget municipal (60%), Subvention régionale (30%), Participation citoyenne (10%)</p>
+                <h4>Catégorie / Statut:</h4>
+                <p>{selectedProject.raw?.category || '—'} / {selectedProject.raw?.status || '—'}</p>
               </div>
               <div className="info-item">
                 <h4>Responsable:</h4>
-                <p>Service des Espaces Verts - Mme Dupont</p>
+                <p>{selectedProject.raw?.organizer?.name || '—'}</p>
               </div>
+              {Array.isArray(selectedProject.raw?.attachments) && selectedProject.raw.attachments.length > 0 && (
+                <div className="info-item">
+                  <h4>Galerie:</h4>
+                  <div style={{display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
+                  {selectedProject.raw.attachments.map((att, idx) => {
+                    const base = api.defaults.baseURL || '';
+                    const sep = att.url?.startsWith('/') ? '' : '/';
+                    const url = att.url?.startsWith('http') ? att.url : `${base}${sep}${att.url}`;
+                    return (
+                      <a key={idx} href={url} target="_blank" rel="noreferrer">
+                        {att.type === 'image' ? (
+                          <img src={url} alt="pièce jointe" style={{width: 96, height: 72, objectFit: 'cover', borderRadius: 6, border:'1px solid #eee'}} />
+                        ) : (
+                          <span>Fichier</span>
+                        )}
+                      </a>
+                    );
+                  })}
+                  </div>
+                </div>
+              )}
             </div>
-            <button onClick={() => setSelectedProject(null)}>Fermer</button>
+            <div style={{display:'flex', gap:'.5rem', marginTop:'.5rem'}}>
+              <Link className="donate-button" to={`/dons?project=${selectedProject.id}`} style={{flex:1, textAlign:'center', textDecoration:'none'}}>Soutenir ce projet</Link>
+              <button className="details-button" onClick={() => setSelectedProject(null)} style={{flex:1}}>Fermer</button>
+            </div>
           </div>
         </div>
       )}
@@ -143,27 +203,24 @@ const Projects = () => {
         <h2>Participez aux Projets du Quartier</h2>
         <p>Vous souhaitez vous impliquer dans l'amélioration de notre quartier? Rejoignez nos équipes de bénévoles ou participez aux réunions publiques!</p>
         <div className="action-buttons">
-          <button className="primary-button">Devenir Bénévole</button>
-          <button className="secondary-button">Proposer un Projet</button>
+          <Link to="/dons" className="primary-button" style={{ textDecoration: 'none', display: 'inline-block' }}>Devenir Bénévole</Link>
         </div>
       </section>
 
       <section className="faq-section">
         <h2>Questions Fréquentes</h2>
-        <div className="faq-grid">
-          <div className="faq-item">
-            <h3>Comment sont choisis les projets du quartier?</h3>
-            <p>Les projets sont sélectionnés selon un processus participatif qui combine les propositions des habitants, les priorités définies par le conseil de quartier et les...</p>
+        {Array.isArray(projConfig?.faq) && projConfig.faq.length > 0 ? (
+          <div className="faq-grid">
+            {projConfig.faq.map((item, idx) => (
+              <div className="faq-item" key={idx}>
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </div>
+            ))}
           </div>
-          <div className="faq-item">
-            <h3>Comment puis-je proposer un nouveau projet?</h3>
-            <p>Vous pouvez soumettre vos idées via le formulaire en ligne, lors des réunions publiques ou directement auprès de la mairie de quartier. Chaque proposition est...</p>
-          </div>
-          <div className="faq-item">
-            <h3>Comment sont financés les projets?</h3>
-            <p>Les projets sont financés par le budget municipal, des subventions régionales ou nationales, et parfois par des partenariats public-privé ou des campagnes de...</p>
-          </div>
-        </div>
+        ) : (
+          <p style={{marginTop:'1rem'}}>Les questions fréquentes seront bientôt disponibles.</p>
+        )}
       </section>
     </div>
   );

@@ -12,10 +12,13 @@ router.use(auth);
 router.use(checkRole(['admin']));
 
 // Routes pour la gestion des messages de contact
+router.get('/stats/summary', contactController.getContactStats);
+router.get('/stats/sources', contactController.getContactSources);
+router.post('/mark-all-read', contactController.markAllRead);
 router.get('/', contactController.getContacts);
-router.get('/:id', contactController.getContact);
 router.put('/:id/status', contactController.updateContactStatus);
 router.post('/:id/respond', contactController.respondToContact);
+router.get('/:id', contactController.getContact);
 
 // Routes pour la gestion des contacts d'urgence
 router.post('/emergency', contactController.createEmergencyContact);

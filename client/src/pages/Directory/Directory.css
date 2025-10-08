@@ -68,6 +68,33 @@
   margin: 2rem 0;
 }
 
+/* Filtres annuaire */
+.directory-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 1rem;
+}
+
+.dir-search-input {
+  flex: 1;
+  min-width: 240px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.dir-filter-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  min-width: 180px;
+  font-size: 0.95rem;
+}
+
 .contact-category {
   background: white;
   border-radius: 8px;

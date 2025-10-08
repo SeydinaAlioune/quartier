@@ -1,80 +1,71 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Annonces from './Annonces';
 import BoiteIdees from './BoiteIdees';
 import './Forum.css';
+import api from '../../services/api';
 
 const Forum = () => {
-  const [discussions, setDiscussions] = useState([
-    {
-      id: 1,
-      title: "Nuisances sonores le weekend",
-      category: "Vie quotidienne",
-      content: "Bonjour à tous, je voulais savoir si d'autres personnes sont gênées par les bruits de travaux le dimanche matin dans la rue des Lilas...",
-      author: "Marie D.",
-      date: "Il y a 2 heures",
-      replies: 15,
-      isSticky: false
-    },
-    {
-      id: 2,
-      title: "Recherche babysitter pour janvier",
-      category: "Services",
-      content: "Nous recherchons une personne sérieuse pour garder nos deux enfants (4 et 6 ans) les mercredis après-midi à partir de janvier...",
-      author: "Thomas L.",
-      date: "Il y a 1 jour",
-      replies: 8,
-      isSticky: false
-    },
-    {
-      id: 3,
-      title: "Covoiturage vers le centre commercial",
-      category: "Transport",
-      content: "Je me rends au centre commercial tous les samedis matin. Si certains veulent partager le trajet pour économiser et réduire notre impact environnemental...",
-      author: "Julie M.",
-      date: "Il y a 3 jours",
-      replies: 12,
-      isSticky: false
-    }
-  ]);
-
-  const [categories] = useState([
-    "Toutes les catégories",
-    "Vie quotidienne",
-    "Services",
-    "Transport",
-    "Événements",
-    "Projets",
-    "Annonces"
-  ]);
+  const navigate = useNavigate();
+  // Données dynamiques depuis l'API du forum
+  const [topics, setTopics] = useState([]); // {id,title,category,author,replies,created,lastReply}
+  const [categories, setCategories] = useState([{ id: 'all', name: 'Toutes les catégories' }]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewDiscussion, setShowNewDiscussion] = useState(false);
-  const [newDiscussion, setNewDiscussion] = useState({
-    title: "",
-    category: "Vie quotidienne",
-    content: ""
-  });
+  const [newDiscussion, setNewDiscussion] = useState({ title: '', categoryId: '', content: '' });
 
-  const handleNewDiscussionSubmit = (e) => {
-    e.preventDefault();
-    const discussion = {
-      id: discussions.length + 1,
-      ...newDiscussion,
-      author: "Utilisateur",
-      date: "À l'instant",
-      replies: 0,
-      isSticky: false
+  // Charger catégories et sujets récents
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const [catRes, topicsRes] = await Promise.all([
+          api.get('/api/forum/categories'),
+          api.get('/api/forum/topics/recent'),
+        ]);
+        if (!mounted) return;
+        const cats = Array.isArray(catRes.data) ? catRes.data : [];
+        setCategories([{ id: 'all', name: 'Toutes les catégories' }, ...cats.map(c => ({ id: c.id || c._id, name: c.name }))]);
+        const list = Array.isArray(topicsRes.data) ? topicsRes.data : [];
+        setTopics(list);
+      } catch (e) {
+        if (mounted) setError('Impossible de charger le forum.');
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
-    setDiscussions([discussion, ...discussions]);
-    setNewDiscussion({ title: "", category: "Vie quotidienne", content: "" });
-    setShowNewDiscussion(false);
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const handleNewDiscussionSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return navigate('/login');
+    }
+    try {
+      const payload = { title: newDiscussion.title, category: newDiscussion.categoryId };
+      await api.post('/api/forum/topics', payload);
+      setShowNewDiscussion(false);
+      setNewDiscussion({ title: '', categoryId: '', content: '' });
+      // recharger
+      const topicsRes = await api.get('/api/forum/topics/recent');
+      setTopics(Array.isArray(topicsRes.data) ? topicsRes.data : []);
+    } catch (err) {
+      alert("Impossible de créer la discussion (connexion requise).");
+    }
   };
 
-  const filteredDiscussions = discussions.filter(discussion => {
-    const matchesCategory = selectedCategory === "Toutes les catégories" || discussion.category === selectedCategory;
-    const matchesSearch = discussion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         discussion.content.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredTopics = topics.filter(t => {
+    const matchesCategory = selectedCategory === 'Toutes les catégories' || t.category === selectedCategory;
+    const matchesSearch = (t.title || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -100,7 +91,7 @@ const Forum = () => {
             className="category-select"
           >
             {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category.id} value={category.name}>{category.name}</option>
             ))}
           </select>
         </div>
@@ -113,23 +104,31 @@ const Forum = () => {
       </div>
 
       <section className="discussions-list">
-        {filteredDiscussions.map(discussion => (
-          <div key={discussion.id} className="discussion-card">
+        {loading && <div>Chargement du forum...</div>}
+        {!loading && error && (
+          <div className="empty-state"><p>{error}</p></div>
+        )}
+        {!loading && !error && filteredTopics.length === 0 && (
+          <div className="empty-state">
+            <p>Aucune discussion pour le moment. Soyez le premier à en créer une !</p>
+          </div>
+        )}
+        {!loading && !error && filteredTopics.map(t => (
+          <div key={t.id} className="discussion-card">
             <div className="discussion-main">
-              <h3>{discussion.title}</h3>
-              <p className="discussion-preview">{discussion.content}</p>
+              <h3>{t.title}</h3>
               <div className="discussion-meta">
-                <span className="category-tag">{discussion.category}</span>
-                <span className="author">Par {discussion.author}</span>
-                <span className="date">{discussion.date}</span>
+                <span className="category-tag">{t.category}</span>
+                <span className="author">Par {t.author}</span>
+                <span className="date">{new Date(t.created).toLocaleDateString('fr-FR')}</span>
               </div>
             </div>
             <div className="discussion-stats">
               <span className="replies">
                 <i className="far fa-comment"></i>
-                {discussion.replies} réponses
+                {t.replies} réponses
               </span>
-              <button className="view-discussion">Voir la discussion</button>
+              <button className="view-discussion" title="Voir (à venir)">Voir la discussion</button>
             </div>
           </div>
         ))}
@@ -149,18 +148,20 @@ const Forum = () => {
                   type="text"
                   placeholder="Le sujet de votre discussion"
                   value={newDiscussion.title}
-                  onChange={(e) => setNewDiscussion({...newDiscussion, title: e.target.value})}
+                  onChange={(e) => setNewDiscussion({ ...newDiscussion, title: e.target.value })}
                   required
                 />
               </div>
               <div className="form-group">
                 <label>Catégorie</label>
                 <select
-                  value={newDiscussion.category}
-                  onChange={(e) => setNewDiscussion({...newDiscussion, category: e.target.value})}
+                  value={newDiscussion.categoryId}
+                  onChange={(e) => setNewDiscussion({ ...newDiscussion, categoryId: e.target.value })}
+                  required
                 >
-                  {categories.slice(1).map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  <option value="">Sélectionnez une catégorie</option>
+                  {categories.filter(c => c.id !== 'all').map(category => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
                   ))}
                 </select>
               </div>
@@ -170,7 +171,7 @@ const Forum = () => {
                   placeholder="Détaillez votre message ici..."
                   rows="5"
                   value={newDiscussion.content}
-                  onChange={(e) => setNewDiscussion({...newDiscussion, content: e.target.value})}
+                  onChange={(e) => setNewDiscussion({ ...newDiscussion, content: e.target.value })}
                   required
                 ></textarea>
               </div>

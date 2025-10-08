@@ -119,12 +119,15 @@ exports.deleteBusiness = async (req, res) => {
             return res.status(404).json({ message: 'Commerce non trouvé' });
         }
 
-        // Vérifier les droits
-        if (business.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Non autorisé' });
+        // Vérifier les droits: propriétaire OU admin/modérateur
+        const isOwner = business.owner && business.owner.toString() === req.user._id.toString();
+        const isPrivileged = ['admin', 'moderator'].includes(req.user.role);
+        if (!isOwner && !isPrivileged) {
+            return res.status(403).json({ message: 'Non autorisé: seuls le propriétaire, un administrateur ou un modérateur peuvent supprimer.' });
         }
 
-        await business.remove();
+        // Mongoose 7: remove() n'existe plus sur les documents
+        await business.deleteOne();
         res.json({ message: 'Commerce supprimé avec succès' });
     } catch (error) {
         console.error('Erreur suppression commerce:', error);

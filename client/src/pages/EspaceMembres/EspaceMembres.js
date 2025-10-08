@@ -1,8 +1,49 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../services/api';
 import './EspaceMembres.css';
 
 const EspaceMembres = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+
+  useEffect(() => {
+    // Pré-remplir depuis le user connecté si disponible
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (user) {
+      setForm(prev => ({ ...prev, name: user.name || prev.name, email: user.email || prev.email }));
+    }
+  }, []);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    try {
+      setSending(true);
+      setError('');
+      setSuccess('');
+      const payload = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        subject: form.subject || 'Support Espace Membres',
+        message: form.message,
+        category: 'support',
+        source: 'espace_membres'
+      };
+      await api.post('/api/contact/submit', payload);
+      setSuccess('Message envoyé. Nous vous répondrons rapidement.');
+      setForm({ name: form.name, email: form.email, phone: '', subject: '', message: '' });
+      // Fermer après un court délai
+      setTimeout(() => { setShowModal(false); setSuccess(''); }, 1200);
+    } catch (err) {
+      setError("Impossible d'envoyer le message. Réessayez plus tard.");
+    } finally {
+      setSending(false);
+    }
+  };
   return (
     <div className="espace-membres">
       <div className="header-section">
@@ -83,12 +124,44 @@ const EspaceMembres = () => {
           <div>
             <strong>Téléphone:</strong> 01 XX XX XX XX (du lundi au vendredi, 9h-18h)
           </div>
-          <div>
-            <strong>En personne:</strong> Permanence à la mairie de quartier les mardis de 14h à 16h
+        </div>
+        <button className="contact-button" onClick={() => setShowModal(true)}>Envoyer un message</button>
+      </div>
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Envoyer un message</h3>
+            <form onSubmit={submit}>
+              <div className="form-row">
+                <label>Nom</label>
+                <input type="text" value={form.name} onChange={(e)=>setForm({...form, name:e.target.value})} required />
+              </div>
+              <div className="form-row">
+                <label>Email</label>
+                <input type="email" value={form.email} onChange={(e)=>setForm({...form, email:e.target.value})} required />
+              </div>
+              <div className="form-row">
+                <label>Téléphone</label>
+                <input type="tel" value={form.phone} onChange={(e)=>setForm({...form, phone:e.target.value})} placeholder="Optionnel" />
+              </div>
+              <div className="form-row">
+                <label>Objet</label>
+                <input type="text" value={form.subject} onChange={(e)=>setForm({...form, subject:e.target.value})} placeholder="Support Espace Membres" />
+              </div>
+              <div className="form-row">
+                <label>Message</label>
+                <textarea rows="4" value={form.message} onChange={(e)=>setForm({...form, message:e.target.value})} required />
+              </div>
+              {error && <div className="form-error">{error}</div>}
+              {success && <div className="form-success">{success}</div>}
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={()=>setShowModal(false)}>Annuler</button>
+                <button type="submit" className="btn-primary" disabled={sending}>{sending ? 'Envoi...' : 'Envoyer'}</button>
+              </div>
+            </form>
           </div>
         </div>
-        <button className="contact-button">Envoyer un message</button>
-      </div>
+      )}
     </div>
   );
 };

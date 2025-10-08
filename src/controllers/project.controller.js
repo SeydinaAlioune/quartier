@@ -19,6 +19,26 @@ exports.createProject = async (req, res) => {
     }
 };
 
+// Supprimer un projet
+exports.deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
+
+    const isOrganizer = project.organizer.toString() === req.user._id.toString();
+    const isPrivileged = req.user.role === 'admin' || req.user.role === 'moderator';
+    if (!isOrganizer && !isPrivileged) {
+      return res.status(403).json({ message: 'Non autorisé' });
+    }
+
+    await project.deleteOne();
+    res.json({ message: 'Projet supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur suppression projet:', error);
+    res.status(500).json({ message: 'Erreur lors de la suppression du projet' });
+  }
+};
+
 // Récupérer tous les projets
 exports.getProjects = async (req, res) => {
     try {
@@ -61,38 +81,40 @@ exports.getProject = async (req, res) => {
 
 // Mettre à jour un projet
 exports.updateProject = async (req, res) => {
-    try {
-        const project = await Project.findById(req.params.id);
+  try {
+    const project = await Project.findById(req.params.id);
 
-        if (!project) {
-            return res.status(404).json({ message: 'Projet non trouvé' });
-        }
-
-        // Vérifier que l'utilisateur est l'organisateur ou un admin
-        if (project.organizer.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Non autorisé' });
-        }
-
-        const updatableFields = [
-            'title', 'description', 'status', 'category',
-            'location', 'budget', 'timeline'
-        ];
-
-        updatableFields.forEach(field => {
-            if (req.body[field] !== undefined) {
-                project[field] = req.body[field];
-            }
-        });
-
-        await project.save();
-        res.json({
-            message: 'Projet mis à jour avec succès',
-            project
-        });
-    } catch (error) {
-        console.error('Erreur mise à jour projet:', error);
-        res.status(500).json({ message: 'Erreur lors de la mise à jour du projet' });
+    if (!project) {
+      return res.status(404).json({ message: 'Projet non trouvé' });
     }
+
+    // Vérifier que l'utilisateur est l'organisateur ou un admin/modérateur
+    const isOrganizer = project.organizer.toString() === req.user._id.toString();
+    const isPrivileged = req.user.role === 'admin' || req.user.role === 'moderator';
+    if (!isOrganizer && !isPrivileged) {
+      return res.status(403).json({ message: 'Non autorisé' });
+    }
+
+    const updatableFields = [
+      'title', 'description', 'status', 'category',
+      'location', 'budget', 'timeline', 'attachments'
+    ];
+
+    updatableFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        project[field] = req.body[field];
+      }
+    });
+
+    await project.save();
+    res.json({
+      message: 'Projet mis à jour avec succès',
+      project
+    });
+  } catch (error) {
+    console.error('Erreur mise à jour projet:', error);
+    res.status(500).json({ message: 'Erreur lors de la mise à jour du projet' });
+  }
 };
 
 // Participer à un projet

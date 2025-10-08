@@ -11,4 +11,7 @@ router.get('/users', adminController.getAllUsers);
 router.put('/users/:id/role', adminController.updateUserRole);
 router.put('/users/:id/status', adminController.updateUserStatus);
 
+// Statistiques du tableau de bord
+router.get('/stats', adminController.getDashboardStats);
+
 module.exports = router;

@@ -1,0 +1,17 @@
+.payments-config{padding:1rem}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+.card{background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.08); padding:1rem}
+.card.error{background:#fff3f3; border:1px solid #ffd5d5; color:#7a1f1f}
+.form-row{display:flex; flex-direction:column; gap:6px; margin-bottom:10px}
+.form-row label{color:#374151; font-weight:600}
+.form-row input,.form-row textarea,.form-row select{padding:10px 12px; border:1px solid #e5e7eb; border-radius:6px; outline:none}
+.secrets{display:flex; flex-direction:column; gap:8px}
+.secret-row{display:grid; grid-template-columns: 160px 1fr auto; gap:8px; align-items:center}
+.secret-label{color:#374151; font-weight:600}
+.secret-value{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color:#111827}
+.secret-actions{display:flex; gap:6px}
+.secret-edit{display:flex; flex-direction:column; gap:6px; padding:8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px}
+.secret-edit-actions{display:flex; justify-content:flex-end}
+.btn{background:#e5e7eb; border:none; border-radius:6px; padding:8px 10px; cursor:pointer}
+.btn.primary{background:#00a651; color:#fff}
+@media(max-width: 1024px){.grid{grid-template-columns:1fr}}

@@ -31,3 +31,22 @@ exports.isAdmin = (req, res, next) => {
         res.status(403).json({ message: 'Accès refusé. Droits d\'administrateur requis.' });
     }
 };
+
+// Vérification générique des rôles
+// Usage: checkRole(['admin']) ou checkRole('admin')
+exports.checkRole = (roles) => {
+    const allowed = Array.isArray(roles) ? roles : [roles];
+    return (req, res, next) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({ message: 'Authentification requise' });
+            }
+            if (!allowed.includes(req.user.role)) {
+                return res.status(403).json({ message: `Accès refusé. Rôle requis: ${allowed.join(', ')}` });
+            }
+            next();
+        } catch (error) {
+            next(error);
+        }
+    };
+};

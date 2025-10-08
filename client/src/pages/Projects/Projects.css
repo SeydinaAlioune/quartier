@@ -50,11 +50,10 @@
 .project-image {
   width: 100%;
   height: 250px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: cover;
   border-bottom: 1px solid #eee;
   display: block;
+  background-color: #f6f6f6;
 }
 
 .project-content {
@@ -106,6 +105,7 @@
   color: #666;
   font-size: 0.9rem;
   display: block;
+  margin-top: 0.25rem;
 }
 
 .details-button {
@@ -118,14 +118,36 @@
   width: 100%;
   font-size: 1rem;
   transition: background-color 0.3s ease;
+  margin-top: 0.75rem;
 }
 
 .details-button:hover {
   background-color: #008c44;
 }
 
+.donate-button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+.donate-button:hover {
+  background-color: #115293;
+}
+
 .events-section {
   margin: 4rem 0;
+}
+
+.project-budget {
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 1rem;
 }
 
 .events-section h2 {
@@ -220,8 +242,10 @@
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  max-width: 600px;
+  max-width: 560px;
   width: 90%;
+  max-height: 80vh;
+  overflow: auto;
 }
 
 .project-info {

@@ -106,6 +106,11 @@
   color: white;
 }
 
+/* Header actions (e.g., Configurer) */
+.header-actions { display: flex; gap: 0.5rem; align-items: center; }
+.config-btn { background-color: #0dcaf0; color: #fff; border: none; border-radius: 4px; padding: 0.5rem 1rem; cursor: pointer; }
+.config-btn:hover { background-color: #0bb5da; }
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -272,6 +277,60 @@
   color: #718096;
   font-size: 0.9rem;
   margin-top: 0.5rem;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  padding: 1.25rem 1.25rem 1rem;
+}
+
+.modal h3 { margin: 0 0 0.75rem 0; font-size: 1.25rem; }
+.form-row { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.85rem; }
+.form-row label { font-weight: 600; color: #2d3748; }
+.form-row input, .form-row select, .form-row textarea {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.form-row textarea { min-height: 110px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.modal-actions { margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: flex-end; }
+.btn-primary, .btn-secondary { padding: 0.75rem 1.25rem; border-radius: 8px; border: none; cursor: pointer; }
+.btn-primary { background: #00843D; color: #fff; }
+.btn-secondary { background: #edf2f7; color: #2d3748; }
+
+@media (max-width: 600px) {
+  .two-col { grid-template-columns: 1fr; }
+  .modal { max-width: 92vw; max-height: calc(100vh - 80px); }
+}
+
+/* Error banner */
+.error-banner {
+  background: #fed7d7;
+  color: #742a2a;
+  border: 1px solid #feb2b2;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin: 0.75rem 0 1rem;
 }
 
 @media (max-width: 768px) {

@@ -422,3 +422,99 @@
     justify-content: center;
   }
 }
+
+/* Modale (Admin Directory) */
+.directory-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.directory-page .modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  padding: 1.25rem 1.25rem 1rem;
+}
+
+.directory-page .modal h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+}
+
+.directory-page .modal .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.directory-page .modal .form-row label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.directory-page .modal .form-row input,
+.directory-page .modal .form-row select,
+.directory-page .modal .form-row textarea {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  min-height: 110px;
+}
+
+.directory-page .modal .form-hint {
+  color: #718096;
+  font-size: 0.8rem;
+}
+
+.directory-page .modal .form-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .directory-page .modal {
+    max-width: 92vw;
+    max-height: calc(100vh - 80px);
+  }
+  .directory-page .modal .form-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.directory-page .modal .modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.directory-page .modal .btn-primary,
+.directory-page .modal .btn-secondary {
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.directory-page .modal .btn-primary {
+  background: #00a651;
+  color: #fff;
+}
+
+.directory-page .modal .btn-secondary {
+  background: #edf2f7;
+  color: #2d3748;
+}

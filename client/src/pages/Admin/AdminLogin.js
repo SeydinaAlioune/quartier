@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
@@ -20,11 +21,25 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Pour l'instant, nous allons juste simuler la connexion
-    if (credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
-      // Redirection vers le tableau de bord
-      navigate('/admin/dashboard');
-    } else {
+    setError('');
+    // 1) Essayer la connexion via l'API
+    try {
+      const res = await api.post('/api/auth/login', {
+        email: credentials.email,
+        password: credentials.password,
+      });
+      // Stocker le token et l'utilisateur
+      if (res?.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+      }
+      // Vérifier le rôle admin
+      if (res?.data?.user?.role === 'admin') {
+        return navigate('/admin/dashboard');
+      }
+      // Si l'utilisateur n'est pas admin, afficher un message
+      return setError("Accès refusé: compte non administrateur");
+    } catch (err) {
       setError('Email ou mot de passe incorrect');
     }
   };

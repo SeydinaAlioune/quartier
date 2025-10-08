@@ -1,5 +1,6 @@
 const { Contact, EmergencyContact } = require('../models/contact.model');
 const { createSystemNotification } = require('./notification.controller');
+const User = require('../models/user.model');
 
 // Envoyer un message de contact
 exports.submitContact = async (req, res) => {
@@ -31,12 +32,39 @@ exports.submitContact = async (req, res) => {
     }
 };
 
+// Assigner / libérer un message
+exports.assignContact = async (req, res) => {
+    try {
+        const contact = await Contact.findById(req.params.id);
+        if (!contact) return res.status(404).json({ message: 'Message non trouvé' });
+        const { action, assignedTo } = req.body || {};
+        if (action === 'unassign') {
+            contact.assignedTo = undefined;
+        } else {
+            if (assignedTo === 'self' || !assignedTo) {
+                contact.assignedTo = req.user._id;
+            } else {
+                contact.assignedTo = assignedTo;
+            }
+        }
+        await contact.save();
+        res.json({ message: 'Assignation mise à jour', contact });
+    } catch (error) {
+        console.error('Erreur assignation contact:', error);
+        res.status(500).json({ message: 'Erreur lors de l\'assignation' });
+    }
+};
+
 // Obtenir tous les messages de contact
 exports.getContacts = async (req, res) => {
     try {
         const {
             status,
             category,
+            source,
+            mine,
+            unassigned,
+            assignedTo,
             sort = '-createdAt',
             page = 1,
             limit = 20
@@ -45,6 +73,14 @@ exports.getContacts = async (req, res) => {
         const query = {};
         if (status) query.status = status;
         if (category) query.category = category;
+        if (source) query.source = source;
+        if (mine === 'true') {
+            query.assignedTo = req.user?._id;
+        } else if (unassigned === 'true') {
+            query.$or = [{ assignedTo: { $exists: false } }, { assignedTo: null }];
+        } else if (assignedTo) {
+            query.assignedTo = assignedTo;
+        }
 
         const contacts = await Contact.find(query)
             .populate('assignedTo', 'name')
@@ -63,6 +99,68 @@ exports.getContacts = async (req, res) => {
     } catch (error) {
         console.error('Erreur récupération messages:', error);
         res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
+    }
+};
+
+// Statistiques agrégées pour les messages de contact
+exports.getContactStats = async (req, res) => {
+    try {
+        const byStatusAgg = await Contact.aggregate([
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+        const bySourceAgg = await Contact.aggregate([
+            { $group: { _id: '$source', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ]);
+        const mapStatus = byStatusAgg.reduce((acc, cur) => { acc[cur._id || 'unknown'] = cur.count; return acc; }, {});
+        const total = Object.values(mapStatus).reduce((a,b)=>a+b,0);
+        const unassignedCount = await Contact.countDocuments({ $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }] });
+        const mineFilter = req.user?._id ? { assignedTo: req.user._id } : {};
+        const mineTotal = req.user?._id ? await Contact.countDocuments(mineFilter) : 0;
+        const mineNew = req.user?._id ? await Contact.countDocuments({ ...mineFilter, status: 'new' }) : 0;
+        res.json({
+            total,
+            byStatus: {
+                new: mapStatus.new || 0,
+                in_progress: mapStatus.in_progress || 0,
+                resolved: mapStatus.resolved || 0,
+                closed: mapStatus.closed || 0
+            },
+            bySource: bySourceAgg,
+            assigned: {
+                unassigned: unassignedCount,
+                mineTotal,
+                mineNew
+            }
+        });
+    } catch (error) {
+        console.error('Erreur stats contacts:', error);
+        res.status(500).json({ message: 'Erreur lors de la récupération des statistiques' });
+    }
+};
+
+// Sources distinctes
+exports.getContactSources = async (req, res) => {
+    try {
+        const agg = await Contact.aggregate([
+            { $group: { _id: '$source', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ]);
+        res.json(agg);
+    } catch (error) {
+        console.error('Erreur sources contacts:', error);
+        res.status(500).json({ message: 'Erreur lors de la récupération des sources' });
+    }
+};
+
+// Marquer tous les nouveaux comme "en cours" (mark as read)
+exports.markAllRead = async (req, res) => {
+    try {
+        const r = await Contact.updateMany({ status: 'new' }, { $set: { status: 'in_progress' } });
+        res.json({ updated: r.modifiedCount || r.nModified || 0 });
+    } catch (error) {
+        console.error('Erreur markAllRead:', error);
+        res.status(500).json({ message: 'Erreur lors du marquage en lu' });
     }
 };
 

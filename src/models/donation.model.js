@@ -32,6 +32,11 @@ const donationCampaignSchema = new mongoose.Schema({
         enum: ['telethon', 'project', 'emergency', 'community', 'other'],
         required: true
     },
+    // Lien optionnel vers un projet (pour category = 'project')
+    project: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Project'
+    },
     status: {
         type: String,
         enum: ['active', 'completed', 'cancelled'],
@@ -89,7 +94,7 @@ const donationSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['card', 'bank_transfer', 'paypal'],
+        enum: ['wave', 'orange'],
         required: true
     },
     transactionId: String,

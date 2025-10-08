@@ -1,0 +1,32 @@
+.messages-page{padding:1rem}
+.toolbar{display:flex; gap:.75rem; align-items:center; margin-bottom:1rem}
+.toolbar .search{flex:1; padding:.6rem .75rem; border:1px solid #e5e7eb; border-radius:6px}
+.toolbar .filters{display:flex; gap:.5rem}
+.toolbar .btn{background:#00a651; color:#fff; border:none; padding:.55rem .8rem; border-radius:6px; cursor:pointer}
+
+.layout{display:grid; grid-template-columns: 360px 1fr; gap:1rem}
+.list{background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.08); padding:.5rem; max-height:70vh; overflow:auto}
+.detail{background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.08); padding:1rem; max-height:70vh; overflow:auto}
+
+.card{background:#fff; border-radius:8px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card.error{background:#fff3f3; border:1px solid #ffd5d5; color:#7a1f1f}
+
+.item{border-bottom:1px solid #f1f3f5; padding:.5rem; cursor:pointer}
+.item:hover{background:#f9fafb}
+.item.active{background:#eefbf3}
+.item-top{display:flex; justify-content:space-between; gap:.5rem}
+.item-top .subject{font-weight:600; color:#1f2937; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.status{padding:.2rem .5rem; border-radius:999px; font-size:.75rem; text-transform:capitalize}
+.status.new{background:#e3fcec; color:#065f46}
+.status.in_progress{background:#fffbeb; color:#92400e}
+.status.resolved{background:#eff6ff; color:#1e40af}
+.status.closed{background:#f3f4f6; color:#374151}
+.item-bottom{display:flex; justify-content:space-between; color:#6b7280; font-size:.85rem}
+
+.detail-card{display:flex; flex-direction:column; gap:.75rem}
+.detail-meta{display:flex; justify-content:space-between; color:#6b7280; font-size:.9rem}
+.detail-actions{display:flex; gap:.5rem}
+.detail-actions .btn{background:#e5e7eb; border:none; padding:.45rem .7rem; border-radius:6px; cursor:pointer}
+.respond{display:flex; flex-direction:column; gap:.5rem; margin-top:.5rem}
+.respond textarea{width:100%; border:1px solid #e5e7eb; border-radius:6px; padding:.5rem}
+@media(max-width: 1024px){.layout{grid-template-columns:1fr}}

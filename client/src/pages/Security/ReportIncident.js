@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './ReportIncident.css';
 
-const ReportIncident = ({ onClose }) => {
+const ReportIncident = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     type: '',
     location: '',
@@ -9,7 +9,9 @@ const ReportIncident = ({ onClose }) => {
     date: '',
     time: '',
     contact: '',
-    anonymous: false
+    anonymous: false,
+    files: [],
+    coords: { lat: '', lng: '' },
   });
 
   const incidentTypes = [
@@ -30,11 +32,38 @@ const ReportIncident = ({ onClose }) => {
     }));
   };
 
+  const handleFilesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setFormData(prev => ({ ...prev, files }));
+  };
+
+  const handleCoordsChange = (e) => {
+    const { name, value } = e.target; // name = lat | lng
+    setFormData(prev => ({ ...prev, coords: { ...prev.coords, [name]: value } }));
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setFormData(prev => ({ ...prev, coords: { lat: latitude, lng: longitude } }));
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Ici nous ajouterons la logique pour envoyer le rapport
-    console.log('Rapport d\'incident:', formData);
-    onClose();
+    // Retourner les données au parent pour un ajout local
+    try {
+      if (onSubmit) {
+        onSubmit({ ...formData });
+      }
+    } finally {
+      onClose();
+    }
   };
 
   return (
@@ -120,6 +149,22 @@ const ReportIncident = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Votre numéro de téléphone ou email"
             />
+          </div>
+
+          <div className="form-group">
+            <label>Pièces jointes (photos)</label>
+            <input type="file" accept="image/*" multiple onChange={handleFilesChange} />
+          </div>
+
+          <div className="form-group">
+            <label>Localisation GPS (optionnel)</label>
+            <div className="form-row">
+              <input type="text" name="lat" placeholder="Latitude" value={formData.coords.lat} onChange={handleCoordsChange} />
+              <input type="text" name="lng" placeholder="Longitude" value={formData.coords.lng} onChange={handleCoordsChange} />
+            </div>
+            <div style={{marginTop: '.5rem'}}>
+              <button type="button" className="cancel-button" onClick={handleUseMyLocation}>Utiliser ma position</button>
+            </div>
           </div>
 
           <div className="form-group checkbox">

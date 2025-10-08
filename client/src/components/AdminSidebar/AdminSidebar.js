@@ -38,6 +38,10 @@ const AdminSidebar = ({ isCollapsed }) => {
           <div className="nav-icon">📘</div>
           <span className="nav-text">Annuaire</span>
         </Link>
+        <Link to="/admin/services" className={`nav-item ${isActive('/admin/services') ? 'active' : ''}`}>
+          <div className="nav-icon">🧰</div>
+          <span className="nav-text">Services</span>
+        </Link>
         <Link to="/admin/security" className={`nav-item ${isActive('/admin/security') ? 'active' : ''}`}>
           <div className="nav-icon">🛡️</div>
           <span className="nav-text">Sécurité</span>
@@ -45,6 +49,22 @@ const AdminSidebar = ({ isCollapsed }) => {
         <Link to="/admin/projects" className={`nav-item ${isActive('/admin/projects') ? 'active' : ''}`}>
           <div className="nav-icon">📋</div>
           <span className="nav-text">Projets</span>
+        </Link>
+        <Link to="/admin/events" className={`nav-item ${isActive('/admin/events') ? 'active' : ''}`}>
+          <div className="nav-icon">📅</div>
+          <span className="nav-text">Événements</span>
+        </Link>
+        <Link to="/admin/donations" className={`nav-item ${isActive('/admin/donations') ? 'active' : ''}`}>
+          <div className="nav-icon">💝</div>
+          <span className="nav-text">Dons</span>
+        </Link>
+        <Link to="/admin/messages" className={`nav-item ${isActive('/admin/messages') ? 'active' : ''}`}>
+          <div className="nav-icon">✉️</div>
+          <span className="nav-text">Messages</span>
+        </Link>
+        <Link to="/admin/payments-config" className={`nav-item ${isActive('/admin/payments-config') ? 'active' : ''}`}>
+          <div className="nav-icon">🔐</div>
+          <span className="nav-text">Config Paiements</span>
         </Link>
       </nav>
     </div>

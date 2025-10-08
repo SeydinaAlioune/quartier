@@ -137,7 +137,8 @@ exports.deleteService = async (req, res) => {
             return res.status(403).json({ message: 'Non autorisé' });
         }
 
-        await service.remove();
+        // Mongoose 7: remove() n'est plus disponible sur les documents
+        await service.deleteOne();
         res.json({ message: 'Service supprimé avec succès' });
     } catch (error) {
         console.error('Erreur suppression service:', error);

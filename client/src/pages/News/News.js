@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './News.css';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import api from '../../services/api';
+import { Link } from 'react-router-dom';
 
 const News = () => {
-  const latestArticles = [
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // Données par défaut (fallback)
+  const defaultArticles = [
     {
       id: 1,
       date: '2023-11-15',
@@ -28,6 +32,10 @@ const News = () => {
     }
   ];
 
+  const [latestArticles, setLatestArticles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const importantAnnouncements = [
     {
       id: 1,
@@ -48,41 +56,93 @@ const News = () => {
       buttonText: 'Ordre du jour'
     }
   ];
-
-  const upcomingEvents = [
-    {
-      id: 1,
-      date: '2023-11-25',
-      title: 'Atelier de jardinage communautaire',
-      time: '10h00 - 13h00',
-      location: 'Jardin partagé, rue des Rosiers',
-      description: 'Venez apprendre à planter et entretenir des légumes d\'hiver dans notre jardin communautaire.',
-      buttonText: 'Inscription'
-    },
-    {
-      id: 2,
-      date: '2023-12-02',
-      title: 'Marché de Noël du quartier',
-      time: '14h00 - 20h00',
-      location: 'Place centrale',
-      description: 'Notre traditionnel marché de Noël revient avec des stands d\'artisanat, de gastronomie et des animations pour les enfants.',
-      buttonText: 'Plus d\'infos'
-    },
-    {
-      id: 3,
-      date: '2023-12-10',
-      title: 'Concert de la chorale du quartier',
-      time: '19h00',
-      location: 'Église Saint-Michel',
-      description: 'La chorale du quartier vous propose un concert de chants de Noël traditionnels et modernes.',
-      buttonText: 'Réserver'
-    }
-  ];
+  // Événements (dynamiques)
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState('');
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return format(date, 'd MMMM yyyy', { locale: fr });
   };
+
+  const formatTime = (dateString) => {
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return '';
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    // N'afficher l'heure que si elle n'est pas minuit (valeur par défaut quand pas d'heure)
+    if (hh === '00' && mm === '00') return '';
+    return `${hh}h${mm}`;
+  };
+
+  // Chargement des articles depuis l'API avec fallback silencieux
+  useEffect(() => {
+    let mounted = true;
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await api.get('/api/posts?status=published&sort=-createdAt&limit=20&page=1');
+        if (!mounted) return;
+        const payload = res.data;
+        const list = Array.isArray(payload?.posts) ? payload.posts : (Array.isArray(payload) ? payload : []);
+        const items = list.map((p) => ({
+          id: p._id || p.id,
+          date: p.createdAt || new Date().toISOString(),
+          title: p.title,
+          description: p.content,
+          // Image de couverture si disponible
+          image: p.coverUrl ? `${API_BASE}${p.coverUrl}` : '/images/setsetal.jpg'
+        }));
+        setLatestArticles(items);
+      } catch (e) {
+        // On conserve defaultArticles en fallback, et on log l'erreur UI minimale
+        if (mounted) setError('Impossible de charger les actualités (affichage par défaut).');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    fetchPosts();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Charger les événements à venir depuis l'API
+  useEffect(() => {
+    let mounted = true;
+    const fetchEvents = async () => {
+      try {
+        setEventsLoading(true);
+        setEventsError('');
+        const res = await api.get('/api/events');
+        if (!mounted) return;
+        const list = Array.isArray(res.data) ? res.data : [];
+        const now = new Date();
+        const future = list.filter(ev => {
+          const d = new Date(ev.date);
+          return !Number.isNaN(d.getTime()) && d >= now;
+        }).sort((a, b) => new Date(a.date) - new Date(b.date));
+        const items = future.map(e => ({
+          id: e._id || e.id,
+          date: e.date,
+          title: e.title,
+          time: formatTime(e.date),
+          location: e.location || '—',
+          description: e.description,
+          buttonText: 'Plus d\'infos'
+        }));
+        setUpcomingEvents(items.slice(0, 5));
+      } catch (e) {
+        if (mounted) setEventsError("Impossible de charger les événements.");
+      } finally {
+        if (mounted) setEventsLoading(false);
+      }
+    };
+    fetchEvents();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="news-container">
@@ -93,6 +153,8 @@ const News = () => {
 
       <section className="latest-articles">
         <h2>Derniers Articles</h2>
+        {loading && <p>Chargement des actualités...</p>}
+        {!loading && error && <p className="news-error">{error}</p>}
         <div className="articles-grid">
           {latestArticles.map(article => (
             <div key={article.id} className="article-card">
@@ -101,7 +163,7 @@ const News = () => {
                 <span className="article-date">{format(new Date(article.date), 'd MMMM yyyy', { locale: fr })}</span>
                 <h3>{article.title}</h3>
                 <p>{article.description}</p>
-                <button className="read-more">Lire la suite</button>
+                <Link to={`/actualites/${article.id}`} state={{ article }} className="read-more">Lire la suite</Link>
               </div>
             </div>
           ))}
@@ -127,7 +189,12 @@ const News = () => {
       <section className="upcoming-events">
         <h2>Événements à Venir</h2>
         <div className="events-list">
-          {upcomingEvents.map(event => (
+          {eventsLoading && <p>Chargement des événements...</p>}
+          {!eventsLoading && eventsError && <p className="news-error">{eventsError}</p>}
+          {!eventsLoading && !eventsError && upcomingEvents.length === 0 && (
+            <p>Aucun événement à venir.</p>
+          )}
+          {!eventsLoading && !eventsError && upcomingEvents.map(event => (
             <div key={event.id} className="event-card">
               <div className="event-date">
                 <span className="month">{format(new Date(event.date), 'MMM', { locale: fr }).toUpperCase()}</span>
@@ -136,7 +203,7 @@ const News = () => {
               <div className="event-details">
                 <h3>{event.title}</h3>
                 <p className="event-time">
-                  <i className="icon-time"></i> {event.time}
+                  <i className="icon-time"></i> {event.time || '—'}
                   <i className="icon-location"></i> {event.location}
                 </p>
                 <p className="event-description">{event.description}</p>

@@ -261,17 +261,80 @@ tr:hover td {
 
 /* Boutons d'action */
 .action-btn {
-  padding: 0.5rem;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  opacity: 0.7;
+  opacity: 0.9;
+  text-decoration: none;
+  color: #2d3748;
+  white-space: nowrap;
+  word-break: keep-all;
+  line-height: 1.1;
+  font-size: 0.9rem;
+  min-width: max-content;
 }
 
 .action-btn:hover {
   opacity: 1;
-  transform: scale(1.1);
+  transform: translateY(-1px);
+}
+
+/* Modération: listes et cartes */
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+  word-break: normal;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-content {
+  margin-top: 8px;
+}
+
+.report-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  word-break: normal;
+}
+
+/* Filtres de modération (selects + input) */
+.filter-select,
+.search-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #2d3748;
+}
+
+.moderation-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Modales */

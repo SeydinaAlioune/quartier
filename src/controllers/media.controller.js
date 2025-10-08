@@ -11,13 +11,16 @@ exports.uploadMedia = async (req, res) => {
 
         const fileUrl = `/uploads/${req.file.filename}`;
         const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
+        const originalName = req.file.originalname ? path.parse(req.file.originalname).name : 'media';
+        const safeTitle = (req.body.title && String(req.body.title).trim()) || originalName;
+        const safeCategory = req.body.category || 'project';
 
         const media = new Media({
-            title: req.body.title,
+            title: safeTitle,
             description: req.body.description,
             type: fileType,
             url: fileUrl,
-            category: req.body.category,
+            category: safeCategory,
             tags: req.body.tags ? JSON.parse(req.body.tags) : [],
             metadata: req.body.metadata ? JSON.parse(req.body.metadata) : {},
             uploadedBy: req.user._id
@@ -50,7 +53,10 @@ exports.getMedia = async (req, res) => {
             limit = 20
         } = req.query;
 
-        const query = { status };
+        // Par défaut (sans paramètre) on filtre sur 'approved' pour le public.
+        // Si le client passe status=all, on n'ajoute PAS de filtre de statut.
+        const query = {};
+        if (status && status !== 'all') query.status = status;
         if (type) query.type = type;
         if (category) query.category = category;
 
@@ -149,7 +155,8 @@ exports.deleteMedia = async (req, res) => {
         const filePath = path.join('public', media.url);
         await deleteFile(filePath);
 
-        await media.remove();
+        // Mongoose 7: remove() is deprecated on documents
+        await media.deleteOne();
         res.json({ message: 'Média supprimé avec succès' });
     } catch (error) {
         console.error('Erreur suppression média:', error);

@@ -1,107 +1,300 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
 import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import './AdminNews.css';
+import api from '../../../services/api';
 
 const AdminNews = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize] = useState(10);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
-  const [showScheduler, setShowScheduler] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [editing, setEditing] = useState(null); // { id, title, content, status }
+  const [totalArticles, setTotalArticles] = useState(0);
+  const [publishedTotal, setPublishedTotal] = useState(null);
+  const [draftTotal, setDraftTotal] = useState(null);
+  const [mediaList, setMediaList] = useState([]);
+  const [mediaTotal, setMediaTotal] = useState(0);
+  const [mediaLoading, setMediaLoading] = useState(false);
+  const [mediaError, setMediaError] = useState('');
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState('');
+  const [commentsList, setCommentsList] = useState([]);
+  const [commentsFilter, setCommentsFilter] = useState('all'); // all|approved|pending|rejected
+  const [commentsTotal, setCommentsTotal] = useState(0);
+  const fileInputRef = useRef(null);
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // Quand on clique "Choisir dans la bibliothèque" depuis un formulaire, on marque la cible
+  // { mode: 'create' } ou { mode: 'edit', id }
+  const [chooseCoverFor, setChooseCoverFor] = useState(null);
+  // Modal sélecteur de média (au-dessus des autres modales)
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const pickerFileRef = useRef(null);
 
-  // Données simulées des articles
-  const articles = [
-    {
-      titre: "Rénovation du parc central",
-      categorie: "Travaux",
-      auteur: "Marie Dupont",
-      datePublication: "15/11/2023",
-      datePlanifiee: "20/11/2023",
-      statut: "Planifié",
-      vues: 245,
-      likes: 23,
-      commentaires: 12,
-      tags: ["urbanisme", "environnement"],
-      image: "parc.jpg"
-    },
-    {
-      titre: "Festival de quartier ce weekend",
-      categorie: "Événements",
-      auteur: "Thomas Martin",
-      datePublication: "14/11/2023",
-      statut: "Publié",
-      vues: 189,
-      likes: 15,
-      commentaires: 8,
-      tags: ["culture", "loisirs"],
-      image: "festival.jpg"
-    },
-    {
-      titre: "Nouvelle collecte des déchets",
-      categorie: "Informations",
-      auteur: "Sophie Leroy",
-      datePublication: "13/11/2023",
-      statut: "En attente",
-      vues: 0,
-      likes: 0,
-      commentaires: 0,
-      tags: ["environnement", "service"],
-      image: null
-    },
-    {
-      titre: "Réunion du conseil de quartier",
-      categorie: "Réunions",
-      auteur: "Mohammed Diallo",
-      datePublication: "12/11/2023",
-      statut: "Brouillon",
-      vues: 0,
-      likes: 0,
-      commentaires: 0,
-      tags: ["politique", "quartier"],
-      image: null
+  // Charger les posts depuis l'API
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (searchQuery.trim() !== '') params.set('search', searchQuery.trim());
+      params.set('page', String(currentPage));
+      params.set('limit', String(pageSize));
+      const res = await api.get(`/api/posts?${params.toString()}`);
+      const payload = res?.data;
+      const data = Array.isArray(payload?.posts) ? payload.posts : (Array.isArray(payload) ? payload : []);
+      setPosts(data);
+      if (payload?.totalPages) setTotalPages(Number(payload.totalPages));
+      if (typeof payload?.total === 'number') setTotalArticles(Number(payload.total));
+      // rafraîchir les compteurs publiés/brouillons
+      fetchPostCounts();
+    } catch (e) {
+      setError("Impossible de charger les articles.");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  // Données simulées des médias
-  const medias = [
-    { id: 1, type: "image", url: "parc.jpg", name: "Parc central", size: "2.4 MB" },
-    { id: 2, type: "image", url: "festival.jpg", name: "Festival 2023", size: "1.8 MB" },
-    { id: 3, type: "video", url: "reunion.mp4", name: "Réunion conseil", size: "15.6 MB" }
-  ];
-
-  // Données simulées des commentaires
-  const comments = [
-    {
-      id: 1,
-      article: "Rénovation du parc central",
-      auteur: "Jean Dupuis",
-      contenu: "Excellente initiative !",
-      date: "16/11/2023",
-      statut: "approuvé"
-    },
-    {
-      id: 2,
-      article: "Festival de quartier ce weekend",
-      auteur: "Marie Lambert",
-      contenu: "À quelle heure commence l'événement ?",
-      date: "15/11/2023",
-      statut: "en attente"
+  // Appliquer l'URL donnée en tant que couverture, selon la cible (create/edit)
+  const applyMediaAsCover = (url) => {
+    if (chooseCoverFor?.mode === 'create') {
+      setNewPost(prev => ({ ...prev, coverUrl: url }));
+    } else if (chooseCoverFor?.mode === 'edit') {
+      setEditing(prev => prev ? ({ ...prev, coverUrl: url }) : prev);
     }
-  ];
+    setChooseCoverFor(null);
+    setShowMediaPicker(false);
+  };
+
+  // Upload direct depuis le PC dans le picker, puis utiliser comme couverture
+  const handlePickerFileSelected = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const form = new FormData();
+      form.append('media', file);
+      form.append('title', file.name);
+      const res = await api.post('/api/media', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const created = res?.data?.media;
+      if (created?.url) {
+        // On utilise immédiatement le média comme couverture (qu'il soit pending ou pas)
+        applyMediaAsCover(created.url);
+      } else {
+        alert("Upload terminé, mais le média n'a pas pu être utilisé.");
+      }
+    } catch (err) {
+      alert("Échec de l'upload (connexion requise).");
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  // Compteurs de posts par statut
+  const fetchPostCounts = async () => {
+    try {
+      const [pubRes, draftRes] = await Promise.all([
+        api.get('/api/posts?status=published&limit=1&page=1'),
+        api.get('/api/posts?status=draft&limit=1&page=1')
+      ]);
+      setPublishedTotal(typeof pubRes?.data?.total === 'number' ? pubRes.data.total : null);
+      setDraftTotal(typeof draftRes?.data?.total === 'number' ? draftRes.data.total : null);
+    } catch (e) {
+      setPublishedTotal(null);
+      setDraftTotal(null);
+    }
+  };
+
+  // Médias: liste + upload
+  const fetchMedia = async () => {
+    try {
+      setMediaLoading(true);
+      setMediaError('');
+      const res = await api.get('/api/media?status=all&page=1&limit=50');
+      const payload = res?.data;
+      const list = Array.isArray(payload?.media) ? payload.media : (Array.isArray(payload) ? payload : []);
+      setMediaList(list);
+      setMediaTotal(Number(payload?.total || list.length || 0));
+    } catch (e) {
+      setMediaError("Impossible de charger les médias.");
+      setMediaList([]);
+      setMediaTotal(0);
+    } finally {
+      setMediaLoading(false);
+    }
+  };
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const form = new FormData();
+      form.append('media', file);
+      form.append('title', file.name);
+      await api.post('/api/media', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await fetchMedia();
+      alert('Média importé');
+    } catch (err) {
+      alert("Échec de l'import (connexion requise).");
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, [currentPage, statusFilter]);
+
+  // lorsque la recherche change, on repart page 1 et on refetch
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setCurrentPage(1);
+      fetchPosts();
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Charger les médias au montage et à l'ouverture de la lib
+  useEffect(() => {
+    fetchMedia();
+  }, []);
+  useEffect(() => {
+    if (showMediaLibrary) fetchMedia();
+  }, [showMediaLibrary]);
+  useEffect(() => {
+    if (showComments) fetchComments();
+  }, [showComments, commentsFilter]);
+  // Ouvrir le picker déclenchera aussi un rafraîchissement des médias
+  useEffect(() => {
+    if (showMediaPicker) fetchMedia();
+  }, [showMediaPicker]);
+
+  const handleCloseAdd = () => setShowAddModal(false);
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/api/posts', {
+        title: newPost.title,
+        content: newPost.content,
+        coverUrl: newPost.coverUrl || ''
+      });
+      setNewPost({ title: '', content: '' });
+      setShowAddModal(false);
+      fetchPosts();
+    } catch (err) {
+      alert("Impossible de créer l'article. Vérifiez vos droits et réessayez.");
+    }
+  };
+
+  const handleOpenEdit = (p) => {
+    setEditing({ id: p._id, title: p.title, content: p.content, status: p.status, coverUrl: p.coverUrl || '' });
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    if (!editing) return;
+    try {
+      await api.put(`/api/posts/${editing.id}`, { title: editing.title, content: editing.content, coverUrl: editing.coverUrl || '' });
+      setEditing(null);
+      fetchPosts();
+    } catch (err) {
+      alert("Échec de la modification. Vérifiez vos droits.");
+    }
+  };
+
+  // Comments API
+  const fetchComments = async () => {
+    try {
+      setCommentsLoading(true);
+      setCommentsError('');
+      const url = commentsFilter === 'all' ? '/api/posts/comments' : `/api/posts/comments?status=${commentsFilter}`;
+      const res = await api.get(url);
+      const payload = res?.data;
+      setCommentsList(Array.isArray(payload?.comments) ? payload.comments : []);
+      setCommentsTotal(Number(payload?.total || 0));
+    } catch (e) {
+      setCommentsError('Impossible de charger les commentaires.');
+      setCommentsList([]);
+      setCommentsTotal(0);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const handleModerateComment = async (commentId, status) => {
+    try {
+      await api.put(`/api/posts/comments/${commentId}/moderate`, { status });
+      fetchComments();
+    } catch (e) {
+      alert('Action impossible. Vérifiez vos droits (admin).');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Supprimer ce commentaire ?')) return;
+    try {
+      await api.delete(`/api/posts/comments/${commentId}`);
+      fetchComments();
+    } catch (e) {
+      alert('Suppression impossible.');
+    }
+  };
+
+  const handleReplyToPost = async (postId) => {
+    const content = window.prompt('Votre réponse');
+    if (!content || !content.trim()) return;
+    try {
+      await api.post(`/api/posts/${postId}/comments`, { content });
+      alert('Réponse publiée');
+      if (showComments) fetchComments();
+    } catch (e) {
+      alert("Impossible de répondre (connexion requise).");
+    }
+  };
+
+  // Media moderation (approve/reject)
+  const handleModerateMediaStatus = async (mediaId, status) => {
+    try {
+      await api.put(`/api/media/${mediaId}/moderate`, { status });
+      await fetchMedia();
+    } catch (e) {
+      alert('Action impossible. Rôle admin/moderator requis.');
+    }
+  };
+
+  const toggleStatus = async (p) => {
+    try {
+      const next = p.status === 'published' ? 'draft' : 'published';
+      await api.put(`/api/posts/${p._id}/status`, { status: next });
+      fetchPosts();
+    } catch (err) {
+      alert("Impossible de changer le statut. Vérifiez vos droits.");
+    }
+  };
+
+  // Commentaires: non branché pour l'instant (placeholder vide)
+  const comments = [];
 
   const MediaLibrary = () => (
     <div className="media-library">
       <div className="media-header">
         <h3>Bibliothèque de médias</h3>
         <div className="media-actions">
-          <button className="upload-btn">
+          <button className="upload-btn" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
             <span>+</span> Importer des médias
           </button>
-          <button className="organize-btn">Organiser</button>
+          <button className="organize-btn" onClick={() => fetchMedia()}>Organiser</button>
+          <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*,video/*" onChange={handleFileSelected} />
         </div>
       </div>
       <div className="media-filters">
@@ -114,18 +307,30 @@ const AdminNews = () => {
         <input type="text" placeholder="Rechercher un média..." className="media-search" />
       </div>
       <div className="media-grid">
-        {medias.map((media) => (
-          <div key={media.id} className="media-item">
+        {mediaLoading && <div>Chargement des médias...</div>}
+        {!mediaLoading && mediaError && <div className="media-error">{mediaError}</div>}
+        {!mediaLoading && !mediaError && mediaList.length === 0 && <div>Aucun média</div>}
+        {!mediaLoading && !mediaError && mediaList.map((media) => (
+          <div key={media._id} className="media-item">
             <div className="media-preview">
-              {media.type === "image" ? (
-                <img src={media.url} alt={media.name} />
+              {media.type === 'image' ? (
+                <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
               ) : (
                 <div className="video-preview">🎥</div>
               )}
             </div>
             <div className="media-info">
-              <span className="media-name">{media.name}</span>
-              <span className="media-size">{media.size}</span>
+              <span className="media-name">{media.title || media.name || '—'}</span>
+              <span className="media-size">{media.metadata?.size || ''}</span>
+              <span className={`media-status status-${media.status || 'pending'}`}>{media.status || 'pending'}</span>
+            </div>
+            <div className="media-actions" style={{display:'flex', gap:'0.5rem', marginTop:'0.25rem'}}>
+              {media.status !== 'approved' && (
+                <button className="approve-btn" onClick={() => handleModerateMediaStatus(media._id, 'approved')}>Approuver</button>
+              )}
+              {media.status !== 'rejected' && (
+                <button className="reject-btn" onClick={() => handleModerateMediaStatus(media._id, 'rejected')}>Rejeter</button>
+              )}
             </div>
           </div>
         ))}
@@ -133,32 +338,68 @@ const AdminNews = () => {
     </div>
   );
 
+  // Media Picker modal (au-dessus des autres modales) pour choisir une couverture
+  const MediaPicker = () => (
+    !showMediaPicker ? null : (
+      <div className="modal-overlay" style={{ zIndex: 1100, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal" style={{ width: '900px', maxWidth: '95vw', background: '#fff', borderRadius: '12px', padding: '16px' }}>
+          <h3>Sélectionner une image de couverture</h3>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <button className="upload-btn" onClick={() => pickerFileRef.current && pickerFileRef.current.click()}>Téléverser depuis l'ordinateur</button>
+            <input type="file" ref={pickerFileRef} style={{ display: 'none' }} accept="image/*" onChange={handlePickerFileSelected} />
+            <button className="btn-secondary" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>Fermer</button>
+          </div>
+          <div className="media-grid" style={{ maxHeight: '60vh', overflow: 'auto' }}>
+            {mediaLoading && <div>Chargement des médias...</div>}
+            {!mediaLoading && mediaError && <div className="media-error">{mediaError}</div>}
+            {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').length === 0 && <div>Aucune image</div>}
+            {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').map((media) => (
+              <div key={media._id} className="media-item" style={{ cursor: 'pointer' }} onClick={() => applyMediaAsCover(media.url)}>
+                <div className="media-preview">
+                  <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
+                </div>
+                <div className="media-info">
+                  <span className="media-name">{media.title || media.name || '—'}</span>
+                  <span className={`media-status status-${media.status || 'pending'}`}>{media.status || 'pending'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  );
+
   const CommentsSection = () => (
     <div className="comments-section">
       <div className="comments-header">
         <h3>Gestion des commentaires</h3>
         <div className="comments-filters">
-          <select className="status-filter">
+          <select className="status-filter" value={commentsFilter} onChange={(e) => setCommentsFilter(e.target.value)}>
             <option value="all">Tous les statuts</option>
             <option value="approved">Approuvés</option>
             <option value="pending">En attente</option>
-            <option value="spam">Spam</option>
+            <option value="rejected">Rejetés</option>
           </select>
         </div>
       </div>
       <div className="comments-list">
-        {comments.map((comment) => (
-          <div key={comment.id} className="comment-item">
+        {commentsLoading && <div>Chargement des commentaires...</div>}
+        {!commentsLoading && commentsError && <div className="comments-error">{commentsError}</div>}
+        {!commentsLoading && !commentsError && commentsList.length === 0 && <div>Aucun commentaire</div>}
+        {!commentsLoading && !commentsError && commentsList.map((comment) => (
+          <div key={comment.id} className={`comment-item ${comment.status}`}>
             <div className="comment-header">
-              <span className="comment-author">{comment.auteur}</span>
-              <span className="comment-date">{comment.date}</span>
+              <span className="comment-author">{comment.author}</span>
+              <span className="comment-date">{new Date(comment.createdAt).toLocaleDateString('fr-FR')}</span>
             </div>
-            <div className="comment-content">{comment.contenu}</div>
-            <div className="comment-article">Sur : {comment.article}</div>
+            <div className="comment-content">{comment.content}</div>
+            <div className="comment-article">Sur : {comment.postTitle}</div>
             <div className="comment-actions">
-              <button className="approve-btn">✓ Approuver</button>
-              <button className="reject-btn">✕ Rejeter</button>
-              <button className="reply-btn">↩ Répondre</button>
+              <button className="approve-btn" onClick={() => handleModerateComment(comment.id, 'approved')}>✓ Approuver</button>
+              <button className="reject-btn" onClick={() => handleModerateComment(comment.id, 'rejected')}>✕ Rejeter</button>
+              <button className="reply-btn" onClick={() => handleReplyToPost(comment.postId)}>↩ Répondre</button>
+              <button className="delete-btn" onClick={() => handleDeleteComment(comment.id)}>🗑️ Supprimer</button>
             </div>
           </div>
         ))}
@@ -185,14 +426,14 @@ const AdminNews = () => {
               <button className="media-btn" onClick={() => setShowMediaLibrary(!showMediaLibrary)}>
                 <span>📁</span>
                 <span>Médias</span>
-                <span className="count-badge">3</span>
+                <span className="count-badge">{mediaTotal}</span>
               </button>
               <button className="comments-btn" onClick={() => setShowComments(!showComments)}>
                 <span>💬</span>
                 <span>Commentaires</span>
-                <span className="count-badge">5</span>
+                <span className="count-badge">{commentsTotal || '—'}</span>
               </button>
-              <button className="add-news-btn">
+              <button className="add-news-btn" onClick={() => setShowAddModal(true)}>
                 <span>+</span>
                 <span>Créer un article</span>
               </button>
@@ -201,6 +442,95 @@ const AdminNews = () => {
 
           {showMediaLibrary && <MediaLibrary />}
           {showComments && <CommentsSection />}
+          <MediaPicker />
+
+          {editing && (
+            <div className="modal-overlay">
+              <div className="modal">
+                <h3>Modifier l'article</h3>
+                <form onSubmit={handleSubmitEdit}>
+                  <div className="form-row">
+                    <label>Titre</label>
+                    <input
+                      type="text"
+                      value={editing.title}
+                      onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label>Contenu</label>
+                    <textarea
+                      rows="6"
+                      value={editing.content}
+                      onChange={(e) => setEditing({ ...editing, content: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label>Image de couverture (URL)</label>
+                    <div style={{display:'flex', gap:'0.5rem'}}>
+                      <input
+                        type="text"
+                        value={editing.coverUrl || ''}
+                        onChange={(e) => setEditing({ ...editing, coverUrl: e.target.value })}
+                        placeholder="/uploads/monfichier.jpg"
+                      />
+                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'edit', id: editing.id }); setShowMediaLibrary(false); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
+                    </div>
+                  </div>
+                  <div className="modal-actions">
+                    <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Annuler</button>
+                    <button type="submit" className="btn-primary">Enregistrer</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showAddModal && (
+            <div className="modal-overlay">
+              <div className="modal">
+                <h3>Créer un article</h3>
+                <form onSubmit={handleCreatePost}>
+                  <div className="form-row">
+                    <label>Titre</label>
+                    <input
+                      type="text"
+                      value={newPost.title}
+                      onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label>Contenu</label>
+                    <textarea
+                      rows="6"
+                      value={newPost.content}
+                      onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label>Image de couverture (URL)</label>
+                    <div style={{display:'flex', gap:'0.5rem'}}>
+                      <input
+                        type="text"
+                        value={newPost.coverUrl || ''}
+                        onChange={(e) => setNewPost({ ...newPost, coverUrl: e.target.value })}
+                        placeholder="/uploads/monfichier.jpg"
+                      />
+                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'create' }); setShowMediaLibrary(false); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
+                    </div>
+                  </div>
+                  <div className="modal-actions">
+                    <button type="button" className="btn-secondary" onClick={handleCloseAdd}>Annuler</button>
+                    <button type="submit" className="btn-primary">Publier</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           <div className="stats-section">
             <div className="stats-grid">
@@ -208,19 +538,19 @@ const AdminNews = () => {
                 <h3>Vue d'ensemble</h3>
                 <div className="stats-overview">
                   <div className="stat-item">
-                    <span className="stat-value">48</span>
+                    <span className="stat-value">{totalArticles}</span>
                     <span className="stat-label">Articles total</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">42</span>
+                    <span className="stat-value">{publishedTotal ?? '—'}</span>
                     <span className="stat-label">Publiés</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">4</span>
+                    <span className="stat-value">{draftTotal ?? '—'}</span>
                     <span className="stat-label">Brouillons</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">2</span>
+                    <span className="stat-value">—</span>
                     <span className="stat-label">En attente</span>
                   </div>
                 </div>
@@ -231,22 +561,22 @@ const AdminNews = () => {
                 <div className="engagement-stats">
                   <div className="stat-item">
                     <span className="stat-icon">👁️</span>
-                    <span className="stat-value">12.5K</span>
+                    <span className="stat-value">—</span>
                     <span className="stat-label">Vues</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-icon">❤️</span>
-                    <span className="stat-value">856</span>
+                    <span className="stat-value">—</span>
                     <span className="stat-label">Likes</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-icon">💬</span>
-                    <span className="stat-value">234</span>
+                    <span className="stat-value">—</span>
                     <span className="stat-label">Commentaires</span>
                   </div>
                   <div className="stat-item">
                     <span className="stat-icon">🔄</span>
-                    <span className="stat-value">89</span>
+                    <span className="stat-value">—</span>
                     <span className="stat-label">Partages</span>
                   </div>
                 </div>
@@ -254,68 +584,7 @@ const AdminNews = () => {
 
               <div className="stats-card">
                 <h3>Catégories</h3>
-                <div className="categories-chart">
-                  <div className="category-bar">
-                    <div className="category-info">
-                      <span className="category-name">Événements</span>
-                      <span className="category-count">15</span>
-                    </div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill"
-                        style={{ width: "31.25%" }}
-                      />
-                    </div>
-                  </div>
-                  <div className="category-bar">
-                    <div className="category-info">
-                      <span className="category-name">Informations</span>
-                      <span className="category-count">12</span>
-                    </div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill"
-                        style={{ width: "25%" }}
-                      />
-                    </div>
-                  </div>
-                  <div className="category-bar">
-                    <div className="category-info">
-                      <span className="category-name">Travaux</span>
-                      <span className="category-count">8</span>
-                    </div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill"
-                        style={{ width: "16.67%" }}
-                      />
-                    </div>
-                  </div>
-                  <div className="category-bar">
-                    <div className="category-info">
-                      <span className="category-name">Réunions</span>
-                      <span className="category-count">7</span>
-                    </div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill"
-                        style={{ width: "14.58%" }}
-                      />
-                    </div>
-                  </div>
-                  <div className="category-bar">
-                    <div className="category-info">
-                      <span className="category-name">Autres</span>
-                      <span className="category-count">6</span>
-                    </div>
-                    <div className="bar-container">
-                      <div 
-                        className="bar-fill"
-                        style={{ width: "12.5%" }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <div className="categories-chart">—</div>
               </div>
             </div>
           </div>
@@ -332,17 +601,6 @@ const AdminNews = () => {
                   className="search-input"
                 />
                 <div className="filter-group">
-                  <select 
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">Toutes les catégories</option>
-                    <option value="events">Événements</option>
-                    <option value="info">Informations</option>
-                    <option value="works">Travaux</option>
-                    <option value="meetings">Réunions</option>
-                  </select>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -351,8 +609,6 @@ const AdminNews = () => {
                     <option value="all">Tous les statuts</option>
                     <option value="published">Publié</option>
                     <option value="draft">Brouillon</option>
-                    <option value="pending">En attente</option>
-                    <option value="scheduled">Planifié</option>
                   </select>
                 </div>
               </div>
@@ -362,86 +618,78 @@ const AdminNews = () => {
               <table>
                 <thead>
                   <tr>
-                    <th>Image</th>
                     <th>Titre</th>
-                    <th>Catégorie</th>
-                    <th>Tags</th>
                     <th>Auteur</th>
-                    <th>Publication</th>
+                    <th>Création</th>
                     <th>Statut</th>
-                    <th>Engagement</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {articles.map((article, index) => (
-                    <tr key={index}>
-                      <td>
-                        <div className="article-image">
-                          {article.image ? (
-                            <img src={article.image} alt={article.titre} />
-                          ) : (
-                            <div className="no-image">📄</div>
-                          )}
-                        </div>
-                      </td>
-                      <td>{article.titre}</td>
-                      <td>
-                        <span className="category-badge">{article.categorie}</span>
-                      </td>
-                      <td>
-                        <div className="tags-list">
-                          {article.tags.map((tag, i) => (
-                            <span key={i} className="tag-badge">{tag}</span>
-                          ))}
-                        </div>
-                      </td>
-                      <td>{article.auteur}</td>
-                      <td>
-                        {article.statut === "Planifié" ? (
-                          <div className="publication-date">
-                            <span className="scheduled-date">🕒 {article.datePlanifiee}</span>
-                          </div>
-                        ) : (
-                          article.datePublication
-                        )}
-                      </td>
-                      <td>
-                        <span className={`status-badge ${article.statut.toLowerCase()}`}>
-                          {article.statut}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="engagement-stats">
-                          <span title="Vues">👁️ {article.vues}</span>
-                          <span title="Likes">❤️ {article.likes}</span>
-                          <span title="Commentaires">💬 {article.commentaires}</span>
-                        </div>
-                      </td>
-                      <td className="actions-cell">
-                        <button className="action-btn view" title="Voir">👁️</button>
-                        <button className="action-btn edit" title="Modifier">✏️</button>
-                        <button className="action-btn schedule" title="Planifier">🕒</button>
-                        <button className="action-btn delete" title="Supprimer">🗑️</button>
-                      </td>
+                  {loading && (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center' }}>Chargement...</td>
                     </tr>
-                  ))}
+                  )}
+                  {!loading && posts
+                    .filter(p =>
+                      (statusFilter === 'all' || p.status === statusFilter) &&
+                      (searchQuery.trim() === '' || (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p.content || '').toLowerCase().includes(searchQuery.toLowerCase()))
+                    )
+                    .map((p) => (
+                      <tr key={p._id}>
+                        <td>{p.title}</td>
+                        <td>{p.author?.name || '—'}</td>
+                        <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
+                        <td>
+                          <span className={`status-badge ${p.status}`}>
+                            {p.status === 'published' ? 'Publié' : 'Brouillon'}
+                          </span>
+                        </td>
+                        <td className="actions-cell">
+                          <button className="action-btn view" title="Voir">👁️</button>
+                          <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEdit(p)}>✏️</button>
+                          <button className="action-btn" title={p.status === 'published' ? 'Passer en brouillon' : 'Publier'} onClick={() => toggleStatus(p)}>
+                            {p.status === 'published' ? '⏸️' : '✅'}
+                          </button>
+                          <button className="action-btn delete" title="Supprimer" onClick={async () => {
+                            try {
+                              // Tentative suppression admin
+                              await api.delete(`/api/posts/${p._id}/force`);
+                            } catch (e1) {
+                              try {
+                                // Fallback: suppression par auteur
+                                await api.delete(`/api/posts/${p._id}`);
+                              } catch (e2) {
+                                alert('Suppression impossible. Vérifiez vos droits.');
+                                return;
+                              }
+                            }
+                            fetchPosts();
+                          }}>🗑️</button>
+                        </td>
+                      </tr>
+                    ))}
+                  {!loading && posts.length === 0 && (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center' }}>Aucun article</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="pagination">
-              <button className="active">1</button>
-              <button>2</button>
-              <button>3</button>
-              <span>...</span>
-              <button>5</button>
+              <button disabled={currentPage <= 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>{'<'}</button>
+              <span style={{ padding: '0 8px' }}>Page {currentPage} / {totalPages}</span>
+              <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>{'>'}</button>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
+
 };
 
 export default AdminNews;

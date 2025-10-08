@@ -19,7 +19,16 @@ import AdminForum from './pages/Admin/Forum/AdminForum';
 import AdminDirectory from './pages/Admin/Directory/AdminDirectory';
 import AdminSecurity from './pages/Admin/Security/AdminSecurity';
 import AdminProjects from './pages/Admin/Projects/AdminProjects';
+import AdminDonations from './pages/Admin/Donations/AdminDonations';
+import AdminEvents from './pages/Admin/Events/AdminEvents';
+import AdminServices from './pages/Admin/Services/AdminServices';
+import AdminPaymentsConfig from './pages/Admin/Payments/AdminPaymentsConfig';
+import AdminMessages from './pages/Admin/Messages/AdminMessages';
 import './App.css';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import NewsDetail from './pages/News/NewsDetail';
+import Gallery from './pages/Gallery/Gallery';
 
 function App() {
   return (
@@ -35,15 +44,24 @@ function App() {
             <Route path="/admin/directory" element={<AdminDirectory />} />
             <Route path="/admin/security" element={<AdminSecurity />} />
             <Route path="/admin/projects" element={<AdminProjects />} />
+            <Route path="/admin/events" element={<AdminEvents />} />
+            <Route path="/admin/donations" element={<AdminDonations />} />
+            <Route path="/admin/messages" element={<AdminMessages />} />
+            <Route path="/admin/payments-config" element={<AdminPaymentsConfig />} />
+            <Route path="/admin/services" element={<AdminServices />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/actualites" element={<News />} />
+            <Route path="/actualites/:id" element={<NewsDetail />} />
             <Route path="/forum" element={<Forum />} />
             <Route path="/annuaire" element={<Directory />} />
             <Route path="/services" element={<Services />} />
             <Route path="/securite" element={<Security />} />
             <Route path="/projets" element={<Projects />} />
+            <Route path="/galerie" element={<Gallery />} />
             <Route path="/espace-membres" element={<EspaceMembres />} />
             <Route path="/dons" element={<Donations />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/" element={<Home />} />
           </Routes>
         </main>

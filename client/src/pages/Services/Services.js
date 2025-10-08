@@ -1,7 +1,86 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Services.css';
+import api from '../../services/api';
+import SERVICE_CATEGORIES from '../../constants/serviceCategories';
 
 const Services = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [usefulCats, setUsefulCats] = useState([]);
+  const [ucError, setUcError] = useState('');
+  const [city, setCity] = useState(null);
+  const [cityLoading, setCityLoading] = useState(false);
+  const [cityError, setCityError] = useState('');
+
+  const categories = SERVICE_CATEGORIES;
+  const SHOW_STATIC_CITY_SECTIONS = false; // Désactivé: sections désormais dynamiques via /api/city
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const params = new URLSearchParams();
+      params.set('page', '1');
+      params.set('limit', '50');
+      params.set('status', 'active');
+      if (search.trim()) params.set('search', search.trim());
+      if (category) params.set('category', category);
+      const res = await api.get(`/api/services?${params.toString()}`);
+      const arr = Array.isArray(res.data?.services) ? res.data.services : [];
+      setServices(arr);
+    } catch (e) {
+      setError('Impossible de charger les services.');
+      setServices([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchServices(); /* on mount */ }, []);
+  useEffect(() => {
+    const t = setTimeout(() => fetchServices(), 300);
+    return () => clearTimeout(t);
+  }, [search, category]);
+
+  // Charger les contacts utiles (admin) pour alimenter la section "Numéros d'Urgence"
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setUcError('');
+        const res = await api.get('/api/useful-contacts');
+        if (!mounted) return;
+        const arr = Array.isArray(res?.data?.categories) ? res.data.categories : [];
+        setUsefulCats(arr);
+      } catch (e) {
+        if (mounted) setUcError('Impossible de charger les contacts utiles.');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Charger la configuration de la ville (Mairie, Ordures)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setCityError('');
+        setCityLoading(true);
+        const res = await api.get('/api/city');
+        if (!mounted) return;
+        setCity(res?.data || null);
+      } catch (e) {
+        if (mounted) setCityError("Impossible de charger la configuration de la ville.");
+      } finally {
+        if (mounted) setCityLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <div className="services-page">
       <header className="services-header">
@@ -10,139 +89,189 @@ const Services = () => {
       </header>
 
       <section className="service-section">
-        <h2>Mairie de Quartier</h2>
+        <h2>Services déclarés</h2>
+        <div className="service-controls" style={{display:'flex', gap:'0.5rem', flexWrap:'wrap', marginBottom:'1rem'}}>
+          <input className="service-search" type="text" placeholder="Rechercher un service..." value={search} onChange={(e)=>setSearch(e.target.value)} />
+          <select className="service-category" value={category} onChange={(e)=>setCategory(e.target.value)}>
+            <option value="">Toutes les catégories</option>
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        {loading && <p>Chargement des services...</p>}
+        {!loading && error && <p className="services-error">{error}</p>}
+        {!loading && !error && services.length === 0 && (
+          <p>Aucun service pour le moment. Les administrateurs pourront en ajouter prochainement.</p>
+        )}
         <div className="service-cards">
-          <div className="service-card">
-            <div className="card-header">
-              <i className="far fa-clock"></i>
-              <h3>Horaires d'ouverture</h3>
+          {services.map((s) => (
+            <div key={s._id} className="service-card">
+              <div className="card-header">
+                <i className="fas fa-concierge-bell"></i>
+                <h3>{s.name}</h3>
+              </div>
+              <ul>
+                <li><strong>Catégorie:</strong> {s.category}</li>
+                <li><strong>Fournisseur:</strong> {s.provider?.name || '—'}</li>
+                <li><strong>Adresse:</strong> {s.location?.address || '—'}</li>
+                {s.provider?.contact?.phone && (
+                  <li><strong>Téléphone:</strong> {s.provider.contact.phone}</li>
+                )}
+                {s.provider?.contact?.email && (
+                  <li><strong>Email:</strong> {s.provider.contact.email}</li>
+                )}
+                {s.provider?.contact?.website && (
+                  <li><strong>Site:</strong> <a href={s.provider.contact.website} target="_blank" rel="noreferrer">{s.provider.contact.website}</a></li>
+                )}
+              </ul>
+              <p style={{marginTop:'0.5rem'}}>{s.description}</p>
+              <div className="contact-info">
+                {s.provider?.contact?.email && (
+                  <a className="btn-secondary" href={`mailto:${s.provider.contact.email}`}>Contacter par email</a>
+                )}
+                {s.provider?.contact?.phone && (
+                  <a className="btn-primary" href={`tel:${s.provider.contact.phone}`}>Appeler</a>
+                )}
+              </div>
             </div>
-            <ul>
-              <li>Lundi: 9h - 17h</li>
-              <li>Mardi: 9h - 17h</li>
-              <li>Mercredi: 9h - 17h</li>
-              <li>Jeudi: 9h - 19h (nocturne)</li>
-              <li>Vendredi: 9h - 16h</li>
-              <li>Samedi: 9h - 12h (1er et 3ème du mois)</li>
-            </ul>
-          </div>
-
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-list-ul"></i>
-              <h3>Services proposés</h3>
-            </div>
-            <ul>
-              <li>Démarches administratives</li>
-              <li>État civil (naissances, mariages, décès)</li>
-              <li>Inscriptions scolaires</li>
-              <li>Urbanisme et logement</li>
-              <li>Aide sociale (CCAS)</li>
-            </ul>
-          </div>
-
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-map-marker-alt"></i>
-              <h3>Coordonnées</h3>
-            </div>
-            <div className="contact-info">
-              <p>Adresse: 123 rue Principale</p>
-              <p>Téléphone: 01 XX XX XX XX</p>
-              <p>Email: mairie-quartier@ville.fr</p>
-              <button className="btn-primary">Prendre rendez-vous</button>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       <section className="service-section">
+        <h2>Mairie de Quartier</h2>
+        {cityLoading && <p>Chargement...</p>}
+        {cityError && <p className="services-error">{cityError}</p>}
+        {!cityLoading && !cityError && (
+          <div className="service-cards">
+            <div className="service-card">
+              <div className="card-header">
+                <i className="far fa-clock"></i>
+                <h3>Horaires</h3>
+              </div>
+              <div className="contact-info">
+                {(city?.mayorOffice?.hoursText || '').split('\n').filter(Boolean).length > 0 ? (
+                  (city.mayorOffice.hoursText || '').split('\n').filter(Boolean).map((line, idx) => (
+                    <p key={idx}>{line}</p>
+                  ))
+                ) : (
+                  <p>Non configuré pour le moment.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="service-card">
+              <div className="card-header">
+                <i className="fas fa-list-ul"></i>
+                <h3>Services proposés</h3>
+              </div>
+              <ul>
+                {(city?.mayorOffice?.services || []).length > 0 ? (
+                  (city.mayorOffice.services || []).map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <li>Non configuré pour le moment.</li>
+                )}
+              </ul>
+            </div>
+
+            <div className="service-card">
+              <div className="card-header">
+                <i className="fas fa-map-marker-alt"></i>
+                <h3>Coordonnées</h3>
+              </div>
+              <div className="contact-info">
+                <p><strong>Adresse:</strong> {city?.mayorOffice?.contact?.address || '—'}</p>
+                <p><strong>Téléphone:</strong> {city?.mayorOffice?.contact?.phone || '—'}</p>
+                <p><strong>Email:</strong> {city?.mayorOffice?.contact?.email || '—'}</p>
+                {city?.mayorOffice?.contact?.appointmentUrl && (
+                  <a className="btn-primary" href={city.mayorOffice.contact.appointmentUrl} target="_blank" rel="noreferrer">Prendre rendez-vous</a>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="service-section">
         <h2>Numéros d'Urgence</h2>
+        {ucError && <p className="services-error">{ucError}</p>}
         <div className="service-cards">
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-ambulance"></i>
-              <h3>Services d'Urgence</h3>
+          {usefulCats.length === 0 && !ucError && (
+            <div className="service-card">Aucun contact utile configuré pour le moment.</div>
+          )}
+          {usefulCats.map(cat => (
+            <div key={cat._id || cat.title} className="service-card">
+              <div className="card-header">
+                <i className="fas fa-phone-alt"></i>
+                <h3>{cat.title}</h3>
+              </div>
+              <ul className="emergency-list">
+                {(cat.contacts || []).map(c => (
+                  <li key={c._id || c.name}>
+                    <strong>{c.name}:</strong> {c.number}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="emergency-list">
-              <li><strong>SAMU:</strong> 15</li>
-              <li><strong>Police:</strong> 17</li>
-              <li><strong>Pompiers:</strong> 18</li>
-              <li><strong>Numéro d'urgence européen:</strong> 112</li>
-              <li><strong>Personnes sourdes et malentendantes:</strong> 114 (SMS)</li>
-            </ul>
-          </div>
-
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-user-md"></i>
-              <h3>Services Médicaux</h3>
-            </div>
-            <ul className="emergency-list">
-              <li><strong>Centre antipoison:</strong> 01 XX XX XX XX</li>
-              <li><strong>SOS Médecins:</strong> 36 24</li>
-              <li><strong>Médecin de garde:</strong> 01 XX XX XX XX</li>
-              <li><strong>Pharmacie de garde:</strong> 32 37</li>
-            </ul>
-          </div>
-
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-exclamation-triangle"></i>
-              <h3>Autres Urgences</h3>
-            </div>
-            <ul className="emergency-list">
-              <li><strong>EDF (coupure électricité):</strong> 09 XX XX XX XX</li>
-              <li><strong>GDF (fuite de gaz):</strong> 08 XX XX XX XX</li>
-              <li><strong>Service des eaux (fuite):</strong> 09 XX XX XX XX</li>
-              <li><strong>Fourrière:</strong> 01 XX XX XX XX</li>
-            </ul>
-          </div>
+          ))}
         </div>
       </section>
 
       <section className="service-section">
         <h2>Gestion des Ordures</h2>
-        <div className="service-cards">
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-calendar-alt"></i>
-              <h3>Jours de collecte</h3>
+        {cityLoading && <p>Chargement...</p>}
+        {cityError && <p className="services-error">{cityError}</p>}
+        {!cityLoading && !cityError && (
+          <div className="service-cards">
+            <div className="service-card">
+              <div className="card-header">
+                <i className="fas fa-calendar-alt"></i>
+                <h3>Collecte</h3>
+              </div>
+              <div className="contact-info">
+                {(city?.waste?.collectionText || '').split('\n').filter(Boolean).length > 0 ? (
+                  (city.waste.collectionText || '').split('\n').filter(Boolean).map((line, idx) => (
+                    <p key={idx}>{line}</p>
+                  ))
+                ) : (
+                  <p>Non configuré pour le moment.</p>
+                )}
+              </div>
             </div>
-            <ul>
-              <li>Ordures ménagères: Lundi et Jeudi</li>
-              <li>Recyclables: Mercredi</li>
-              <li>Déchets verts: Mardi (Avril à Novembre)</li>
-              <li>Encombrants: 1er vendredi du mois</li>
-            </ul>
-          </div>
 
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-recycle"></i>
-              <h3>Tri des déchets</h3>
+            <div className="service-card">
+              <div className="card-header">
+                <i className="fas fa-recycle"></i>
+                <h3>Tri des déchets</h3>
+              </div>
+              <ul>
+                {(city?.waste?.tri || []).length > 0 ? (
+                  (city.waste.tri || []).map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))
+                ) : (
+                  <li>Non configuré pour le moment.</li>
+                )}
+              </ul>
             </div>
-            <ul>
-              <li>Bac gris: déchets non recyclables</li>
-              <li>Bac jaune: papier, carton, plastique, métal</li>
-              <li>Bac vert: verre</li>
-              <li>Bac marron: déchets biodégradables</li>
-            </ul>
-          </div>
 
-          <div className="service-card">
-            <div className="card-header">
-              <i className="fas fa-trash"></i>
-              <h3>Déchèterie</h3>
-            </div>
-            <div className="contact-info">
-              <p><strong>Adresse:</strong> Zone industrielle, Route de la Forêt</p>
-              <p><strong>Horaires:</strong> Du lundi au samedi de 9h à 18h, Dimanche de 9h à 12h</p>
-              <p><strong>Contact:</strong> 01 XX XX XX XX</p>
-              <button className="btn-secondary">Plus d'infos</button>
+            <div className="service-card">
+              <div className="card-header">
+                <i className="fas fa-trash"></i>
+                <h3>Déchèterie</h3>
+              </div>
+              <div className="contact-info">
+                <p><strong>Adresse:</strong> {city?.waste?.decheterie?.address || '—'}</p>
+                <p><strong>Horaires:</strong> {city?.waste?.decheterie?.hoursText || '—'}</p>
+                <p><strong>Contact:</strong> {city?.waste?.decheterie?.contact || '—'}</p>
+                {city?.waste?.decheterie?.infoUrl && (
+                  <a className="btn-secondary" href={city.waste.decheterie.infoUrl} target="_blank" rel="noreferrer">Plus d'infos</a>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
     </div>
   );

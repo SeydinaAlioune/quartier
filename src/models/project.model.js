@@ -20,6 +20,11 @@ const projectSchema = new mongoose.Schema({
         required: true,
         enum: ['infrastructure', 'environnement', 'social', 'culture', 'securite', 'autre']
     },
+    progress: {
+        type: Number,
+        min: 0,
+        max: 100,
+    },
     location: {
         address: String,
         coordinates: {
