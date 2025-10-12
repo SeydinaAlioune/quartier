@@ -108,6 +108,17 @@ const AdminMessages = () => {
     }
   };
 
+  // TODO: Implémenter quand les endpoints backend d'assignation seront disponibles
+  const assignToMe = async () => {
+    if (!selected) return;
+    alert("Fonction d'assignation non disponible pour l'instant.");
+  };
+
+  const unassign = async () => {
+    if (!selected) return;
+    alert("Fonction de désassignation non disponible pour l'instant.");
+  };
+
   return (
     <div className="admin-page">
       <AdminSidebar isCollapsed={isCollapsed} />
