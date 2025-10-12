@@ -123,7 +123,7 @@ const Gallery = () => {
       {!loading && !error && filtered.length === 0 && <p>Aucun média.</p>}
 
       {!loading && (
-      <div className="gallery-grid">
+      <div className="gallery-grid masonry">
         {filtered.map((m) => (
           <div key={m._id} className="gallery-item">
             <button className="media-thumb media-thumb--button" onClick={() => setViewerItem(m)} aria-label="Voir en grand">
