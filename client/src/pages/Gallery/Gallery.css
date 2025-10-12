@@ -230,3 +230,14 @@
   height: auto;
   max-height: 380px;
 }
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .gallery-controls { flex-direction: column; align-items: stretch; gap: 10px; }
+  .type-pills { flex-wrap: wrap; }
+  .pill { flex: 1 1 auto; text-align: center; }
+  .gallery-grid.masonry { column-width: 160px; }
+}
+@media (max-width: 420px) {
+  .gallery-grid.masonry { column-width: 100%; }
+}
