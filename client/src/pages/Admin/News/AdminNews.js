@@ -28,6 +28,7 @@ const AdminNews = () => {
   const [mediaError, setMediaError] = useState('');
   const [mediaTypeFilter, setMediaTypeFilter] = useState('all'); // all|image|video|document (doc not used yet)
   const [mediaSearch, setMediaSearch] = useState('');
+  const [viewerMedia, setViewerMedia] = useState(null); // {type, url, title}
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentsList, setCommentsList] = useState([]);
@@ -333,13 +334,13 @@ const AdminNews = () => {
           })
           .map((media) => (
           <div key={media._id} className="media-item">
-            <div className="media-preview">
+            <button className="media-preview" style={{cursor:'pointer', border:'none', background:'transparent', padding:0}} onClick={() => setViewerMedia(media)} title="Aperçu">
               {media.type === 'image' ? (
                 <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
               ) : (
                 <div className="video-preview">🎥</div>
               )}
-            </div>
+            </button>
             <div className="media-info">
               <span className="media-name">{media.title || media.name || '—'}</span>
               <span className="media-size">{media.metadata?.size || ''}</span>
@@ -357,6 +358,28 @@ const AdminNews = () => {
         ))}
       </div>
     </div>
+  );
+
+  const MediaViewer = () => (
+    !viewerMedia ? null : (
+      <div className="modal-overlay" style={{ zIndex: 1200, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewerMedia(null)}>
+        <div className="modal" style={{ width: '900px', maxWidth: '95vw', background: '#000', borderRadius: '12px', padding: 0, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px', background: '#111' }}>
+            <button onClick={() => setViewerMedia(null)} className="btn-secondary" style={{ background:'#fff', border:'none', padding:'6px 10px', borderRadius: '6px', cursor:'pointer' }}>Fermer ✕</button>
+          </div>
+          <div style={{ maxHeight: '80vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            {viewerMedia.type === 'image' ? (
+              <img src={`${API_BASE}${viewerMedia.url}`} alt={viewerMedia.title || viewerMedia.name || 'media'} style={{ maxWidth: '100%', maxHeight: '78vh', objectFit: 'contain' }} />
+            ) : (
+              <video controls autoPlay style={{ width:'100%', height:'auto', maxHeight:'78vh' }}>
+                <source src={`${API_BASE}${viewerMedia.url}`} />
+              </video>
+            )}
+          </div>
+          <div style={{ color:'#fff', padding:'8px 12px', background:'#111' }}>{viewerMedia.title || viewerMedia.name || ''}</div>
+        </div>
+      </div>
+    )
   );
 
   // Media Picker modal (au-dessus des autres modales) pour choisir une couverture
@@ -464,6 +487,7 @@ const AdminNews = () => {
           {showMediaLibrary && <MediaLibrary />}
           {showComments && <CommentsSection />}
           <MediaPicker />
+          <MediaViewer />
 
           {editing && (
             <div className="modal-overlay">

@@ -8,7 +8,7 @@ const Gallery = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [type, setType] = useState('image'); // image | video | all
+  const [type, setType] = useState('all'); // image | video | all
   const [viewerItem, setViewerItem] = useState(null); // {type,url,title}
 
   const fetchMedia = async () => {
@@ -72,9 +72,9 @@ const Gallery = () => {
           onChange={(e) => setSearch(e.target.value)}
         />
         <select className="gallery-type" value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="all">Tous</option>
           <option value="image">Images</option>
           <option value="video">Vidéos</option>
-          <option value="all">Tous</option>
         </select>
       </div>
 
