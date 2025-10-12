@@ -10,6 +10,11 @@
   margin-top: 60px;
 }
 
+/* On admin routes, we don't render the public Navbar; remove the top offset */
+.main-content--admin {
+  margin-top: 0;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

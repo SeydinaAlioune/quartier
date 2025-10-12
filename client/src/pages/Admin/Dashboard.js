@@ -128,7 +128,7 @@ const Dashboard = () => {
   return (
     <div className="admin-dashboard">
       <AdminSidebar isCollapsed={isCollapsed} />
-      <div className="admin-content">
+      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="dashboard-header">
           <div className="header-left">
             <button className="toggle-sidebar-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
