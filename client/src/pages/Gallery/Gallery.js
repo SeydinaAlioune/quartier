@@ -81,23 +81,54 @@ const Gallery = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select className="gallery-type" value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="all">Tous</option>
-          <option value="image">Images</option>
-          <option value="video">Vidéos</option>
-        </select>
+        <div className="type-pills">
+          <button
+            type="button"
+            className={`pill ${type === 'all' ? 'active' : ''}`}
+            onClick={() => setType('all')}
+          >
+            Tous
+          </button>
+          <button
+            type="button"
+            className={`pill ${type === 'image' ? 'active' : ''}`}
+            onClick={() => setType('image')}
+          >
+            Images
+          </button>
+          <button
+            type="button"
+            className={`pill ${type === 'video' ? 'active' : ''}`}
+            onClick={() => setType('video')}
+          >
+            Vidéos
+          </button>
+        </div>
       </div>
 
-      {loading && <p>Chargement de la galerie...</p>}
+      {loading && (
+        <div className="gallery-grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="gallery-item skeleton">
+              <div className="media-thumb"></div>
+              <div className="media-caption">
+                <div className="skeleton-line" style={{width:'70%'}}></div>
+                <div className="skeleton-line" style={{width:'50%', marginTop:6}}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {!loading && error && <p className="gallery-error">{error}</p>}
       {!loading && !error && filtered.length === 0 && <p>Aucun média.</p>}
 
+      {!loading && (
       <div className="gallery-grid">
         {filtered.map((m) => (
           <div key={m._id} className="gallery-item">
             <button className="media-thumb media-thumb--button" onClick={() => setViewerItem(m)} aria-label="Voir en grand">
               {m.type === 'image' ? (
-                <img src={`${API_BASE}${m.url}`} alt={m.title || m.name || 'media'} />
+                <img loading="lazy" src={`${API_BASE}${m.url}`} alt={m.title || m.name || 'media'} />
               ) : (
                 <>
                   <video preload="metadata" muted playsInline crossOrigin="anonymous">
@@ -106,6 +137,9 @@ const Gallery = () => {
                   <div className="play-badge" aria-hidden>▶</div>
                 </>
               )}
+              <div className="thumb-overlay">
+                <div className="thumb-title">{m.title || m.name || '—'}</div>
+              </div>
             </button>
             <div className="media-caption">
               <div className="media-title">{m.title || m.name || '—'}</div>
@@ -114,6 +148,7 @@ const Gallery = () => {
           </div>
         ))}
       </div>
+      )}
 
       {viewerItem && (
         <div className="lightbox-overlay" onClick={() => setViewerItem(null)}>
@@ -122,7 +157,7 @@ const Gallery = () => {
             {viewerItem.type === 'image' ? (
               <img src={`${API_BASE}${viewerItem.url}`} alt={viewerItem.title || viewerItem.name || 'media'} />
             ) : (
-              <video controls autoPlay crossOrigin="anonymous">
+              <video controls preload="metadata" crossOrigin="anonymous">
                 <source src={`${API_BASE}${viewerItem.url}`} type={inferMime(viewerItem.url)} />
               </video>
             )}
