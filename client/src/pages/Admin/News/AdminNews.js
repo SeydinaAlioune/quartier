@@ -287,6 +287,17 @@ const AdminNews = () => {
     }
   };
 
+  const handleDeleteMedia = async (mediaId) => {
+    if (!window.confirm('Supprimer ce média ? Cette action est définitive.')) return;
+    try {
+      await api.delete(`/api/media/${mediaId}`);
+      await fetchMedia();
+    } catch (e) {
+      const msg = e?.response?.data?.message || 'Suppression impossible.';
+      alert(msg);
+    }
+  };
+
   const toggleStatus = async (p) => {
     try {
       const next = p.status === 'published' ? 'draft' : 'published';
@@ -346,19 +357,31 @@ const AdminNews = () => {
               <span className="media-size">{media.metadata?.size || ''}</span>
               <span className={`media-status status-${media.status || 'pending'}`}>{media.status || 'pending'}</span>
             </div>
-            <div className="media-actions" style={{display:'flex', gap:'0.5rem', marginTop:'0.25rem'}}>
+            <div className="media-actions" style={{display:'flex', gap:'0.5rem', marginTop:'0.25rem', flexWrap:'wrap'}}>
+              <button className="approve-btn" onClick={() => setViewerMedia(media)}>Prévisualiser</button>
               {media.status !== 'approved' && (
                 <button className="approve-btn" onClick={() => handleModerateMediaStatus(media._id, 'approved')}>Approuver</button>
               )}
               {media.status !== 'rejected' && (
                 <button className="reject-btn" onClick={() => handleModerateMediaStatus(media._id, 'rejected')}>Rejeter</button>
               )}
+              <button className="delete-btn" onClick={() => handleDeleteMedia(media._id)}>Supprimer</button>
             </div>
           </div>
         ))}
       </div>
     </div>
   );
+
+  // Heuristique pour déterminer le MIME type vidéo depuis l'extension
+  const inferMime = (url = '') => {
+    const lower = url.toLowerCase();
+    if (lower.endsWith('.mp4')) return 'video/mp4';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    if (lower.endsWith('.ogg') || lower.endsWith('.ogv')) return 'video/ogg';
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    return undefined;
+  };
 
   const MediaViewer = () => (
     !viewerMedia ? null : (
@@ -371,8 +394,8 @@ const AdminNews = () => {
             {viewerMedia.type === 'image' ? (
               <img src={`${API_BASE}${viewerMedia.url}`} alt={viewerMedia.title || viewerMedia.name || 'media'} style={{ maxWidth: '100%', maxHeight: '78vh', objectFit: 'contain' }} />
             ) : (
-              <video controls autoPlay style={{ width:'100%', height:'auto', maxHeight:'78vh' }}>
-                <source src={`${API_BASE}${viewerMedia.url}`} />
+              <video controls autoPlay style={{ width:'100%', height:'auto', maxHeight:'78vh' }} crossOrigin="anonymous">
+                <source src={`${API_BASE}${viewerMedia.url}`} type={inferMime(viewerMedia.url)} />
               </video>
             )}
           </div>

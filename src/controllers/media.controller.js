@@ -152,7 +152,9 @@ exports.deleteMedia = async (req, res) => {
         }
 
         // Supprimer le fichier physique
-        const filePath = path.join('public', media.url);
+        // media.url commence généralement par '/uploads/...', il faut le rendre relatif
+        const relativeUrl = (media.url || '').replace(/^[\/\\]+/, '');
+        const filePath = path.join('public', relativeUrl);
         await deleteFile(filePath);
 
         // Mongoose 7: remove() is deprecated on documents

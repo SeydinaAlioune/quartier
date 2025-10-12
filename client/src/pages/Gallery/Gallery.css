@@ -55,6 +55,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 }
 
 /* Make the thumbnail clickable without default button styles */
@@ -122,6 +123,22 @@
   color: #fff;
   padding: 8px 12px;
   font-size: 0.95rem;
+}
+
+/* Play badge on video thumbnails */
+.play-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border-radius: 9999px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 
 .media-caption {

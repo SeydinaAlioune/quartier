@@ -3,7 +3,7 @@ import api from '../../services/api';
 import './Gallery.css';
 
 const Gallery = () => {
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,6 +31,16 @@ const Gallery = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Heuristique MIME pour les vidéos
+  const inferMime = (url = '') => {
+    const lower = String(url).toLowerCase();
+    if (lower.endsWith('.mp4')) return 'video/mp4';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    if (lower.endsWith('.ogg') || lower.endsWith('.ogv')) return 'video/ogg';
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    return undefined;
   };
 
   useEffect(() => { fetchMedia(); /* initial */ }, []);
@@ -89,9 +99,12 @@ const Gallery = () => {
               {m.type === 'image' ? (
                 <img src={`${API_BASE}${m.url}`} alt={m.title || m.name || 'media'} />
               ) : (
-                <video>
-                  <source src={`${API_BASE}${m.url}`} />
-                </video>
+                <>
+                  <video preload="metadata" muted playsInline crossOrigin="anonymous">
+                    <source src={`${API_BASE}${m.url}`} type={inferMime(m.url)} />
+                  </video>
+                  <div className="play-badge" aria-hidden>▶</div>
+                </>
               )}
             </button>
             <div className="media-caption">
@@ -104,13 +117,13 @@ const Gallery = () => {
 
       {viewerItem && (
         <div className="lightbox-overlay" onClick={() => setViewerItem(null)}>
-          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+          <div className="lightbox-content" style={{ maxWidth: 'min(95vw, 1200px)' }} onClick={(e) => e.stopPropagation()}>
             <button className="lightbox-close" onClick={() => setViewerItem(null)} aria-label="Fermer">✕</button>
             {viewerItem.type === 'image' ? (
               <img src={`${API_BASE}${viewerItem.url}`} alt={viewerItem.title || viewerItem.name || 'media'} />
             ) : (
-              <video controls autoPlay>
-                <source src={`${API_BASE}${viewerItem.url}`} />
+              <video controls autoPlay crossOrigin="anonymous">
+                <source src={`${API_BASE}${viewerItem.url}`} type={inferMime(viewerItem.url)} />
               </video>
             )}
             <div className="lightbox-caption">{viewerItem.title || viewerItem.name || ''}</div>
