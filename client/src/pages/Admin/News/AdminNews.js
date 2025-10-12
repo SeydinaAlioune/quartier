@@ -35,7 +35,7 @@ const AdminNews = () => {
   const [commentsFilter, setCommentsFilter] = useState('all'); // all|approved|pending|rejected
   const [commentsTotal, setCommentsTotal] = useState(0);
   const fileInputRef = useRef(null);
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
   // Quand on clique "Choisir dans la bibliothèque" depuis un formulaire, on marque la cible
   // { mode: 'create' } ou { mode: 'edit', id }
   const [chooseCoverFor, setChooseCoverFor] = useState(null);
@@ -394,7 +394,7 @@ const AdminNews = () => {
             {viewerMedia.type === 'image' ? (
               <img src={`${API_BASE}${viewerMedia.url}`} alt={viewerMedia.title || viewerMedia.name || 'media'} style={{ maxWidth: '100%', maxHeight: '78vh', objectFit: 'contain' }} />
             ) : (
-              <video controls autoPlay style={{ width:'100%', height:'auto', maxHeight:'78vh' }} crossOrigin="anonymous">
+              <video controls preload="metadata" style={{ width:'100%', height:'auto', maxHeight:'78vh' }} crossOrigin="anonymous">
                 <source src={`${API_BASE}${viewerMedia.url}`} type={inferMime(viewerMedia.url)} />
               </video>
             )}
@@ -477,7 +477,7 @@ const AdminNews = () => {
   return (
     <div className="admin-page">
       <AdminSidebar isCollapsed={isCollapsed} />
-      <div className="admin-content">
+      <div className={isCollapsed ? 'admin-content sidebar-collapsed' : 'admin-content'}>
         <AdminHeader 
           title="Gestion des Actualités" 
           isCollapsed={isCollapsed} 

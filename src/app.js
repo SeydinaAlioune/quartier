@@ -25,13 +25,26 @@ const contactRoutes = require('./routes/contact.routes');
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: '*',
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','Range'],
+  exposedHeaders: ['Content-Length','Content-Range','Accept-Ranges']
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Fichiers statiques (public et uploads)
 app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads'), {
+  setHeaders: (res) => {
+    // Aide la lecture vidéo cross-origin et la navigation par plages (Range)
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);

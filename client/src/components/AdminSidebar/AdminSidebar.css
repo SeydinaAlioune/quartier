@@ -13,7 +13,9 @@
 }
 
 .admin-sidebar.collapsed {
-  width: 80px;
+  width: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .admin-sidebar.collapsed .sidebar-header h2 {
@@ -160,7 +162,7 @@
 }
 
 .admin-content.sidebar-collapsed {
-  margin-left: 80px;
+  margin-left: 0;
 }
 
 /* Ajuster le contenu principal quand la sidebar est présente */
