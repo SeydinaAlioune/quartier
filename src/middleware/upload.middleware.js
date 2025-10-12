@@ -2,6 +2,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Limite de taille configurable (en Mo) via la variable d'env MEDIA_MAX_FILE_MB
+// Par défaut: 300 Mo
+const MAX_FILE_MB = Number(process.env.MEDIA_MAX_FILE_MB || 300);
+
 // Configuration du stockage local
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -25,8 +29,11 @@ const fileFilter = (req, file, cb) => {
         'image/jpeg': true,
         'image/png': true,
         'image/gif': true,
+        'image/webp': true,
         'video/mp4': true,
-        'video/quicktime': true
+        'video/quicktime': true, // .mov
+        'video/webm': true,
+        'video/ogg': true
     };
 
     if (allowedTypes[file.mimetype]) {
@@ -41,7 +48,7 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB max
+        fileSize: MAX_FILE_MB * 1024 * 1024,
         files: 5 // Maximum 5 fichiers à la fois
     }
 });
@@ -51,7 +58,7 @@ const handleUploadError = (err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({
-                message: 'Fichier trop volumineux. Taille maximum: 10MB'
+                message: `Fichier trop volumineux. Taille maximum: ${MAX_FILE_MB}MB`
             });
         }
         if (err.code === 'LIMIT_FILE_COUNT') {
@@ -62,7 +69,7 @@ const handleUploadError = (err, req, res, next) => {
     }
     if (err.message === 'Format de fichier non supporté') {
         return res.status(400).json({
-            message: 'Format de fichier non supporté. Formats acceptés: JPG, PNG, GIF, MP4, MOV'
+            message: 'Format de fichier non supporté. Formats acceptés: JPG, PNG, GIF, WEBP, MP4, MOV, WEBM, OGG'
         });
     }
     next(err);

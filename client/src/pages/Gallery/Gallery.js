@@ -9,6 +9,7 @@ const Gallery = () => {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [type, setType] = useState('image'); // image | video | all
+  const [viewerItem, setViewerItem] = useState(null); // {type,url,title}
 
   const fetchMedia = async () => {
     try {
@@ -37,6 +38,15 @@ const Gallery = () => {
     const t = setTimeout(() => fetchMedia(), 250);
     return () => clearTimeout(t);
   }, [type]);
+
+  // Fermer la lightbox avec ESC
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') setViewerItem(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const filtered = items.filter(m => {
     const q = search.trim().toLowerCase();
@@ -75,15 +85,15 @@ const Gallery = () => {
       <div className="gallery-grid">
         {filtered.map((m) => (
           <div key={m._id} className="gallery-item">
-            <div className="media-thumb">
+            <button className="media-thumb media-thumb--button" onClick={() => setViewerItem(m)} aria-label="Voir en grand">
               {m.type === 'image' ? (
                 <img src={`${API_BASE}${m.url}`} alt={m.title || m.name || 'media'} />
               ) : (
-                <video controls>
+                <video>
                   <source src={`${API_BASE}${m.url}`} />
                 </video>
               )}
-            </div>
+            </button>
             <div className="media-caption">
               <div className="media-title">{m.title || m.name || '—'}</div>
               {m.description && <div className="media-desc">{m.description}</div>}
@@ -91,6 +101,22 @@ const Gallery = () => {
           </div>
         ))}
       </div>
+
+      {viewerItem && (
+        <div className="lightbox-overlay" onClick={() => setViewerItem(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setViewerItem(null)} aria-label="Fermer">✕</button>
+            {viewerItem.type === 'image' ? (
+              <img src={`${API_BASE}${viewerItem.url}`} alt={viewerItem.title || viewerItem.name || 'media'} />
+            ) : (
+              <video controls autoPlay>
+                <source src={`${API_BASE}${viewerItem.url}`} />
+              </video>
+            )}
+            <div className="lightbox-caption">{viewerItem.title || viewerItem.name || ''}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

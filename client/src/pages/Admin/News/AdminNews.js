@@ -26,6 +26,8 @@ const AdminNews = () => {
   const [mediaTotal, setMediaTotal] = useState(0);
   const [mediaLoading, setMediaLoading] = useState(false);
   const [mediaError, setMediaError] = useState('');
+  const [mediaTypeFilter, setMediaTypeFilter] = useState('all'); // all|image|video|document (doc not used yet)
+  const [mediaSearch, setMediaSearch] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentsList, setCommentsList] = useState([]);
@@ -93,7 +95,8 @@ const AdminNews = () => {
         alert("Upload terminé, mais le média n'a pas pu être utilisé.");
       }
     } catch (err) {
-      alert("Échec de l'upload (connexion requise).");
+      const msg = err?.response?.data?.message || "Échec de l'upload.";
+      alert(msg);
     } finally {
       e.target.value = '';
     }
@@ -119,7 +122,12 @@ const AdminNews = () => {
     try {
       setMediaLoading(true);
       setMediaError('');
-      const res = await api.get('/api/media?status=all&page=1&limit=50');
+      const qs = new URLSearchParams();
+      qs.set('status', 'all');
+      qs.set('page', '1');
+      qs.set('limit', '50');
+      if (mediaTypeFilter !== 'all') qs.set('type', mediaTypeFilter);
+      const res = await api.get(`/api/media?${qs.toString()}`);
       const payload = res?.data;
       const list = Array.isArray(payload?.media) ? payload.media : (Array.isArray(payload) ? payload : []);
       setMediaList(list);
@@ -144,7 +152,8 @@ const AdminNews = () => {
       await fetchMedia();
       alert('Média importé');
     } catch (err) {
-      alert("Échec de l'import (connexion requise).");
+      const msg = err?.response?.data?.message || "Échec de l'import.";
+      alert(msg);
     } finally {
       e.target.value = '';
     }
@@ -170,6 +179,11 @@ const AdminNews = () => {
   useEffect(() => {
     if (showMediaLibrary) fetchMedia();
   }, [showMediaLibrary]);
+  // Rafraîchir quand le type change
+  useEffect(() => {
+    if (showMediaLibrary) fetchMedia();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaTypeFilter]);
   useEffect(() => {
     if (showComments) fetchComments();
   }, [showComments, commentsFilter]);
@@ -298,19 +312,26 @@ const AdminNews = () => {
         </div>
       </div>
       <div className="media-filters">
-        <select className="media-type-filter">
+        <select className="media-type-filter" value={mediaTypeFilter} onChange={(e) => setMediaTypeFilter(e.target.value)}>
           <option value="all">Tous les types</option>
           <option value="image">Images</option>
           <option value="video">Vidéos</option>
-          <option value="document">Documents</option>
         </select>
-        <input type="text" placeholder="Rechercher un média..." className="media-search" />
+        <input type="text" placeholder="Rechercher un média..." className="media-search" value={mediaSearch} onChange={(e) => setMediaSearch(e.target.value)} />
       </div>
       <div className="media-grid">
         {mediaLoading && <div>Chargement des médias...</div>}
         {!mediaLoading && mediaError && <div className="media-error">{mediaError}</div>}
         {!mediaLoading && !mediaError && mediaList.length === 0 && <div>Aucun média</div>}
-        {!mediaLoading && !mediaError && mediaList.map((media) => (
+        {!mediaLoading && !mediaError && mediaList
+          .filter(m => mediaTypeFilter === 'all' || m.type === mediaTypeFilter)
+          .filter(m => {
+            const q = mediaSearch.trim().toLowerCase();
+            if (!q) return true;
+            const name = (m.title || m.name || '').toLowerCase();
+            return name.includes(q);
+          })
+          .map((media) => (
           <div key={media._id} className="media-item">
             <div className="media-preview">
               {media.type === 'image' ? (
