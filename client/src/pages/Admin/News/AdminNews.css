@@ -6,7 +6,7 @@
 
 .admin-content {
   flex: 1;
-  margin-left: 250px; /* Largeur de la barre latérale */
+  margin-left: 280px; /* Largeur réelle de la barre latérale */
   min-width: 0; /* Empêche le débordement */
 }
 
@@ -629,15 +629,7 @@ tr:hover {
 }
 
 /* Ajustements responsifs */
-@media (max-width: 1024px) {
-  .admin-content {
-    margin-left: 200px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Plus de marge spécifique à 1024px: overlay uniquement en <768px */
 
 @media (max-width: 768px) {
   .admin-content {

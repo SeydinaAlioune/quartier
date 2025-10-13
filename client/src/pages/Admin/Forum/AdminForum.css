@@ -6,7 +6,7 @@
 
 .admin-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 280px;
   min-width: 0;
 }
 
@@ -389,7 +389,7 @@ tr:hover td {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .admin-content {
-    margin-left: 200px;
+    margin-left: 0;
   }
   
   .stats-overview {

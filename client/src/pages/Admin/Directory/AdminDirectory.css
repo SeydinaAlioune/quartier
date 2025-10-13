@@ -6,7 +6,7 @@
 
 .admin-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 280px;
   min-width: 0;
 }
 
@@ -395,6 +395,12 @@
 
   .search-input, .filter-select {
     width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    margin-left: 0;
   }
 }
 

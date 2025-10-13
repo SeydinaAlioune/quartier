@@ -6,12 +6,18 @@
 
 .admin-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 280px;
   transition: margin-left 0.3s ease;
 }
 
 .admin-page .admin-sidebar.collapsed + .admin-content {
-  margin-left: 80px;
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    margin-left: 0;
+  }
 }
 
 .forum-content {

@@ -147,8 +147,8 @@ const AdminPaymentsConfig = () => {
 
   return (
     <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} />
-      <div className="admin-content">
+      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
         <AdminHeader title="Configuration Paiements" isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
         <div className="payments-config">

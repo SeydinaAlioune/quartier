@@ -8,8 +8,8 @@ const Forum = () => {
 
   return (
     <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} />
-      <div className="admin-content">
+      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
         <AdminHeader 
           title="Gestion du Forum" 
           isCollapsed={isCollapsed} 

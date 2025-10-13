@@ -10,6 +10,7 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
   };
 
   return (
+    <>
     <div className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="header-content">
@@ -76,6 +77,11 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
         </Link>
       </nav>
     </div>
+    {/* Mobile backdrop to close the sidebar when tapping outside */}
+    {onToggle && !isCollapsed && (
+      <div className="sidebar-backdrop" onClick={onToggle} />
+    )}
+    </>
   );
 };
 

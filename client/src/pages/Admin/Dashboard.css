@@ -17,7 +17,7 @@
 }
 
 .admin-sidebar.collapsed + .admin-content {
-  margin-left: 80px;
+  margin-left: 0;
 }
 
 .dashboard-header {
@@ -292,7 +292,7 @@ th {
 }
 
 .admin-content.sidebar-collapsed {
-  margin-left: 80px;
+  margin-left: 0;
 }
 
 .dashboard-header {
@@ -650,7 +650,7 @@ td {
 
 @media (max-width: 1024px) {
   .admin-content {
-    margin-left: 80px;
+    margin-left: 0;
     padding: 1rem;
   }
 

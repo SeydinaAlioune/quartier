@@ -94,6 +94,15 @@
   transform: scale(1.1);
 }
 
+/* Mobile backdrop under the sidebar; appears only when sidebar is open */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 40; /* below .admin-sidebar (50), above content */
+  display: none;
+}
+
 .sidebar-nav {
   padding: 1rem 0;
 }
@@ -196,5 +205,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .sidebar-backdrop {
+    display: block;
   }
 }
