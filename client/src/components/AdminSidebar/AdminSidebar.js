@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './AdminSidebar.css';
 
-const AdminSidebar = ({ isCollapsed }) => {
+const AdminSidebar = ({ isCollapsed, onToggle }) => {
   const location = useLocation();
 
   const isActive = (path) => {
@@ -14,6 +14,14 @@ const AdminSidebar = ({ isCollapsed }) => {
       <div className="sidebar-header">
         <div className="header-content">
           <h2>QuartierConnect</h2>
+          <button
+            type="button"
+            className="close-sidebar-btn"
+            onClick={onToggle}
+            aria-label={isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
+          >
+            {isCollapsed ? '☰' : '✕'}
+          </button>
         </div>
       </div>
 

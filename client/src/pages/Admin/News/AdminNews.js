@@ -476,7 +476,7 @@ const AdminNews = () => {
 
   return (
     <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} />
+      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       <div className={isCollapsed ? 'admin-content sidebar-collapsed' : 'admin-content'}>
         <AdminHeader 
           title="Gestion des Actualités" 

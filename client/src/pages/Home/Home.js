@@ -49,7 +49,9 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-overlay" style={{
-          background: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${process.env.PUBLIC_URL}/images/photo1.webp) no-repeat center center fixed`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${process.env.PUBLIC_URL}/images/photo1.webp), url(${process.env.PUBLIC_URL}/images/paronamique.jpg)`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
           backgroundSize: 'cover'
         }}></div>
         <div className="hero-content">

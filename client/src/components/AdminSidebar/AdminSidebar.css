@@ -36,6 +36,18 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.close-sidebar-btn {
+  display: none;
+  margin-left: auto;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 .header-content {
   display: flex;
   align-items: center;
@@ -175,7 +187,14 @@
     width: 200px;
   }
 
+  /* On mobile, the sidebar overlays the content; do not shift layout */
   .admin-content {
-    margin-left: 200px;
+    margin-left: 0;
+  }
+
+  .close-sidebar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }

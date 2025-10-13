@@ -68,7 +68,7 @@
 }
 
 .admin-page .admin-sidebar.collapsed + .admin-security {
-  margin-left: 80px;
+  margin-left: 0; /* sidebar collapses fully */
 }
 
 .alerts-section {
@@ -336,6 +336,7 @@
 @media (max-width: 768px) {
   .admin-security {
     padding: 1rem;
+    margin-left: 0; /* overlay mode on mobile */
   }
 
   .alerts-list, .incidents-list {

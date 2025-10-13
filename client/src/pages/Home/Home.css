@@ -23,7 +23,10 @@
   background-size: cover !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
-  z-index: -1;
+  z-index: 0; /* Fix iOS Safari painting of negative z-index backgrounds */
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .hero-content {
@@ -205,126 +208,6 @@
 .gallery-item.active p {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* Navbar */
-.navbar {
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 0.5rem 2rem;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-}
-
-.navbar-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.navbar-brand {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #00843D;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.navbar-brand:hover {
-  color: #006630;
-}
-
-.navbar-links {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-}
-
-.navbar-link {
-  color: #333;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  padding: 0.5rem 0;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.navbar-link:hover {
-  color: #00843D;
-  border-bottom-color: #00843D;
-}
-
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.search-box {
-  position: relative;
-  margin-right: 1rem;
-}
-
-.search-box input {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  outline: none;
-  width: 200px;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.search-box input:focus {
-  border-color: #00843D;
-  box-shadow: 0 0 0 2px rgba(0,132,61,0.1);
-}
-
-.search-button {
-  background: #00843D;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
-}
-
-.search-button:hover {
-  background: #006630;
-}
-
-@media (max-width: 1024px) {
-  .navbar-links {
-    gap: 1rem;
-  }
-  
-  .search-box input {
-    width: 150px;
-  }
-}
-
-@media (max-width: 768px) {
-  .navbar {
-    padding: 0.5rem 1rem;
-  }
-  
-  .navbar-links {
-    display: none;
-  }
-  
-  .navbar-brand {
-    font-size: 1.2rem;
-  }
 }
 
 @media (max-width: 768px) {

@@ -227,7 +227,7 @@ const AdminSecurity = () => {
 
   return (
     <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} />
+      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       <div className="admin-security">
         <div className="dashboard-header">
           <div className="header-left">
