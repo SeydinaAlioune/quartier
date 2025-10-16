@@ -11,7 +11,7 @@ const NewsDetail = () => {
   const [article, setArticle] = useState(location.state?.article || null);
   const [loading, setLoading] = useState(!location.state?.article);
   const [error, setError] = useState('');
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
 
   useEffect(() => {
     let mounted = true;
@@ -28,7 +28,9 @@ const NewsDetail = () => {
           date: p.createdAt || new Date().toISOString(),
           title: p.title,
           description: p.content,
-          image: p.coverUrl ? `${API_BASE}${p.coverUrl}` : '/images/setsetal.jpg',
+          image: p.coverUrl
+            ? (String(p.coverUrl).startsWith('http') ? p.coverUrl : `${API_BASE}${p.coverUrl}`)
+            : '/images/setsetal.jpg',
           author: p.author?.name || 'Anonyme',
         });
       } catch (e) {

@@ -6,7 +6,8 @@ import api from '../../services/api';
 import { Link } from 'react-router-dom';
 
 const News = () => {
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+  const SHOW_IMPORTANT_ANNOUNCEMENTS = String(process.env.REACT_APP_SHOW_IMPORTANT_ANNOUNCEMENTS || '').toLowerCase() === 'true';
   // Données par défaut (fallback)
   const defaultArticles = [
     {
@@ -93,7 +94,9 @@ const News = () => {
           title: p.title,
           description: p.content,
           // Image de couverture si disponible
-          image: p.coverUrl ? `${API_BASE}${p.coverUrl}` : '/images/setsetal.jpg'
+          image: p.coverUrl
+            ? (String(p.coverUrl).startsWith('http') ? p.coverUrl : `${API_BASE}${p.coverUrl}`)
+            : '/images/setsetal.jpg'
         }));
         setLatestArticles(items);
       } catch (e) {
@@ -158,7 +161,7 @@ const News = () => {
         <div className="articles-grid">
           {latestArticles.map(article => (
             <div key={article.id} className="article-card">
-              <img src={article.image} alt={article.title} />
+              <img src={article.image} alt={article.title} onError={(e) => { e.currentTarget.src = '/images/setsetal.jpg'; }} />
               <div className="article-content">
                 <span className="article-date">{format(new Date(article.date), 'd MMMM yyyy', { locale: fr })}</span>
                 <h3>{article.title}</h3>
@@ -170,49 +173,23 @@ const News = () => {
         </div>
       </section>
 
-      <section className="important-announcements">
-        <h2>Annonces Importantes</h2>
-        <div className="announcements-grid">
-          {importantAnnouncements.map(announcement => (
-            <div key={announcement.id} className="announcement-card">
-              <h3>
-                <i className="icon"></i>
-                {announcement.type}
-              </h3>
-              <p>{announcement.description}</p>
-              <button className="announcement-button">{announcement.buttonText}</button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="upcoming-events">
-        <h2>Événements à Venir</h2>
-        <div className="events-list">
-          {eventsLoading && <p>Chargement des événements...</p>}
-          {!eventsLoading && eventsError && <p className="news-error">{eventsError}</p>}
-          {!eventsLoading && !eventsError && upcomingEvents.length === 0 && (
-            <p>Aucun événement à venir.</p>
-          )}
-          {!eventsLoading && !eventsError && upcomingEvents.map(event => (
-            <div key={event.id} className="event-card">
-              <div className="event-date">
-                <span className="month">{format(new Date(event.date), 'MMM', { locale: fr }).toUpperCase()}</span>
-                <span className="day">{format(new Date(event.date), 'dd')}</span>
+      {SHOW_IMPORTANT_ANNOUNCEMENTS && (
+        <section className="important-announcements">
+          <h2>Annonces Importantes</h2>
+          <div className="announcements-grid">
+            {importantAnnouncements.map(announcement => (
+              <div key={announcement.id} className="announcement-card">
+                <h3>
+                  <i className="icon"></i>
+                  {announcement.type}
+                </h3>
+                <p>{announcement.description}</p>
+                <button className="announcement-button">{announcement.buttonText}</button>
               </div>
-              <div className="event-details">
-                <h3>{event.title}</h3>
-                <p className="event-time">
-                  <i className="icon-time"></i> {event.time || '—'}
-                  <i className="icon-location"></i> {event.location}
-                </p>
-                <p className="event-description">{event.description}</p>
-                <button className="event-button">{event.buttonText}</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
