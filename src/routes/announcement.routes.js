@@ -8,6 +8,7 @@ router.get('/', ctrl.getActive);
 
 // Protected admin
 router.use(auth);
+router.get('/all', checkRole(['admin']), ctrl.getAll);
 router.post('/', checkRole(['admin']), ctrl.create);
 router.put('/:id', checkRole(['admin']), ctrl.update);
 router.delete('/:id', checkRole(['admin']), ctrl.remove);

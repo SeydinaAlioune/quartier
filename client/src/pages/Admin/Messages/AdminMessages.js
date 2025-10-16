@@ -9,7 +9,7 @@ const AdminMessages = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [messages, setMessages] = useState([]);
-  const [statusFilter, setStatusFilter] = useState('new');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [mineOnly, setMineOnly] = useState(false);

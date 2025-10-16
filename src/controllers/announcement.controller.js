@@ -27,6 +27,31 @@ exports.getActive = async (req, res) => {
   }
 };
 
+// Admin: list all announcements (optionally filtered by status)
+exports.getAll = async (req, res) => {
+  try {
+    const { status = 'all' } = req.query;
+    const q = {};
+    if (status && status !== 'all') q.status = status;
+    const list = await Announcement.find(q).sort({ createdAt: -1 }).lean();
+    res.json(list.map(a => ({
+      id: String(a._id),
+      title: a.title,
+      description: a.description,
+      buttonText: a.buttonText || '',
+      link: a.link || '',
+      status: a.status,
+      startsAt: a.startsAt,
+      endsAt: a.endsAt,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+    })));
+  } catch (e) {
+    console.error('Announcements getAll error', e);
+    res.status(500).json({ message: 'Erreur lors du chargement des annonces (admin)' });
+  }
+};
+
 // Admin: create
 exports.create = async (req, res) => {
   try {

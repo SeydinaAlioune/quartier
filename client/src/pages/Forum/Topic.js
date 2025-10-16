@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import './Forum.css';
@@ -11,6 +11,7 @@ const Topic = () => {
   const [error, setError] = useState('');
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const isLoggedIn = useMemo(() => !!localStorage.getItem('token'), []);
 
   const load = async () => {
     try {
@@ -33,11 +34,7 @@ const Topic = () => {
 
   const handleReply = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Veuillez vous connecter pour répondre.');
-      return;
-    }
+    if (!isLoggedIn) return;
     if (!reply.trim()) return;
     try {
       setSending(true);
@@ -85,16 +82,29 @@ const Topic = () => {
 
           <section className="annonces-section" style={{ marginTop: '1.5rem' }}>
             <h2>Répondre</h2>
-            <form className="new-discussion-form" onSubmit={handleReply}>
-              <div className="form-group">
-                <label>Votre message</label>
-                <textarea rows="4" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Écrivez votre réponse…" />
+            {topic?.status === 'closed' && (
+              <div className="empty-state"><p>Ce sujet est fermé. Vous ne pouvez plus répondre.</p></div>
+            )}
+            {topic?.status !== 'closed' && !isLoggedIn ? (
+              <div className="empty-state">
+                <p>Vous devez être connecté pour répondre.</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Link to="/login" className="btn-submit" style={{ textDecoration: 'none' }}>Se connecter</Link>
+                  <Link to="/register" className="btn-cancel" style={{ textDecoration: 'none' }}>Créer un compte</Link>
+                </div>
               </div>
-              <div className="form-actions">
-                <Link to="/forum" className="btn-cancel" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Retour</Link>
-                <button type="submit" className="btn-submit" disabled={sending}>{sending ? 'Envoi…' : 'Publier la réponse'}</button>
-              </div>
-            </form>
+            ) : topic?.status !== 'closed' ? (
+              <form className="new-discussion-form" onSubmit={handleReply}>
+                <div className="form-group">
+                  <label>Votre message</label>
+                  <textarea rows="4" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Écrivez votre réponse…" />
+                </div>
+                <div className="form-actions">
+                  <Link to="/forum" className="btn-cancel" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Retour</Link>
+                  <button type="submit" className="btn-submit" disabled={sending}>{sending ? 'Envoi…' : 'Publier la réponse'}</button>
+                </div>
+              </form>
+            ) : null}
           </section>
         </>
       )}

@@ -50,6 +50,12 @@
   border-radius: 999px;
   font-size: 0.85rem;
   cursor: pointer;
+  margin-right: 0.5rem; /* espace visuel pour éviter que le chiffre touche le texte */
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-name {
@@ -60,4 +66,5 @@
 .admin-role {
   color: #718096;
   font-size: 0.9rem;
+  margin-left: 0.25rem; /* léger décalage */
 }

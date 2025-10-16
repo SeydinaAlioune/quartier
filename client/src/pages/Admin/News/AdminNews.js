@@ -13,6 +13,7 @@ const AdminNews = () => {
   const [pageSize] = useState(10);
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showAnnouncements, setShowAnnouncements] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [posts, setPosts] = useState([]);
@@ -34,6 +35,13 @@ const AdminNews = () => {
   const [commentsList, setCommentsList] = useState([]);
   const [commentsFilter, setCommentsFilter] = useState('all'); // all|approved|pending|rejected
   const [commentsTotal, setCommentsTotal] = useState(0);
+  // Annonces importantes (admin)
+  const [annList, setAnnList] = useState([]);
+  const [annLoading, setAnnLoading] = useState(false);
+  const [annError, setAnnError] = useState('');
+  const [annForm, setAnnForm] = useState({ title: '', description: '', buttonText: '', link: '', status: 'active', startsAt: '', endsAt: '' });
+  const [annEditing, setAnnEditing] = useState(null); // { id, ...fields }
+  const [annModalOpen, setAnnModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
   // Quand on clique "Choisir dans la bibliothèque" depuis un formulaire, on marque la cible
@@ -188,6 +196,11 @@ const AdminNews = () => {
   useEffect(() => {
     if (showComments) fetchComments();
   }, [showComments, commentsFilter]);
+  // Charger les annonces importantes quand la section est ouverte
+  useEffect(() => {
+    if (showAnnouncements) fetchAnnouncements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAnnouncements]);
   // Ouvrir le picker déclenchera aussi un rafraîchissement des médias
   useEffect(() => {
     if (showMediaPicker) fetchMedia();
@@ -373,6 +386,175 @@ const AdminNews = () => {
     </div>
   );
 
+  // ====== Annonces Importantes (Admin) ======
+  const fetchAnnouncements = async () => {
+    try {
+      setAnnLoading(true);
+      setAnnError('');
+      const res = await api.get('/api/announcements/all');
+      const list = Array.isArray(res.data) ? res.data : [];
+      setAnnList(list);
+    } catch (e) {
+      setAnnError("Impossible de charger les annonces importantes.");
+      setAnnList([]);
+    } finally {
+      setAnnLoading(false);
+    }
+  };
+
+  const openCreateAnn = () => {
+    setAnnForm({ title: '', description: '', buttonText: '', link: '', status: 'active', startsAt: '', endsAt: '' });
+    setAnnEditing(null);
+    setAnnModalOpen(true);
+  };
+
+  const openEditAnn = (a) => {
+    setAnnEditing(a);
+    setAnnForm({
+      title: a.title || '',
+      description: a.description || '',
+      buttonText: a.buttonText || '',
+      link: a.link || '',
+      status: a.status || 'inactive',
+      startsAt: a.startsAt ? String(a.startsAt).slice(0, 16) : '',
+      endsAt: a.endsAt ? String(a.endsAt).slice(0, 16) : '',
+    });
+    setAnnModalOpen(true);
+  };
+
+  const saveAnnouncement = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        title: annForm.title,
+        description: annForm.description,
+        buttonText: annForm.buttonText,
+        link: annForm.link,
+        status: annForm.status,
+        startsAt: annForm.startsAt ? new Date(annForm.startsAt).toISOString() : undefined,
+        endsAt: annForm.endsAt ? new Date(annForm.endsAt).toISOString() : undefined,
+      };
+      if (annEditing?.id) {
+        await api.put(`/api/announcements/${annEditing.id}`, payload);
+      } else {
+        await api.post('/api/announcements', payload);
+      }
+      setAnnModalOpen(false);
+      await fetchAnnouncements();
+    } catch (err) {
+      alert("Enregistrement impossible. Vérifiez vos droits.");
+    }
+  };
+
+  const toggleAnnStatus = async (a) => {
+    try {
+      const next = a.status === 'active' ? 'inactive' : 'active';
+      await api.put(`/api/announcements/${a.id}`, { status: next });
+      await fetchAnnouncements();
+    } catch {
+      alert("Changement de statut impossible");
+    }
+  };
+
+  const deleteAnn = async (a) => {
+    if (!window.confirm('Supprimer cette annonce ?')) return;
+    try {
+      await api.delete(`/api/announcements/${a.id}`);
+      await fetchAnnouncements();
+    } catch {
+      alert('Suppression impossible');
+    }
+  };
+
+  const AnnouncementsSection = () => (
+    <div className="announcements-admin">
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.75rem'}}>
+        <h3>Annonces Importantes</h3>
+        <button className="add-news-btn" onClick={openCreateAnn}><span>+</span><span>Nouvelle annonce</span></button>
+      </div>
+      {annLoading && <div>Chargement…</div>}
+      {!annLoading && annError && <div className="media-error">{annError}</div>}
+      {!annLoading && !annError && annList.length === 0 && <div>Aucune annonce</div>}
+      {!annLoading && !annError && annList.length > 0 && (
+        <div className="articles-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Statut</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {annList.map(a => (
+                <tr key={a.id}>
+                  <td>{a.title}</td>
+                  <td><span className={`status-badge ${a.status}`}>{a.status === 'active' ? 'Active' : 'Inactive'}</span></td>
+                  <td>{a.startsAt ? new Date(a.startsAt).toLocaleString('fr-FR') : '—'}</td>
+                  <td>{a.endsAt ? new Date(a.endsAt).toLocaleString('fr-FR') : '—'}</td>
+                  <td className="actions-cell">
+                    <button className="action-btn edit" title="Modifier" onClick={() => openEditAnn(a)}>✏️</button>
+                    <button className="action-btn" title={a.status==='active'?'Désactiver':'Activer'} onClick={() => toggleAnnStatus(a)}>{a.status==='active'?'⏸️':'✅'}</button>
+                    <button className="action-btn delete" title="Supprimer" onClick={() => deleteAnn(a)}>🗑️</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {annModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>{annEditing? 'Modifier l\'annonce' : 'Créer une annonce'}</h3>
+            <form onSubmit={saveAnnouncement}>
+              <div className="form-row">
+                <label>Titre</label>
+                <input type="text" value={annForm.title} onChange={(e)=>setAnnForm({...annForm, title:e.target.value})} required />
+              </div>
+              <div className="form-row">
+                <label>Description</label>
+                <textarea rows="4" value={annForm.description} onChange={(e)=>setAnnForm({...annForm, description:e.target.value})} required />
+              </div>
+              <div className="form-row">
+                <label>Texte du bouton</label>
+                <input type="text" value={annForm.buttonText} onChange={(e)=>setAnnForm({...annForm, buttonText:e.target.value})} />
+              </div>
+              <div className="form-row">
+                <label>Lien (URL)</label>
+                <input type="url" value={annForm.link} onChange={(e)=>setAnnForm({...annForm, link:e.target.value})} placeholder="https://…" />
+              </div>
+              <div className="form-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem'}}>
+                <div>
+                  <label>Début (optionnel)</label>
+                  <input type="datetime-local" value={annForm.startsAt} onChange={(e)=>setAnnForm({...annForm, startsAt:e.target.value})} />
+                </div>
+                <div>
+                  <label>Fin (optionnel)</label>
+                  <input type="datetime-local" value={annForm.endsAt} onChange={(e)=>setAnnForm({...annForm, endsAt:e.target.value})} />
+                </div>
+              </div>
+              <div className="form-row">
+                <label>Statut</label>
+                <select value={annForm.status} onChange={(e)=>setAnnForm({...annForm, status:e.target.value})}>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={()=>setAnnModalOpen(false)}>Annuler</button>
+                <button type="submit" className="btn-primary">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   // Heuristique pour déterminer le MIME type vidéo depuis l'extension
   const inferMime = (url = '') => {
     const lower = url.toLowerCase();
@@ -500,6 +682,11 @@ const AdminNews = () => {
                 <span>Commentaires</span>
                 <span className="count-badge">{commentsTotal || '—'}</span>
               </button>
+              <button className="comments-btn" onClick={() => { setShowAnnouncements(!showAnnouncements); }}>
+                <span>📣</span>
+                <span>Annonces</span>
+                <span className="count-badge">{showAnnouncements ? annList.length : '—'}</span>
+              </button>
               <button className="add-news-btn" onClick={() => setShowAddModal(true)}>
                 <span>+</span>
                 <span>Créer un article</span>
@@ -509,6 +696,7 @@ const AdminNews = () => {
 
           {showMediaLibrary && <MediaLibrary />}
           {showComments && <CommentsSection />}
+          {showAnnouncements && <AnnouncementsSection />}
           <MediaPicker />
           <MediaViewer />
 

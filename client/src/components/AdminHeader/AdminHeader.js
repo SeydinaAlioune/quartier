@@ -44,9 +44,9 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
     let cancelled = false;
     const loadCount = async () => {
       try {
-        const res = await api.get('/api/contact?status=new&limit=1');
-        const total = (res?.data?.total != null) ? Number(res.data.total) : (Array.isArray(res?.data?.contacts) ? res.data.contacts.length : 0);
-        if (!cancelled) setNotifCount(total || 0);
+        const res = await api.get('/api/contact/stats/summary');
+        const totalNew = Number(res?.data?.byStatus?.new || 0);
+        if (!cancelled) setNotifCount(totalNew);
       } catch {
         // ignorer erreurs (non-admin, etc.)
       }
