@@ -25,6 +25,10 @@
 
 .detail-card{display:flex; flex-direction:column; gap:.75rem}
 .detail-meta{display:flex; justify-content:space-between; color:#6b7280; font-size:.9rem}
+.detail-meta .contact-inline{display:flex; align-items:center; gap:.375rem; flex-wrap:wrap}
+.detail-meta .contact-inline a{color:#2b6cb0; text-decoration:none}
+.detail-meta .contact-inline a:hover{text-decoration:underline}
+.detail-meta .sep{margin:0 6px; color:#a0aec0}
 .detail-actions{display:flex; gap:.5rem}
 .detail-actions .btn{background:#e5e7eb; border:none; padding:.45rem .7rem; border-radius:6px; cursor:pointer}
 .respond{display:flex; flex-direction:column; gap:.5rem; margin-top:.5rem}

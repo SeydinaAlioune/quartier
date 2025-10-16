@@ -114,6 +114,7 @@ exports.getMyAds = async (req, res) => {
       title: a.title,
       description: a.description,
       price: a.price,
+      imageUrl: a.imageUrl || '',
       status: a.status,
       createdAt: a.createdAt,
       updatedAt: a.updatedAt,
@@ -128,7 +129,7 @@ exports.getMyAds = async (req, res) => {
 exports.updateMyAd = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price = '', type } = req.body;
+    const { title, description, price = '', type, imageUrl } = req.body;
     const ad = await ForumAd.findById(id);
     if (!ad) return res.status(404).json({ message: 'Annonce introuvable' });
     if (String(ad.author) !== String(req.user._id)) return res.status(403).json({ message: 'Accès refusé' });
@@ -139,6 +140,7 @@ exports.updateMyAd = async (req, res) => {
     if (description !== undefined) ad.description = String(description).trim();
     if (price !== undefined) ad.price = price;
     if (type) ad.type = type;
+    if (imageUrl !== undefined) ad.imageUrl = String(imageUrl || '');
     // Toute modification remet l'annonce en modération
     ad.status = 'pending';
     await ad.save();
@@ -176,6 +178,7 @@ exports.getAdById = async (req, res) => {
       title: ad.title,
       description: ad.description,
       price: ad.price,
+      imageUrl: ad.imageUrl || '',
       status: ad.status,
       author: ad.author?.name || '—',
       createdAt: ad.createdAt,
@@ -222,6 +225,7 @@ exports.getAds = async (req, res) => {
       title: a.title,
       description: a.description,
       price: a.price,
+      imageUrl: a.imageUrl || '',
       status: a.status,
       author: a.author?.name || '—',
       createdAt: a.createdAt,
@@ -234,11 +238,11 @@ exports.getAds = async (req, res) => {
 
 exports.createAd = async (req, res) => {
   try {
-    const { type, title, description, price = '' } = req.body;
+    const { type, title, description, price = '', imageUrl = '' } = req.body;
     if (!type || !['vends', 'recherche', 'services'].includes(type)) return res.status(400).json({ message: 'Type invalide' });
     if (!title || !description) return res.status(400).json({ message: 'Titre et description requis' });
     // Par défaut: pending (nécessite approbation admin)
-    const ad = await ForumAd.create({ type, title: title.trim(), description: description.trim(), price, author: req.user._id, status: 'pending' });
+    const ad = await ForumAd.create({ type, title: title.trim(), description: description.trim(), price, imageUrl: String(imageUrl || ''), author: req.user._id, status: 'pending' });
     res.status(201).json({ id: ad._id });
   } catch (e) {
     console.error('Forum createAd error', e);

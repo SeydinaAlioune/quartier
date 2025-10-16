@@ -206,7 +206,17 @@ const AdminMessages = () => {
                   <div className="detail-head">
                     <h3 style={{margin:0}}>{selected.subject}</h3>
                     <div className="detail-meta">
-                      <span>{selected.name} · {selected.email}{selected.phone?` · ${selected.phone}`:''}</span>
+                      <span className="contact-inline">
+                        <span>{selected.name}</span>
+                        {selected.email && (<>
+                          <span className="sep">·</span>
+                          <a href={`mailto:${selected.email}`}>{selected.email}</a>
+                        </>)}
+                        {selected.phone && (<>
+                          <span className="sep">·</span>
+                          <a href={`tel:${selected.phone}`}>{selected.phone}</a>
+                        </>)}
+                      </span>
                       <span>{selected.createdAt ? new Date(selected.createdAt).toLocaleString('fr-FR') : ''}</span>
                     </div>
                   </div>
