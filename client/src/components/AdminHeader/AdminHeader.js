@@ -48,7 +48,14 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
         const totalNew = Number(res?.data?.byStatus?.new || 0);
         if (!cancelled) setNotifCount(totalNew);
       } catch {
-        // ignorer erreurs (non-admin, etc.)
+        // Fallback: tenter un comptage rapide via la liste (total)
+        try {
+          const r = await api.get('/api/contact?status=new&limit=1&page=1');
+          const total = Number(r?.data?.total || 0);
+          if (!cancelled) setNotifCount(total);
+        } catch {
+          // ignorer erreurs (non-admin, etc.)
+        }
       }
     };
     loadCount();
@@ -65,7 +72,7 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
         <h1>{title}</h1>
       </div>
       <div className="admin-profile">
-        <span className="notification-badge" title="Voir les nouveaux messages" onClick={() => navigate('/admin/messages')}>
+        <span className={`notification-badge ${((notificationsCount || notifCount || 0) > 0) ? 'has-unread' : ''}`} title="Voir les nouveaux messages" onClick={() => navigate('/admin/messages')}>
           {notificationsCount || notifCount || 0}
         </span>
         <span className="admin-name">{user?.name || '—'}</span>

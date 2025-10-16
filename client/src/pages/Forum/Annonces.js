@@ -12,10 +12,10 @@ const Annonces = () => {
   const [myLoading, setMyLoading] = useState(false);
   const [myError, setMyError] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editAd, setEditAd] = useState({ id: '', type: 'vends', titre: '', description: '', prix: '', imageUrl: '' });
+  const [editAd, setEditAd] = useState({ id: '', type: 'vends', titre: '', description: '', prix: '', imageUrl: '', images: [] });
 
   const [showModal, setShowModal] = useState(false);
-  const [newAnnonce, setNewAnnonce] = useState({ type: 'vends', titre: '', description: '', prix: '', imageUrl: '' });
+  const [newAnnonce, setNewAnnonce] = useState({ type: 'vends', titre: '', description: '', prix: '', imageUrl: '', images: [] });
   const hlDoneRef = useRef(false);
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
   const newImageInputRef = useRef(null);
@@ -91,11 +91,12 @@ const Annonces = () => {
         title: newAnnonce.titre.trim(),
         description: newAnnonce.description.trim(),
         price: newAnnonce.type === 'vends' ? (newAnnonce.prix || '') : '',
-        imageUrl: newAnnonce.imageUrl || ''
+        imageUrl: newAnnonce.imageUrl || '',
+        images: Array.isArray(newAnnonce.images) ? newAnnonce.images : []
       };
       await api.post('/api/forum/ads', payload);
       setShowModal(false);
-      setNewAnnonce({ type: 'vends', titre: '', description: '', prix: '', imageUrl: '' });
+      setNewAnnonce({ type: 'vends', titre: '', description: '', prix: '', imageUrl: '', images: [] });
       await fetchAds();
       if (localStorage.getItem('token')) { await fetchMyAds(); }
       alert("Annonce envoyée pour approbation par un administrateur.");
@@ -106,6 +107,10 @@ const Annonces = () => {
 
   // Upload image helper
   const uploadImage = async (file) => {
+    // Validation type/poids
+    if (!file.type.startsWith('image/')) throw new Error('Type de fichier non supporté');
+    const max = 4 * 1024 * 1024; // 4MB
+    if (file.size > max) throw new Error('Image trop volumineuse (>4MB)');
     const form = new FormData();
     form.append('media', file);
     form.append('title', file.name);
@@ -115,29 +120,55 @@ const Annonces = () => {
   };
 
   const handleNewImageSelected = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
+    const files = (e.target.files && Array.from(e.target.files)) || [];
+    if (files.length === 0) return;
     try {
-      const url = await uploadImage(file);
-      if (url) setNewAnnonce(prev => ({ ...prev, imageUrl: url }));
-    } catch {
-      alert("Échec de l'upload de l'image.");
+      const urls = [];
+      for (const f of files) {
+        try { const u = await uploadImage(f); if (u) urls.push(u); } catch (err) { alert(err.message || "Échec d'upload pour " + f.name); }
+      }
+      if (urls.length) {
+        setNewAnnonce(prev => {
+          const nextImages = [...(prev.images||[]), ...urls];
+          return { ...prev, images: nextImages, imageUrl: prev.imageUrl || nextImages[0] };
+        });
+      }
     } finally {
       e.target.value = '';
     }
   };
 
   const handleEditImageSelected = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
+    const files = (e.target.files && Array.from(e.target.files)) || [];
+    if (!files.length) return;
     try {
-      const url = await uploadImage(file);
-      if (url) setEditAd(prev => ({ ...prev, imageUrl: url }));
-    } catch {
-      alert("Échec de l'upload de l'image.");
+      const urls = [];
+      for (const f of files) {
+        try { const u = await uploadImage(f); if (u) urls.push(u); } catch (err) { alert(err.message || "Échec d'upload pour " + f.name); }
+      }
+      if (urls.length) setEditAd(prev => {
+        const nextImages = [...(prev.images||[]), ...urls];
+        return { ...prev, images: nextImages, imageUrl: prev.imageUrl || nextImages[0] };
+      });
     } finally {
       e.target.value = '';
     }
+  };
+
+  const removeNewImageAt = (idx) => {
+    setNewAnnonce(prev => {
+      const arr = [...(prev.images||[])];
+      if (idx>=0 && idx<arr.length) arr.splice(idx,1);
+      return { ...prev, images: arr, imageUrl: arr[0] || prev.imageUrl };
+    });
+  };
+
+  const removeEditImageAt = (idx) => {
+    setEditAd(prev => {
+      const arr = [...(prev.images||[])];
+      if (idx>=0 && idx<arr.length) arr.splice(idx,1);
+      return { ...prev, images: arr, imageUrl: arr[0] || prev.imageUrl };
+    });
   };
 
   const handleReport = async (ad) => {
@@ -180,7 +211,7 @@ const Annonces = () => {
                   </span>
                   <span style={{ marginLeft: 8 }}>
                     <button className="link-like" onClick={() => {
-                      setEditAd({ id: ad.id, type: ad.type, titre: ad.title, description: ad.description || '', prix: ad.price || '' });
+                      setEditAd({ id: ad.id, type: ad.type, titre: ad.title, description: ad.description || '', prix: ad.price || '', imageUrl: ad.imageUrl || '', images: Array.isArray(ad.images)?ad.images:[] });
                       setShowEditModal(true);
                     }}>Modifier</button>
                     <button className="link-like" style={{ marginLeft: 8 }} onClick={async () => {
@@ -324,16 +355,20 @@ const Annonces = () => {
               )}
               <div className="form-group">
                 <label>Image (optionnel)</label>
-                {newAnnonce.imageUrl && (
-                  <img className="ad-thumb" src={(String(newAnnonce.imageUrl).startsWith('http') ? newAnnonce.imageUrl : `${API_BASE}${newAnnonce.imageUrl}`)} alt="Prévisualisation" />
+                {Array.isArray(newAnnonce.images) && newAnnonce.images.length>0 && (
+                  <div className="ad-thumbs">
+                    {newAnnonce.images.map((u,idx)=> (
+                      <div className="ad-thumb-mini" key={idx}>
+                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Image ${idx+1}`} />
+                        <button type="button" className="remove-img" onClick={()=>removeNewImageAt(idx)}>×</button>
+                      </div>
+                    ))}
+                  </div>
                 )}
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                  <button type="button" className="btn-submit" onClick={() => newImageInputRef.current && newImageInputRef.current.click()}>Choisir une image</button>
-                  {newAnnonce.imageUrl && (
-                    <button type="button" className="btn-cancel" onClick={() => setNewAnnonce(prev => ({ ...prev, imageUrl: '' }))}>Retirer l'image</button>
-                  )}
+                  <button type="button" className="btn-submit" onClick={() => newImageInputRef.current && newImageInputRef.current.click()}>Ajouter image(s)</button>
                 </div>
-                <input ref={newImageInputRef} type="file" accept="image/*" onChange={handleNewImageSelected} style={{ display:'none' }} />
+                <input ref={newImageInputRef} type="file" accept="image/*" multiple onChange={handleNewImageSelected} style={{ display:'none' }} />
               </div>
               <div className="form-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>
@@ -360,7 +395,8 @@ const Annonces = () => {
                   title: editAd.titre.trim(),
                   description: editAd.description.trim(),
                   price: editAd.type === 'vends' ? (editAd.prix || '') : '',
-                  imageUrl: editAd.imageUrl || ''
+                  imageUrl: editAd.imageUrl || '',
+                  images: Array.isArray(editAd.images) ? editAd.images : []
                 };
                 await api.put(`/api/forum/ads/mine/${editAd.id}`, payload);
                 setShowEditModal(false);
@@ -395,16 +431,20 @@ const Annonces = () => {
               )}
               <div className="form-group">
                 <label className="form-label">Image (optionnel)</label>
-                {editAd.imageUrl && (
-                  <img className="ad-thumb" src={(String(editAd.imageUrl).startsWith('http') ? editAd.imageUrl : `${API_BASE}${editAd.imageUrl}`)} alt="Prévisualisation" />
+                {Array.isArray(editAd.images) && editAd.images.length>0 && (
+                  <div className="ad-thumbs">
+                    {editAd.images.map((u,idx)=> (
+                      <div className="ad-thumb-mini" key={idx}>
+                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Image ${idx+1}`} />
+                        <button type="button" className="remove-img" onClick={()=>removeEditImageAt(idx)}>×</button>
+                      </div>
+                    ))}
+                  </div>
                 )}
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                  <button type="button" className="btn-submit" onClick={() => editImageInputRef.current && editImageInputRef.current.click()}>Changer l'image</button>
-                  {editAd.imageUrl && (
-                    <button type="button" className="btn-cancel" onClick={() => setEditAd(prev => ({ ...prev, imageUrl: '' }))}>Retirer l'image</button>
-                  )}
+                  <button type="button" className="btn-submit" onClick={() => editImageInputRef.current && editImageInputRef.current.click()}>Ajouter image(s)</button>
                 </div>
-                <input ref={editImageInputRef} type="file" accept="image/*" onChange={handleEditImageSelected} style={{ display:'none' }} />
+                <input ref={editImageInputRef} type="file" accept="image/*" multiple onChange={handleEditImageSelected} style={{ display:'none' }} />
               </div>
               <div className="form-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowEditModal(false)}>Annuler</button>

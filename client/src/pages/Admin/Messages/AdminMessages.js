@@ -4,6 +4,43 @@ import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import api from '../../../services/api';
 import './AdminMessages.css';
 
+  // Linkify helper for message body
+  const renderLinked = (text = '') => {
+    const parts = [];
+    const patterns = [
+      { type: 'url', regex: /(https?:\/\/[^\s]+)/gi },
+      { type: 'email', regex: /([\w.+-]+@[\w-]+\.[\w.-]+)/gi },
+      { type: 'tel', regex: /(\+?[0-9][0-9\s().-]{6,}[0-9])/g },
+    ];
+    let lastIndex = 0;
+    const matches = [];
+    patterns.forEach(p => {
+      let m;
+      while ((m = p.regex.exec(text)) !== null) {
+        matches.push({ type: p.type, index: m.index, match: m[0] });
+      }
+    });
+    matches.sort((a,b) => a.index - b.index);
+    const taken = [];
+    for (const m of matches) {
+      // skip overlaps
+      if (taken.some(t => m.index >= t.index && m.index < t.index + t.len)) continue;
+      if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+      if (m.type === 'url') {
+        parts.push(<a key={m.index} href={m.match} target="_blank" rel="noopener noreferrer">{m.match}</a>);
+      } else if (m.type === 'email') {
+        parts.push(<a key={m.index} href={`mailto:${m.match}`}>{m.match}</a>);
+      } else if (m.type === 'tel') {
+        const href = 'tel:' + m.match.replace(/[^+0-9]/g, '');
+        parts.push(<a key={m.index} href={href}>{m.match}</a>);
+      }
+      taken.push({ index: m.index, len: m.match.length });
+      lastIndex = m.index + m.match.length;
+    }
+    if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+    return parts;
+  };
+
 const AdminMessages = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -221,7 +258,7 @@ const AdminMessages = () => {
                     </div>
                   </div>
                   <div className="detail-body">
-                    <p style={{whiteSpace:'pre-wrap'}}>{selected.message}</p>
+                    <div style={{whiteSpace:'pre-wrap'}}>{renderLinked(selected.message || '')}</div>
                     {Array.isArray(selected.responses) && selected.responses.length>0 && (
                       <div className="responses">
                         <h4>Réponses</h4>

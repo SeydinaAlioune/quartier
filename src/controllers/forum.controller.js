@@ -1,4 +1,7 @@
 const { ForumCategory, ForumTopic, ForumPost, ForumAd, ForumIdea, ForumReport } = require('../models/forum.model');
+const path = require('path');
+const { deleteFile } = require('../middleware/upload.middleware');
+const Media = require('../models/media.model');
 const User = require('../models/user.model');
 
 // Helper: relative time string in French (very simple)
@@ -115,6 +118,7 @@ exports.getMyAds = async (req, res) => {
       description: a.description,
       price: a.price,
       imageUrl: a.imageUrl || '',
+      images: Array.isArray(a.images) ? a.images : [],
       status: a.status,
       createdAt: a.createdAt,
       updatedAt: a.updatedAt,
@@ -129,7 +133,7 @@ exports.getMyAds = async (req, res) => {
 exports.updateMyAd = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price = '', type, imageUrl } = req.body;
+    const { title, description, price = '', type, imageUrl, images } = req.body;
     const ad = await ForumAd.findById(id);
     if (!ad) return res.status(404).json({ message: 'Annonce introuvable' });
     if (String(ad.author) !== String(req.user._id)) return res.status(403).json({ message: 'Accès refusé' });
@@ -141,6 +145,11 @@ exports.updateMyAd = async (req, res) => {
     if (price !== undefined) ad.price = price;
     if (type) ad.type = type;
     if (imageUrl !== undefined) ad.imageUrl = String(imageUrl || '');
+    if (images !== undefined) {
+      const arr = Array.isArray(images) ? images.filter(Boolean).map(String) : [];
+      ad.images = arr;
+      if (!ad.imageUrl && arr.length > 0) ad.imageUrl = arr[0];
+    }
     // Toute modification remet l'annonce en modération
     ad.status = 'pending';
     await ad.save();
@@ -158,6 +167,19 @@ exports.deleteMyAd = async (req, res) => {
     const ad = await ForumAd.findById(id);
     if (!ad) return res.status(404).json({ message: 'Annonce introuvable' });
     if (String(ad.author) !== String(req.user._id)) return res.status(403).json({ message: 'Accès refusé' });
+    // suppression des fichiers liés si présents
+    const candidates = [];
+    if (ad.imageUrl && /^\//.test(ad.imageUrl)) candidates.push(ad.imageUrl);
+    if (Array.isArray(ad.images)) ad.images.forEach(u => { if (u && /^\//.test(u)) candidates.push(u); });
+    for (const u of candidates) {
+      try {
+        const relative = (u || '').replace(/^[\/\\]+/, '');
+        const fp = path.join('public', relative);
+        await deleteFile(fp);
+        // supprimer l'entrée Media correspondante si elle existe
+        await Media.findOneAndDelete({ url: u });
+      } catch {}
+    }
     await ad.deleteOne();
     res.json({ message: 'Annonce supprimée' });
   } catch (e) {
@@ -179,6 +201,7 @@ exports.getAdById = async (req, res) => {
       description: ad.description,
       price: ad.price,
       imageUrl: ad.imageUrl || '',
+      images: Array.isArray(ad.images) ? ad.images : [],
       status: ad.status,
       author: ad.author?.name || '—',
       createdAt: ad.createdAt,
@@ -226,6 +249,7 @@ exports.getAds = async (req, res) => {
       description: a.description,
       price: a.price,
       imageUrl: a.imageUrl || '',
+      images: Array.isArray(a.images) ? a.images : [],
       status: a.status,
       author: a.author?.name || '—',
       createdAt: a.createdAt,
@@ -238,11 +262,12 @@ exports.getAds = async (req, res) => {
 
 exports.createAd = async (req, res) => {
   try {
-    const { type, title, description, price = '', imageUrl = '' } = req.body;
+    const { type, title, description, price = '', imageUrl = '', images = [] } = req.body;
     if (!type || !['vends', 'recherche', 'services'].includes(type)) return res.status(400).json({ message: 'Type invalide' });
     if (!title || !description) return res.status(400).json({ message: 'Titre et description requis' });
     // Par défaut: pending (nécessite approbation admin)
-    const ad = await ForumAd.create({ type, title: title.trim(), description: description.trim(), price, imageUrl: String(imageUrl || ''), author: req.user._id, status: 'pending' });
+    const imgs = Array.isArray(images) ? images.filter(Boolean).map(String) : [];
+    const ad = await ForumAd.create({ type, title: title.trim(), description: description.trim(), price, imageUrl: String(imageUrl || (imgs[0] || '')), images: imgs, author: req.user._id, status: 'pending' });
     res.status(201).json({ id: ad._id });
   } catch (e) {
     console.error('Forum createAd error', e);
@@ -404,11 +429,39 @@ exports.deleteAd = async (req, res) => {
     const { id } = req.params;
     const ad = await ForumAd.findById(id);
     if (!ad) return res.status(404).json({ message: "Annonce introuvable" });
+    const candidates = [];
+    if (ad.imageUrl && /^\//.test(ad.imageUrl)) candidates.push(ad.imageUrl);
+    if (Array.isArray(ad.images)) ad.images.forEach(u => { if (u && /^\//.test(u)) candidates.push(u); });
+    for (const u of candidates) {
+      try {
+        const relative = (u || '').replace(/^[\/\\]+/, '');
+        const fp = path.join('public', relative);
+        await deleteFile(fp);
+        // Supprimer aussi l'entrée Media si elle existe
+        await Media.findOneAndDelete({ url: u });
+      } catch {}
+    }
     await ad.deleteOne();
     res.json({ message: 'Annonce supprimée' });
   } catch (e) {
     console.error('Forum deleteAd error', e);
     res.status(500).json({ message: "Erreur lors de la suppression de l'annonce" });
+  }
+};
+
+// Admin: update ad images
+exports.updateAdImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { images } = req.body;
+    const ad = await ForumAd.findById(id);
+    if (!ad) return res.status(404).json({ message: 'Annonce introuvable' });
+    ad.images = images;
+    await ad.save();
+    res.json({ id: ad._id, images: ad.images });
+  } catch (e) {
+    console.error('Forum updateAdImages error', e);
+    res.status(500).json({ message: 'Erreur lors de la mise à jour des images de l\'annonce' });
   }
 };
 

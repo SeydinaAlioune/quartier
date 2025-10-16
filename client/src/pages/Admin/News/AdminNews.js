@@ -43,6 +43,7 @@ const AdminNews = () => {
   const [annEditing, setAnnEditing] = useState(null); // { id, ...fields }
   const [annModalOpen, setAnnModalOpen] = useState(false);
   const [annActiveCount, setAnnActiveCount] = useState(0);
+  const [annInactiveCount, setAnnInactiveCount] = useState(0);
   const fileInputRef = useRef(null);
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
   // Quand on clique "Choisir dans la bibliothèque" depuis un formulaire, on marque la cible
@@ -203,7 +204,7 @@ const AdminNews = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAnnouncements]);
 
-  // Compteur temps réel des annonces actives (public endpoint)
+  // Compteur temps réel des annonces actives/inactives
   useEffect(() => {
     let cancelled = false;
     const fetchActiveCount = async () => {
@@ -214,9 +215,19 @@ const AdminNews = () => {
         if (!cancelled) setAnnActiveCount(0);
       }
     };
+    const fetchInactiveCount = async () => {
+      try {
+        const res = await api.get('/api/announcements/all?status=inactive');
+        if (!cancelled) setAnnInactiveCount(Array.isArray(res.data) ? res.data.length : 0);
+      } catch {
+        if (!cancelled) setAnnInactiveCount(0);
+      }
+    };
     fetchActiveCount();
-    const t = setInterval(fetchActiveCount, 30000);
-    return () => { cancelled = true; clearInterval(t); };
+    fetchInactiveCount();
+    const t1 = setInterval(fetchActiveCount, 30000);
+    const t2 = setInterval(fetchInactiveCount, 45000);
+    return () => { cancelled = true; clearInterval(t1); clearInterval(t2); };
   }, []);
   // Ouvrir le picker déclenchera aussi un rafraîchissement des médias
   useEffect(() => {
@@ -458,8 +469,15 @@ const AdminNews = () => {
       }
       setAnnModalOpen(false);
       await fetchAnnouncements();
-      // refresh compteur
-      try { const r = await api.get('/api/announcements'); setAnnActiveCount(Array.isArray(r.data)?r.data.length:0);} catch {}
+      // refresh compteurs
+      try {
+        const [r1, r2] = await Promise.all([
+          api.get('/api/announcements'),
+          api.get('/api/announcements/all?status=inactive')
+        ]);
+        setAnnActiveCount(Array.isArray(r1.data)?r1.data.length:0);
+        setAnnInactiveCount(Array.isArray(r2.data)?r2.data.length:0);
+      } catch {}
     } catch (err) {
       alert("Enregistrement impossible. Vérifiez vos droits.");
     }
@@ -470,7 +488,14 @@ const AdminNews = () => {
       const next = a.status === 'active' ? 'inactive' : 'active';
       await api.put(`/api/announcements/${a.id}`, { status: next });
       await fetchAnnouncements();
-      try { const r = await api.get('/api/announcements'); setAnnActiveCount(Array.isArray(r.data)?r.data.length:0);} catch {}
+      try {
+        const [r1, r2] = await Promise.all([
+          api.get('/api/announcements'),
+          api.get('/api/announcements/all?status=inactive')
+        ]);
+        setAnnActiveCount(Array.isArray(r1.data)?r1.data.length:0);
+        setAnnInactiveCount(Array.isArray(r2.data)?r2.data.length:0);
+      } catch {}
     } catch {
       alert("Changement de statut impossible");
     }
@@ -706,7 +731,10 @@ const AdminNews = () => {
               <button className="comments-btn" onClick={() => { setShowAnnouncements(!showAnnouncements); }}>
                 <span>📣</span>
                 <span>Annonces</span>
-                <span className="count-badge">{annActiveCount}</span>
+                <span className={`count-badge ${annActiveCount>0?'active':''}`}>{annActiveCount}</span>
+                {annInactiveCount>0 && (
+                  <span className={`count-badge ${annInactiveCount>0?'inactive':''}`} title="Inactives à modérer">{annInactiveCount}</span>
+                )}
               </button>
               <button className="add-news-btn" onClick={() => setShowAddModal(true)}>
                 <span>+</span>

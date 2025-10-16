@@ -47,6 +47,16 @@
   margin-left: 0.5rem;
 }
 
+.count-badge.active {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+
+.count-badge.inactive {
+  background-color: #fefcbf;
+  color: #744210;
+}
+
 .news-header h1 {
   font-size: 1.8rem;
   color: #2d3748;

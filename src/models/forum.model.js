@@ -31,6 +31,7 @@ const forumAdSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: String, default: '' },
   imageUrl: { type: String, default: '' },
+  images: [{ type: String }],
   status: { type: String, enum: ['approved', 'pending', 'rejected'], default: 'approved' },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
