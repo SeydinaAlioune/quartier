@@ -12,6 +12,17 @@ const NewsDetail = () => {
   const [loading, setLoading] = useState(!location.state?.article);
   const [error, setError] = useState('');
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+  const extractFirstImageFromContent = (content) => {
+    if (!content) return null;
+    try {
+      const html = String(content);
+      const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch && imgMatch[1]) return imgMatch[1];
+      const uploadMatch = html.match(/(\/uploads\/[^"')\s>]+)/i);
+      if (uploadMatch && uploadMatch[1]) return uploadMatch[1];
+    } catch {}
+    return null;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -23,14 +34,15 @@ const NewsDetail = () => {
         const res = await api.get(`/api/posts/${id}`);
         if (!mounted) return;
         const p = res.data;
+        const fallbackFromContent = extractFirstImageFromContent(p.content);
+        const raw = p.coverUrl || fallbackFromContent;
+        const image = raw ? (String(raw).startsWith('http') ? raw : `${API_BASE}${raw}`) : '/images/setsetal.jpg';
         setArticle({
           id: p._id || p.id,
           date: p.createdAt || new Date().toISOString(),
           title: p.title,
           description: p.content,
-          image: p.coverUrl
-            ? (String(p.coverUrl).startsWith('http') ? p.coverUrl : `${API_BASE}${p.coverUrl}`)
-            : '/images/setsetal.jpg',
+          image,
           author: p.author?.name || 'Anonyme',
         });
       } catch (e) {

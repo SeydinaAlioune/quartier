@@ -80,6 +80,29 @@ exports.getStats = async (req, res) => {
   }
 };
 
+// Get single topic details (public)
+exports.getTopic = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const t = await ForumTopic.findById(id).populate('author', 'name').populate('category', 'name');
+    if (!t) return res.status(404).json({ message: 'Sujet non trouvé' });
+    const replies = await ForumPost.countDocuments({ topic: t._id });
+    res.json({
+      id: t._id,
+      title: t.title,
+      category: t.category?.name || '—',
+      author: t.author?.name || '—',
+      replies: Math.max(0, replies - 1),
+      status: t.status,
+      created: t.createdAt,
+      lastReply: t.updatedAt,
+    });
+  } catch (e) {
+    console.error('Forum getTopic error', e);
+    res.status(500).json({ message: 'Erreur lors du chargement du sujet' });
+  }
+};
+
 // Ads: list my own ads (all statuses)
 exports.getMyAds = async (req, res) => {
   try {

@@ -128,7 +128,7 @@ const Forum = () => {
                 <i className="far fa-comment"></i>
                 {t.replies} réponses
               </span>
-              <button className="view-discussion" title="Voir (à venir)">Voir la discussion</button>
+              <button className="view-discussion" onClick={() => navigate(`/forum/topics/${t.id}`)} title="Voir la discussion">Voir la discussion</button>
             </div>
           </div>
         ))}

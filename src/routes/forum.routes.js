@@ -7,6 +7,7 @@ const { auth, checkRole } = require('../middleware/auth.middleware');
 router.get('/stats', forumController.getStats);
 router.get('/categories', forumController.getCategories);
 router.get('/topics/recent', forumController.getRecentTopics);
+router.get('/topics/:id', forumController.getTopic);
 router.get('/topics/:id/posts', forumController.getTopicPosts);
 // Public lists for ads and ideas
 router.get('/ads', forumController.getAds);

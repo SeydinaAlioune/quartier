@@ -5,6 +5,7 @@ import Footer from './components/Footer/Footer';
 import Home from './pages/Home/Home';
 import News from './pages/News/News';
 import Forum from './pages/Forum/Forum';
+import Topic from './pages/Forum/Topic';
 import Directory from './pages/Directory/Directory';
 import Services from './pages/Services/Services';
 import Security from './pages/Security/Security';
@@ -55,6 +56,7 @@ function AppLayout() {
           <Route path="/actualites" element={<News />} />
           <Route path="/actualites/:id" element={<NewsDetail />} />
           <Route path="/forum" element={<Forum />} />
+          <Route path="/forum/topics/:id" element={<Topic />} />
           <Route path="/annuaire" element={<Directory />} />
           <Route path="/services" element={<Services />} />
           <Route path="/securite" element={<Security />} />

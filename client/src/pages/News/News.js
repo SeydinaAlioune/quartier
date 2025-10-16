@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 const News = () => {
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
-  const SHOW_IMPORTANT_ANNOUNCEMENTS = String(process.env.REACT_APP_SHOW_IMPORTANT_ANNOUNCEMENTS || '').toLowerCase() === 'true';
+  const [announcements, setAnnouncements] = useState([]);
   // Données par défaut (fallback)
   const defaultArticles = [
     {
@@ -67,6 +67,19 @@ const News = () => {
     return format(date, 'd MMMM yyyy', { locale: fr });
   };
 
+  // Extraire la première image depuis le contenu HTML (si présent)
+  const extractFirstImageFromContent = (content) => {
+    if (!content) return null;
+    try {
+      const html = String(content);
+      const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch && imgMatch[1]) return imgMatch[1];
+      const uploadMatch = html.match(/(\/uploads\/[^"')\s>]+)/i);
+      if (uploadMatch && uploadMatch[1]) return uploadMatch[1];
+    } catch {}
+    return null;
+  };
+
   const formatTime = (dateString) => {
     const d = new Date(dateString);
     if (Number.isNaN(d.getTime())) return '';
@@ -88,16 +101,18 @@ const News = () => {
         if (!mounted) return;
         const payload = res.data;
         const list = Array.isArray(payload?.posts) ? payload.posts : (Array.isArray(payload) ? payload : []);
-        const items = list.map((p) => ({
-          id: p._id || p.id,
-          date: p.createdAt || new Date().toISOString(),
-          title: p.title,
-          description: p.content,
-          // Image de couverture si disponible
-          image: p.coverUrl
-            ? (String(p.coverUrl).startsWith('http') ? p.coverUrl : `${API_BASE}${p.coverUrl}`)
-            : '/images/setsetal.jpg'
-        }));
+        const items = list.map((p) => {
+          const fallbackFromContent = extractFirstImageFromContent(p.content);
+          const raw = p.coverUrl || fallbackFromContent;
+          const image = raw ? (String(raw).startsWith('http') ? raw : `${API_BASE}${raw}`) : '/images/setsetal.jpg';
+          return ({
+            id: p._id || p.id,
+            date: p.createdAt || new Date().toISOString(),
+            title: p.title,
+            description: p.content,
+            image,
+          });
+        });
         setLatestArticles(items);
       } catch (e) {
         // On conserve defaultArticles en fallback, et on log l'erreur UI minimale
@@ -110,6 +125,29 @@ const News = () => {
     return () => {
       mounted = false;
     };
+  }, []);
+
+  // Charger les annonces importantes dynamiques
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const res = await api.get('/api/announcements');
+        if (!mounted) return;
+        const list = Array.isArray(res.data) ? res.data : [];
+        setAnnouncements(list.map(a => ({
+          id: a.id,
+          type: a.title,
+          description: a.description,
+          buttonText: a.buttonText || '',
+          link: a.link || ''
+        })));
+      } catch {
+        setAnnouncements([]);
+      }
+    };
+    load();
+    return () => { mounted = false; };
   }, []);
 
   // Charger les événements à venir depuis l'API
@@ -173,18 +211,24 @@ const News = () => {
         </div>
       </section>
 
-      {SHOW_IMPORTANT_ANNOUNCEMENTS && (
+      {announcements.length > 0 && (
         <section className="important-announcements">
           <h2>Annonces Importantes</h2>
           <div className="announcements-grid">
-            {importantAnnouncements.map(announcement => (
+            {announcements.map(announcement => (
               <div key={announcement.id} className="announcement-card">
                 <h3>
                   <i className="icon"></i>
                   {announcement.type}
                 </h3>
                 <p>{announcement.description}</p>
-                <button className="announcement-button">{announcement.buttonText}</button>
+                {announcement.buttonText && (
+                  announcement.link ? (
+                    <a className="announcement-button" href={announcement.link} target="_blank" rel="noreferrer">{announcement.buttonText}</a>
+                  ) : (
+                    <button className="announcement-button">{announcement.buttonText}</button>
+                  )
+                )}
               </div>
             ))}
           </div>

@@ -162,42 +162,64 @@ const Annonces = () => {
       <div className="annonces-grid">
         <div className="annonce-category">
           <h3><i className="fas fa-tag"></i> Vends</h3>
-          <ul>
-            {loading && <li>Chargement...</li>}
-            {!loading && error && <li className="forum-error">{error}</li>}
-            {!loading && !error && annonces.vends.map(item => (
-              <li id={`ad-${item.id}`} key={item.id}>
-                {item.titre}{item.description ? `, ${item.description}` : ''}{`, ${item.prix}`}
-                <button className="link-like" style={{marginLeft:'8px'}} onClick={() => handleReport(item)}>Signaler</button>
-              </li>
-            ))}
-          </ul>
+          {loading && <div>Chargement...</div>}
+          {!loading && error && <div className="forum-error">{error}</div>}
+          {!loading && !error && (
+            <div className="ad-list">
+              {annonces.vends.map(item => (
+                <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                  <div className="ad-card-header">
+                    <span className="ad-title">{item.titre}</span>
+                    {item.prix && <span className="ad-price">{item.prix}</span>}
+                  </div>
+                  {item.description && (<p className="ad-desc">{item.description}</p>)}
+                  <div className="ad-actions">
+                    <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="annonce-category">
           <h3><i className="fas fa-search"></i> Recherche</h3>
-          <ul>
-            {loading && <li>Chargement...</li>}
-            {!loading && !error && annonces.recherche.map(item => (
-              <li id={`ad-${item.id}`} key={item.id}>
-                {item.titre} {item.description && `- ${item.description}`}
-                <button className="link-like" style={{marginLeft:'8px'}} onClick={() => handleReport(item)}>Signaler</button>
-              </li>
-            ))}
-          </ul>
+          {loading && <div>Chargement...</div>}
+          {!loading && !error && (
+            <div className="ad-list">
+              {annonces.recherche.map(item => (
+                <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                  <div className="ad-card-header">
+                    <span className="ad-title">{item.titre}</span>
+                  </div>
+                  {item.description && (<p className="ad-desc">{item.description}</p>)}
+                  <div className="ad-actions">
+                    <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="annonce-category">
           <h3><i className="fas fa-hands-helping"></i> Services</h3>
-          <ul>
-            {loading && <li>Chargement...</li>}
-            {!loading && !error && annonces.services.map(item => (
-              <li id={`ad-${item.id}`} key={item.id}>
-                {item.titre} {item.description && `- ${item.description}`}
-                <button className="link-like" style={{marginLeft:'8px'}} onClick={() => handleReport(item)}>Signaler</button>
-              </li>
-            ))}
-          </ul>
+          {loading && <div>Chargement...</div>}
+          {!loading && !error && (
+            <div className="ad-list">
+              {annonces.services.map(item => (
+                <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                  <div className="ad-card-header">
+                    <span className="ad-title">{item.titre}</span>
+                  </div>
+                  {item.description && (<p className="ad-desc">{item.description}</p>)}
+                  <div className="ad-actions">
+                    <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <button className="new-annonce-btn" onClick={() => setShowModal(true)}>
