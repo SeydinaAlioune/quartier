@@ -236,23 +236,35 @@ const Annonces = () => {
           {loading && <div>Chargement...</div>}
           {!loading && error && <div className="forum-error">{error}</div>}
           {!loading && !error && (
-            <div className="ad-list">
-              {annonces.vends.map(item => (
-                <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
-                  {item.imageUrl && (
-                    <img className="ad-thumb" src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)} alt={item.titre} />
-                  )}
-                  <div className="ad-card-header">
-                    <span className="ad-title">{item.titre}</span>
-                    {item.prix && <span className="ad-price">{item.prix}</span>}
+            annonces.vends.length === 0 ? (
+              <div>Aucune annonce pour l'instant. <button className="link-like" onClick={() => setShowModal(true)}>Publier une annonce</button></div>
+            ) : (
+              <div className="ad-list">
+                {annonces.vends.map(item => (
+                  <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                    {item.imageUrl && (
+                      <img
+                        className="ad-thumb"
+                        src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
+                        alt={item.titre}
+                        loading="lazy"
+                        decoding="async"
+                        width="400"
+                        height="300"
+                      />
+                    )}
+                    <div className="ad-card-header">
+                      <span className="ad-title">{item.titre}</span>
+                      {item.prix && <span className="ad-price">{item.prix}</span>}
+                    </div>
+                    {item.description && (<p className="ad-desc">{item.description}</p>)}
+                    <div className="ad-actions">
+                      <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
+                    </div>
                   </div>
-                  {item.description && (<p className="ad-desc">{item.description}</p>)}
-                  <div className="ad-actions">
-                    <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
 
@@ -260,22 +272,34 @@ const Annonces = () => {
           <h3><i className="fas fa-search"></i> Recherche</h3>
           {loading && <div>Chargement...</div>}
           {!loading && !error && (
-            <div className="ad-list">
-              {annonces.recherche.map(item => (
-                <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
-                  {item.imageUrl && (
-                    <img className="ad-thumb" src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)} alt={item.titre} />
-                  )}
-                  <div className="ad-card-header">
-                    <span className="ad-title">{item.titre}</span>
+            annonces.recherche.length === 0 ? (
+              <div>Aucune annonce de recherche. <button className="link-like" onClick={() => setShowModal(true)}>Publier une annonce</button></div>
+            ) : (
+              <div className="ad-list">
+                {annonces.recherche.map(item => (
+                  <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                    {item.imageUrl && (
+                      <img
+                        className="ad-thumb"
+                        src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
+                        alt={item.titre}
+                        loading="lazy"
+                        decoding="async"
+                        width="400"
+                        height="300"
+                      />
+                    )}
+                    <div className="ad-card-header">
+                      <span className="ad-title">{item.titre}</span>
+                    </div>
+                    {item.description && (<p className="ad-desc">{item.description}</p>)}
+                    <div className="ad-actions">
+                      <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
+                    </div>
                   </div>
-                  {item.description && (<p className="ad-desc">{item.description}</p>)}
-                  <div className="ad-actions">
-                    <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
 
@@ -283,22 +307,34 @@ const Annonces = () => {
           <h3><i className="fas fa-hands-helping"></i> Services</h3>
           {loading && <div>Chargement...</div>}
           {!loading && !error && (
-            <div className="ad-list">
-              {annonces.services.map(item => (
-                <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
-                  {item.imageUrl && (
-                    <img className="ad-thumb" src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)} alt={item.titre} />
-                  )}
-                  <div className="ad-card-header">
-                    <span className="ad-title">{item.titre}</span>
+            annonces.services.length === 0 ? (
+              <div>Aucun service publié. <button className="link-like" onClick={() => setShowModal(true)}>Publier une annonce</button></div>
+            ) : (
+              <div className="ad-list">
+                {annonces.services.map(item => (
+                  <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                    {item.imageUrl && (
+                      <img
+                        className="ad-thumb"
+                        src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
+                        alt={item.titre}
+                        loading="lazy"
+                        decoding="async"
+                        width="400"
+                        height="300"
+                      />
+                    )}
+                    <div className="ad-card-header">
+                      <span className="ad-title">{item.titre}</span>
+                    </div>
+                    {item.description && (<p className="ad-desc">{item.description}</p>)}
+                    <div className="ad-actions">
+                      <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
+                    </div>
                   </div>
-                  {item.description && (<p className="ad-desc">{item.description}</p>)}
-                  <div className="ad-actions">
-                    <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>

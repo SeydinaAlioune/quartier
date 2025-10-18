@@ -29,6 +29,34 @@
 .navbar-link { color: #374151; text-decoration: none; font-weight: 500; }
 .navbar-link:hover { color: #00a651; }
 
+/* Menu Plus */
+.navbar-more { position: relative; }
+.navbar-more-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.navbar-more-btn:hover { color: #00a651; border-color: #00a651; }
+.navbar-more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 8px;
+  min-width: 180px;
+  display: none;
+  z-index: 50;
+}
+.navbar-more.open .navbar-more-menu { display: flex; flex-direction: column; gap: 6px; }
+.navbar-more-menu .navbar-link { padding: 6px 8px; border-radius: 8px; }
+.navbar-more-menu .navbar-link:hover { background: #f3f4f6; color: #00a651; }
+
 .search-box input {
   padding: 8px 10px;
   border: 1px solid #e5e7eb;

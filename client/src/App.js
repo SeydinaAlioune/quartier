@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import Home from './pages/Home/Home';
+import SearchResults from './pages/Search/SearchResults';
 import News from './pages/News/News';
 import Forum from './pages/Forum/Forum';
 import Topic from './pages/Forum/Topic';
@@ -62,6 +63,7 @@ function AppLayout() {
           <Route path="/securite" element={<Security />} />
           <Route path="/projets" element={<Projects />} />
           <Route path="/galerie" element={<Gallery />} />
+          <Route path="/recherche" element={<SearchResults />} />
           <Route path="/espace-membres" element={<EspaceMembres />} />
           <Route path="/dons" element={<Donations />} />
           <Route path="/login" element={<Login />} />

@@ -101,6 +101,17 @@ const BoiteIdees = () => {
       <div className="idees-grid">
         {loading && <div>Chargement...</div>}
         {!loading && error && <div className="forum-error">{error}</div>}
+        {!loading && !error && idees.length === 0 && (
+          <div className="idee-card">
+            <h3>Aucune idée pour le moment</h3>
+            <p className="idee-description">Soyez le premier à proposer une amélioration pour le quartier.</p>
+            <div className="idee-votes">
+              <button className="btn-submit" onClick={() => setShowModal(true)}>
+                <i className="fas fa-lightbulb"></i> Proposer une idée
+              </button>
+            </div>
+          </div>
+        )}
         {!loading && !error && idees.map(idee => (
           <div id={`idea-${idee.id}`} key={idee.id} className="idee-card">
             <h3>{idee.titre}</h3>
