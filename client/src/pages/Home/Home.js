@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import useScrollReveal from '../../hooks/useScrollReveal';
 import './Home.css';
 
 const Home = () => {
@@ -28,6 +29,17 @@ const Home = () => {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [nextImageIndex, setNextImageIndex] = useState(1);
+  const [scrollY, setScrollY] = useState(0);
+
+  // Refs pour scroll reveal
+  const heroContentRef = useRef(null);
+  const mapTitleRef = useScrollReveal({ once: true });
+  const mapImageRef = useScrollReveal({ once: true });
+  const galleryTitleRef = useScrollReveal({ once: true });
+  const infoTitleRef = useScrollReveal({ once: true });
+  const card1Ref = useScrollReveal({ once: true, threshold: 0.2 });
+  const card2Ref = useScrollReveal({ once: true, threshold: 0.2 });
+  const card3Ref = useScrollReveal({ once: true, threshold: 0.2 });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -44,6 +56,24 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [images.length]);
 
+  // Parallax effect on hero
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Hero content entrance animation
+  useEffect(() => {
+    if (heroContentRef.current) {
+      setTimeout(() => {
+        heroContentRef.current.classList.add('hero-content-visible');
+      }, 100);
+    }
+  }, []);
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -54,7 +84,11 @@ const Home = () => {
           backgroundPosition: 'center',
           backgroundSize: 'cover'
         }}></div>
-        <div className="hero-content">
+        <div 
+          ref={heroContentRef}
+          className="hero-content"
+          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+        >
           <h1>Bienvenue dans notre quartier la Cité gendarmerie</h1>
           <p>Une plateforme communautaire pour connecter et améliorer la vie des résidents de notre quartier</p>
           <Link to="/register" className="cta-button">
@@ -65,17 +99,17 @@ const Home = () => {
 
       {/* Carte Interactive */}
       <section className="map-section">
-        <h2>Carte du Quartier</h2>
-        <p>Explorez les points d'intérêt et les services disponibles près de chez vous</p>
-        <div className="interactive-map">
+        <h2 ref={mapTitleRef} className="reveal">Carte du Quartier</h2>
+        <p ref={mapImageRef} className="reveal reveal-delay-1">Explorez les points d'intérêt et les services disponibles près de chez vous</p>
+        <div className="interactive-map reveal reveal-delay-2">
           <img src={process.env.PUBLIC_URL + '/photo2.png'} alt="Carte du quartier" className="map-image" />
         </div>
       </section>
 
       {/* Notre Quartier en Images */}
       <section className="gallery-section">
-        <h2>Notre Quartier en Images</h2>
-        <p>Découvrez la beauté et la diversité de notre quartier à travers ces images</p>
+        <h2 ref={galleryTitleRef} className="reveal">Notre Quartier en Images</h2>
+        <p className="reveal reveal-delay-1">Découvrez la beauté et la diversité de notre quartier à travers ces images</p>
         <div className="gallery">
           <div className={`gallery-item ${currentImageIndex === 0 || currentImageIndex === 2 ? 'active' : ''}`}>
             <img src={images[currentImageIndex].src} alt={images[currentImageIndex].alt} />
@@ -90,9 +124,9 @@ const Home = () => {
 
       {/* Informations Utiles */}
       <section className="useful-info">
-        <h2>Informations Utiles</h2>
+        <h2 ref={infoTitleRef} className="reveal">Informations Utiles</h2>
         <div className="info-cards">
-          <div className="info-card">
+          <div ref={card1Ref} className="info-card reveal reveal-card">
             <h3>Horaires des Services</h3>
             <ul>
               <li>Mairie de quartier: Lun-Ven 9h-17h</li>
@@ -102,7 +136,7 @@ const Home = () => {
               <li>Centre sportif: Lun-Dim 7h-22h</li>
             </ul>
           </div>
-          <div className="info-card">
+          <div ref={card2Ref} className="info-card reveal reveal-card reveal-delay-1">
             <h3>Contacts Importants</h3>
             <ul>
               <li>Urgences: 15 / 17 / 18</li>
@@ -112,7 +146,7 @@ const Home = () => {
               <li>Services techniques: 01 XX XX XX XX</li>
             </ul>
           </div>
-          <div className="info-card">
+          <div ref={card3Ref} className="info-card reveal reveal-card reveal-delay-2">
             <h3>Liens Rapides</h3>
             <ul>
               <li><Link to="/services">Services municipaux</Link></li>
