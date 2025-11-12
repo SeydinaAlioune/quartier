@@ -228,13 +228,19 @@
 .map-section {
   padding: 2rem 1rem;
   text-align: center;
-  background-color: transparent; /* Transparent pour voir le fond */
-  color: white;
+  background-color: rgba(255, 255, 255, 0.95); /* Fond blanc semi-transparent */
+  backdrop-filter: blur(10px);
+  margin: 2rem 1rem;
+  border-radius: 12px;
+  color: #111;
 }
 
-.map-section h2,
+.map-section h2 {
+  color: #111;
+}
+
 .map-section p {
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+  color: #4b5563;
 }
 
 @media (min-width: 768px) {
@@ -246,11 +252,10 @@
 .interactive-map {
   max-width: 1200px;
   margin: 0 auto;
-  background-color: rgba(255, 255, 255, 0.95); /* Légèrement transparent */
+  background-color: white; /* Fond blanc opaque pour voir la carte */
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  backdrop-filter: blur(10px);
 }
 
 .map-image {
@@ -269,14 +274,16 @@
 
 /* Useful Info Section */
 .useful-info {
-  padding: 2rem 0;
-  background-color: transparent; /* Transparent pour voir le fond */
-  margin-top: 0;
-  color: white;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.95); /* Fond blanc semi-transparent */
+  backdrop-filter: blur(10px);
+  margin: 2rem 1rem;
+  border-radius: 12px;
+  color: #111;
 }
 
 .useful-info h2 {
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+  color: #111;
 }
 
 .useful-info h2 {
@@ -355,15 +362,20 @@
 
 /* Gallery Section */
 .gallery-section {
-  padding: 2rem 0;
-  margin-bottom: 2rem;
-  background-color: transparent; /* Transparent pour voir le fond */
-  color: white;
+  padding: 2rem 1rem;
+  margin: 2rem 1rem;
+  background-color: rgba(255, 255, 255, 0.95); /* Fond blanc semi-transparent */
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  color: #111;
 }
 
-.gallery-section h2,
+.gallery-section h2 {
+  color: #111;
+}
+
 .gallery-section p {
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+  color: #4b5563;
 }
 
 .gallery-section h2 {
