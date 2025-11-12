@@ -78,12 +78,6 @@ const Home = () => {
     <div className="home">
       {/* Hero Section */}
       <section className="hero">
-        <div className="hero-overlay" style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${process.env.PUBLIC_URL}/images/photo1.webp), url(${process.env.PUBLIC_URL}/images/paronamique.jpg)`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          backgroundSize: 'cover'
-        }}></div>
         <div 
           ref={heroContentRef}
           className="hero-content"
