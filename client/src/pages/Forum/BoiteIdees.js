@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Forum.css';
 import api from '../../services/api';
+import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const BoiteIdees = () => {
   const navigate = useNavigate();
@@ -112,8 +113,9 @@ const BoiteIdees = () => {
             </div>
           </div>
         )}
-        {!loading && !error && idees.map(idee => (
-          <div id={`idea-${idee.id}`} key={idee.id} className="idee-card">
+        {!loading && !error && idees.map((idee, idx) => (
+          <AnimatedSection key={idee.id} delay={idx % 4} animation="scale">
+            <div id={`idea-${idee.id}`} className="idee-card">
             <h3>{idee.titre}</h3>
             <p className="idee-meta">
               Proposée par {idee.auteur} • {idee.dateISO ? new Date(idee.dateISO).toLocaleDateString('fr-FR') : ''}
@@ -127,6 +129,7 @@ const BoiteIdees = () => {
               <button className="link-like" style={{marginLeft:'8px'}} onClick={() => handleReport(idee)}>Signaler</button>
             </div>
           </div>
+          </AnimatedSection>
         ))}
       </div>
       <button className="new-idee-btn" onClick={() => setShowModal(true)}>

@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import api from '../../services/api';
 import { Link } from 'react-router-dom';
+import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const News = () => {
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
@@ -197,8 +198,9 @@ const News = () => {
         {loading && <p>Chargement des actualités...</p>}
         {!loading && error && <p className="news-error">{error}</p>}
         <div className="articles-grid">
-          {latestArticles.map(article => (
-            <div key={article.id} className="article-card">
+          {latestArticles.map((article, idx) => (
+            <AnimatedSection key={article.id} delay={idx % 3} animation="fade-up">
+              <div className="article-card">
               <img src={article.image} alt={article.title} onError={(e) => { e.currentTarget.src = '/images/setsetal.jpg'; }} />
               <div className="article-content">
                 <span className="article-date">{format(new Date(article.date), 'd MMMM yyyy', { locale: fr })}</span>
@@ -207,6 +209,7 @@ const News = () => {
                 <Link to={`/actualites/${article.id}`} state={{ article }} className="read-more">Lire la suite</Link>
               </div>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </section>
@@ -215,8 +218,9 @@ const News = () => {
         <section className="important-announcements">
           <h2>Annonces Importantes</h2>
           <div className="announcements-grid">
-            {announcements.map(announcement => (
-              <div key={announcement.id} className="announcement-card">
+            {announcements.map((announcement, idx) => (
+              <AnimatedSection key={announcement.id} delay={idx} animation="scale">
+                <div className="announcement-card">
                 <h3>
                   <i className="icon"></i>
                   {announcement.type}
@@ -230,6 +234,7 @@ const News = () => {
                   )
                 )}
               </div>
+              </AnimatedSection>
             ))}
           </div>
         </section>

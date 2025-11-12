@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './Projects.css';
 import api from '../../services/api';
 import { Link } from 'react-router-dom';
+import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -97,8 +98,9 @@ const Projects = () => {
           <p>Aucun projet pour le moment. Les administrateurs pourront en ajouter prochainement.</p>
         )}
         <div className="projects-grid">
-          {projects.map(project => (
-            <div key={project.id} className="project-card">
+          {projects.map((project, idx) => (
+            <AnimatedSection key={project.id} delay={idx % 3} animation="scale">
+              <div className="project-card">
               <img className="project-image" src={project.image} alt="" />
               <div className="project-content">
                 <h3>{project.title}</h3>
@@ -121,6 +123,7 @@ const Projects = () => {
                 </div>
               </div>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </section>
@@ -133,13 +136,15 @@ const Projects = () => {
           <p>Aucun événement planifié.</p>
         )}
         <div className="timeline">
-          {events.map((event) => (
-            <div key={event.id} className="timeline-item">
+          {events.map((event, idx) => (
+            <AnimatedSection key={event.id} delay={idx % 4} animation="slide-right">
+              <div className="timeline-item">
               <div className="timeline-content">
                 <h3>{event.title} — {event.location} — {event.date}</h3>
                 {event.description && <p>{event.description}</p>}
               </div>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </section>

@@ -1,0 +1,83 @@
+/* Base pour toutes les animations */
+.animated-section {
+  will-change: transform, opacity;
+}
+
+/* Fade Up (défaut) */
+.animated-fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animated-fade-up.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade In simple */
+.animated-fade-in {
+  opacity: 0;
+  transition: opacity 0.8s ease-out;
+}
+
+.animated-fade-in.reveal-visible {
+  opacity: 1;
+}
+
+/* Slide Left */
+.animated-slide-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.7s ease-out,
+              transform 0.7s ease-out;
+}
+
+.animated-slide-left.reveal-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Slide Right */
+.animated-slide-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.7s ease-out,
+              transform 0.7s ease-out;
+}
+
+.animated-slide-right.reveal-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Scale */
+.animated-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease-out,
+              transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animated-scale.reveal-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Delays échelonnés */
+.animated-delay-1 { transition-delay: 0.1s; }
+.animated-delay-2 { transition-delay: 0.2s; }
+.animated-delay-3 { transition-delay: 0.3s; }
+.animated-delay-4 { transition-delay: 0.4s; }
+.animated-delay-5 { transition-delay: 0.5s; }
+
+/* Respecter prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .animated-section {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

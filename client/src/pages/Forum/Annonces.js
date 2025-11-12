@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Forum.css';
 import api from '../../services/api';
+import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const Annonces = () => {
   const navigate = useNavigate();
@@ -240,8 +241,9 @@ const Annonces = () => {
               <div>Aucune annonce pour l'instant. <button className="link-like" onClick={() => setShowModal(true)}>Publier une annonce</button></div>
             ) : (
               <div className="ad-list">
-                {annonces.vends.map(item => (
-                  <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                {annonces.vends.map((item, idx) => (
+                  <AnimatedSection key={item.id} delay={idx % 4} animation="fade-up">
+                    <div className="ad-card" id={`ad-${item.id}`}>
                     {item.imageUrl && (
                       <img
                         className="ad-thumb"
@@ -262,6 +264,7 @@ const Annonces = () => {
                       <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
                     </div>
                   </div>
+                  </AnimatedSection>
                 ))}
               </div>
             )
@@ -276,8 +279,9 @@ const Annonces = () => {
               <div>Aucune annonce de recherche. <button className="link-like" onClick={() => setShowModal(true)}>Publier une annonce</button></div>
             ) : (
               <div className="ad-list">
-                {annonces.recherche.map(item => (
-                  <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                {annonces.recherche.map((item, idx) => (
+                  <AnimatedSection key={item.id} delay={idx % 4} animation="fade-up">
+                    <div className="ad-card" id={`ad-${item.id}`}>
                     {item.imageUrl && (
                       <img
                         className="ad-thumb"
@@ -297,6 +301,7 @@ const Annonces = () => {
                       <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
                     </div>
                   </div>
+                  </AnimatedSection>
                 ))}
               </div>
             )
@@ -311,8 +316,9 @@ const Annonces = () => {
               <div>Aucun service publié. <button className="link-like" onClick={() => setShowModal(true)}>Publier une annonce</button></div>
             ) : (
               <div className="ad-list">
-                {annonces.services.map(item => (
-                  <div className="ad-card" id={`ad-${item.id}`} key={item.id}>
+                {annonces.services.map((item, idx) => (
+                  <AnimatedSection key={item.id} delay={idx % 4} animation="fade-up">
+                    <div className="ad-card" id={`ad-${item.id}`}>
                     {item.imageUrl && (
                       <img
                         className="ad-thumb"
@@ -332,6 +338,7 @@ const Annonces = () => {
                       <button className="link-like" onClick={() => handleReport(item)}>Signaler</button>
                     </div>
                   </div>
+                  </AnimatedSection>
                 ))}
               </div>
             )

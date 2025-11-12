@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './Directory.css';
 import api from '../../services/api';
+import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const Directory = () => {
   // Données dynamiques pour les commerçants (annuaire) depuis l'API
@@ -128,8 +129,9 @@ const Directory = () => {
           <p>Aucun commerce pour le moment. Un administrateur pourra en ajouter prochainement.</p>
         )}
         <div className="business-grid">
-          {filteredBusinesses.map(business => (
-            <div key={business._id} className="business-card">
+          {filteredBusinesses.map((business, idx) => (
+            <AnimatedSection key={business._id} delay={idx % 4} animation="fade-up">
+              <div className="business-card">
               <h3>{business.name}</h3>
               <p className="address">
                 {business.address?.street || ''}
@@ -144,6 +146,7 @@ const Directory = () => {
               )}
               <p className="description">{business.description}</p>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </section>
@@ -151,13 +154,15 @@ const Directory = () => {
       <section className="health-services">
         <h2>Services de Santé</h2>
         <div className="business-grid">
-          {healthServices.map(service => (
-            <div key={service._id} className="business-card">
+          {healthServices.map((service, idx) => (
+            <AnimatedSection key={service._id} delay={idx % 4} animation="slide-left">
+              <div className="business-card">
               <h3>{service.name}</h3>
               <p className="address">{service.address?.street || ''}{service.address?.city ? `, ${service.address.city}` : ''}</p>
               <p className="phone">{service.contact?.phone || '—'}</p>
               <p className="description">{service.description}</p>
             </div>
+            </AnimatedSection>
           ))}
         </div>
       </section>
