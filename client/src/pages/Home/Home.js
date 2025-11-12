@@ -98,9 +98,9 @@ const Home = () => {
 
       {/* Carte Interactive */}
       <section className="map-section">
-        <h2 ref={mapTitleRef} className="reveal">Carte du Quartier</h2>
-        <p ref={mapImageRef} className="reveal reveal-delay-1">Explorez les points d'intérêt et les services disponibles près de chez vous</p>
-        <div className="interactive-map reveal reveal-delay-2">
+        <h2 ref={mapTitleRef}>Carte du Quartier</h2>
+        <p ref={mapImageRef}>Explorez les points d'intérêt et les services disponibles près de chez vous</p>
+        <div className="interactive-map">
           <img 
             src={`${process.env.PUBLIC_URL}/images/photo2.png`}
             alt="Carte du quartier" 
