@@ -1,8 +1,7 @@
 .home {
   min-height: 100vh;
   position: relative;
-  /* Background fixe qui couvre toute la page */
-  background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/images/photo1.webp');
+  /* Background défini en inline dans Home.js avec process.env.PUBLIC_URL */
   background-size: cover;
   background-position: center;
   background-attachment: scroll;
