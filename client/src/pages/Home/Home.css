@@ -259,8 +259,10 @@
   width: 100%;
   height: auto;
   display: block;
+  min-height: 300px; /* Hauteur minimale pour voir l'image */
   max-height: 600px;
   object-fit: contain;
+  background-color: #f0f0f0; /* Fond gris pour voir la zone */
   transition: transform 0.4s ease, filter 0.4s ease;
 }
 

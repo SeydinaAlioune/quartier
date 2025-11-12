@@ -101,7 +101,16 @@ const Home = () => {
         <h2 ref={mapTitleRef} className="reveal">Carte du Quartier</h2>
         <p ref={mapImageRef} className="reveal reveal-delay-1">Explorez les points d'intérêt et les services disponibles près de chez vous</p>
         <div className="interactive-map reveal reveal-delay-2">
-          <img src={process.env.PUBLIC_URL + '/images/photo2.png'} alt="Carte du quartier" className="map-image" />
+          <img 
+            src={`${process.env.PUBLIC_URL}/images/photo2.png`}
+            alt="Carte du quartier" 
+            className="map-image"
+            onError={(e) => {
+              console.log('Erreur chargement photo2.png depuis /images/');
+              e.target.src = `${process.env.PUBLIC_URL}/photo2.png`;
+            }}
+            onLoad={() => console.log('Image carte chargée avec succès')}
+          />
         </div>
       </section>
 
