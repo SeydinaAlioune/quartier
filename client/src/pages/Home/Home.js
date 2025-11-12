@@ -75,14 +75,14 @@ const Home = () => {
   }, []);
 
   return (
-    <div 
-      className="home"
-      style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${process.env.PUBLIC_URL}/images/photo1.webp)`
-      }}
-    >
+    <div className="home">
       {/* Hero Section */}
-      <section className="hero">
+      <section 
+        className="hero"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${process.env.PUBLIC_URL}/images/photo1.webp)`
+        }}
+      >
         <div 
           ref={heroContentRef}
           className="hero-content"
