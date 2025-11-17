@@ -24,6 +24,14 @@
   flex-direction: column;
 }
 
+.page-intro {
+  max-width: 1200px;
+  margin: -0.75rem auto 1.25rem;
+  padding: 0 1rem;
+  text-align: center;
+  color: #4a4a4a;
+}
+
 .gallery-controls {
   display: flex;
   gap: 12px;
@@ -244,6 +252,13 @@
 
 /* Mobile tweaks */
 @media (max-width: 640px) {
+  .gallery-header {
+    padding: 3.25rem 1rem 1.25rem;
+    min-height: 220px;
+    background-position: center 20%;
+  }
+  .gallery-header h1 { font-size: 1.75rem; }
+  .page-intro { font-size: 0.95rem; margin: 0.5rem auto 1rem; }
   .gallery-controls { flex-direction: column; align-items: stretch; gap: 10px; }
   .type-pills { flex-wrap: wrap; }
   .pill { flex: 1 1 auto; text-align: center; }

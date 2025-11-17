@@ -74,14 +74,15 @@ const Forum = () => {
       <header
         className="forum-header"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/for.jpg)`
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${process.env.PUBLIC_URL}/for.jpg)`,
+          backgroundPosition: 'center 35%'
         }}
       >
         <h1>Forum Communautaire</h1>
-        <p>Échangez, partagez et connectez-vous avec vos voisins</p>
       </header>
 
       <div className="forum-page">
+      <p className="page-intro">Échangez, partagez et connectez-vous avec vos voisins</p>
       <div className="forum-controls">
         <div className="search-filters">
           <input

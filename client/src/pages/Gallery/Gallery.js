@@ -71,13 +71,13 @@ const Gallery = () => {
       <header
         className="gallery-header"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/gal.jpg)`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${process.env.PUBLIC_URL}/gal.jpg)`,
           backgroundPosition: 'center 35%'
         }}
       >
         <h1>Galerie</h1>
-        <p>Découvrez les photos et vidéos du quartier (contenus approuvés)</p>
       </header>
+      <p className="page-intro">Découvrez les photos et vidéos du quartier (contenus approuvés)</p>
       <div className="gallery-page">
 
       <div className="gallery-controls">

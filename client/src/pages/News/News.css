@@ -13,7 +13,7 @@
   margin-bottom: 3rem;
   /* Hero banner background (image définie inline) */
   background-size: cover;
-  background-position: center;
+  background-position: center 35%;
   background-repeat: no-repeat;
   min-height: 340px;
   display: flex;
@@ -32,6 +32,14 @@
   font-size: 1.2rem;
   opacity: 0.95;
   text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.page-intro {
+  max-width: 1200px;
+  margin: -1rem auto 1.5rem;
+  padding: 0 1rem;
+  text-align: center;
+  color: #4a4a4a;
 }
 
 /* Latest Articles Section */
@@ -200,11 +208,18 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .news-header {
-    padding: 2rem 1rem;
+    padding: 3.25rem 1rem 1.5rem;
+    min-height: 220px;
+    background-position: center 20%;
   }
 
   .news-header h1 {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+
+  .page-intro {
+    font-size: 0.95rem;
+    margin: 0.5rem auto 1.25rem;
   }
 
   .event-card {
