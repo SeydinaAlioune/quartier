@@ -82,11 +82,19 @@ const Services = () => {
   }, []);
 
   return (
-    <div className="services-page">
-      <header className="services-header">
+    <>
+      <header
+        className="services-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/ser.jpg)`,
+          backgroundPosition: 'center 35%'
+        }}
+      >
         <h1>Services du Quartier</h1>
         <p>Découvrez tous les services disponibles pour faciliter votre quotidien</p>
       </header>
+
+      <div className="services-page">
 
       <section className="service-section">
         <h2>Services déclarés</h2>
@@ -274,6 +282,7 @@ const Services = () => {
         )}
       </section>
     </div>
+    </>
   );
 };
 

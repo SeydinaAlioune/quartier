@@ -8,9 +8,20 @@
 }
 
 .gallery-header {
+  position: relative;
+  text-align: center;
+  color: #fff;
+  padding: 6rem 1rem 3rem; /* espace sous navbar fixe */
   margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  /* image de fond définie inline dans Gallery.js */
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .gallery-controls {

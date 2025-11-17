@@ -85,7 +85,13 @@ const Projects = () => {
 
   return (
     <div className="projects-page">
-      <div className="projects-header">
+      <div
+        className="projects-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/pro.jpg)`,
+          backgroundPosition: 'center 35%'
+        }}
+      >
         <h1>Projets du Quartier</h1>
         <p>Découvrez les initiatives en cours pour améliorer notre cadre de vie</p>
       </div>

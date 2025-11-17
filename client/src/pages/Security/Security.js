@@ -145,7 +145,13 @@ const Security = () => {
 
   return (
     <div className="security-container">
-      <header className="security-header">
+      <header
+        className="security-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/sec.jpg)`,
+          backgroundPosition: 'center 35%'
+        }}
+      >
         <h1>Sécurité du Quartier</h1>
         <p>Ensemble, veillons à la tranquillité et à la sécurité de notre communauté</p>
       </header>

@@ -70,12 +70,18 @@ const Forum = () => {
   });
 
   return (
-    <div className="forum-page">
-      <header className="forum-header">
+    <>
+      <header
+        className="forum-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/for.jpg)`
+        }}
+      >
         <h1>Forum Communautaire</h1>
         <p>Échangez, partagez et connectez-vous avec vos voisins</p>
       </header>
 
+      <div className="forum-page">
       <div className="forum-controls">
         <div className="search-filters">
           <input
@@ -188,6 +194,7 @@ const Forum = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

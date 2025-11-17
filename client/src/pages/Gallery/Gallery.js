@@ -67,11 +67,18 @@ const Gallery = () => {
   });
 
   return (
-    <div className="gallery-page">
-      <header className="gallery-header">
+    <>
+      <header
+        className="gallery-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/gal.jpg)`,
+          backgroundPosition: 'center 35%'
+        }}
+      >
         <h1>Galerie</h1>
         <p>Découvrez les photos et vidéos du quartier (contenus approuvés)</p>
       </header>
+      <div className="gallery-page">
 
       <div className="gallery-controls">
         <input
@@ -166,6 +173,7 @@ const Gallery = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

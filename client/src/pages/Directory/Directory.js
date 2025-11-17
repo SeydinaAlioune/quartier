@@ -91,11 +91,18 @@ const Directory = () => {
   };
 
   return (
-    <div className="directory-container">
-      <header className="directory-header">
+    <>
+      <header
+        className="directory-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/an.jpg)`
+        }}
+      >
         <h1>Annuaire Local</h1>
         <p>Découvrez les commerces, services et professionnels de votre quartier</p>
       </header>
+
+      <div className="directory-container">
 
       <section className="local-businesses">
         <h2>Commerçants Locaux</h2>
@@ -188,6 +195,7 @@ const Directory = () => {
         </section>
       )}
     </div>
+    </>
   );
 };
 
