@@ -187,11 +187,19 @@ const News = () => {
   }, []);
 
   return (
-    <div className="news-container">
-      <header className="news-header">
+    <>
+      <header
+        className="news-header"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${process.env.PUBLIC_URL}/ac.jpg)`,
+          backgroundPosition: 'center 30%'
+        }}
+      >
         <h1>Actualités du Quartier</h1>
         <p>Restez informés des événements, annonces et nouveautés qui animent notre communauté</p>
       </header>
+
+      <div className="news-container">
 
       <section className="latest-articles">
         <h2>Derniers Articles</h2>
@@ -239,7 +247,8 @@ const News = () => {
           </div>
         </section>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
