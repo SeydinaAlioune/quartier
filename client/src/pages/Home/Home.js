@@ -208,11 +208,19 @@ const Home = () => {
 
   // Parallax effect on hero
   useEffect(() => {
+    const rafRef = { id: 0 };
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      if (rafRef.id) return;
+      rafRef.id = window.requestAnimationFrame(() => {
+        rafRef.id = 0;
+        setScrollY(window.scrollY);
+      });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.id) window.cancelAnimationFrame(rafRef.id);
+    };
   }, []);
 
   return (

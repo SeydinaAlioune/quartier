@@ -4,6 +4,7 @@
   background-color: #f5f5f5; /* Fond gris clair pour les sections */
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 .home-inner {

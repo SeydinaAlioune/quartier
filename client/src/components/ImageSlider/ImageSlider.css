@@ -1,10 +1,12 @@
 .image-slider {
   width: 100%;
+  touch-action: pan-y;
 }
 
 .image-slider__stage {
   position: relative;
   display: block;
+  touch-action: pan-y;
 }
 
 .image-slider__frame {
@@ -15,6 +17,7 @@
   background: #111827;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   min-height: 320px;
+  touch-action: pan-y;
 }
 
 .image-slider__progress {
@@ -106,6 +109,7 @@
   justify-content: center;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
 }
 
 .image-slider__nav:hover {
@@ -127,6 +131,7 @@
   border: none;
   background: rgba(17, 24, 39, 0.25);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .image-slider__dot.is-active {
