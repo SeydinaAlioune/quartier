@@ -35,11 +35,12 @@ import Gallery from './pages/Gallery/Gallery';
 function AppLayout() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isHomeRoute = location.pathname === '/';
 
   return (
     <div className="App">
       {!isAdminRoute && <Navbar />}
-      <main className={`main-content ${isAdminRoute ? 'main-content--admin' : ''}`}>
+      <main className={`main-content ${isAdminRoute ? 'main-content--admin' : ''} ${isHomeRoute ? 'main-content--home' : ''}`}>
         <Routes>
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<Users />} />

@@ -6,6 +6,258 @@
   padding: 0;
 }
 
+.home-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.proof-band {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 22px 0;
+  background: linear-gradient(90deg, rgba(0, 166, 81, 0.15), rgba(17, 24, 39, 0.75));
+  color: #fff;
+}
+
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .proof-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.proof-item {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.proof-value {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.proof-label {
+  margin-top: 2px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.section-title {
+  margin: 0 0 10px;
+  font-size: 2rem;
+  text-align: center;
+}
+
+.section-subtitle {
+  margin: 0 auto 18px;
+  max-width: 860px;
+  color: #4b5563;
+  text-align: center;
+}
+
+.how-section {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 56px 0;
+  background: #fff;
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (min-width: 900px) {
+  .how-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.how-card {
+  background: linear-gradient(180deg, rgba(0, 166, 81, 0.06), rgba(255, 255, 255, 1));
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.how-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(0, 166, 81, 0.14);
+  color: #00843d;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.how-title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.how-text {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.memory-section {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 56px 0;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(0, 166, 81, 0.25));
+  color: #fff;
+}
+
+.memory-section .section-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  margin-left: 0;
+}
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (min-width: 900px) {
+  .memory-grid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+.memory-text .section-title {
+  text-align: left;
+}
+
+.memory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.memory-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 18px;
+  backdrop-filter: blur(12px);
+}
+
+.memory-badge {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 152, 0, 0.18);
+  border: 1px solid rgba(255, 152, 0, 0.22);
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.memory-list {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.memory-list li {
+  margin: 8px 0;
+}
+
+.news-preview {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 56px 0;
+  background: #fff;
+}
+
+.news-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.news-more {
+  text-decoration: none;
+  font-weight: 700;
+  color: #00843d;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .news-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.news-card {
+  background: #fff;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.news-date {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 166, 81, 0.12);
+  color: #00843d;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.news-title {
+  margin: 10px 0 8px;
+  color: #111827;
+  font-size: 1.1rem;
+}
+
+.news-excerpt {
+  margin: 0 0 12px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.news-link {
+  text-decoration: none;
+  font-weight: 800;
+  color: #111827;
+}
+
 /* Particules lumineuses d'explosion - seulement sur hero */
 .hero::before,
 .hero::after {
@@ -122,6 +374,9 @@
 /* Hero Section */
 .hero {
   position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
   height: 100vh;
   display: flex;
   align-items: center;

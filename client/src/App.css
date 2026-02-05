@@ -13,6 +13,12 @@
   overflow-x: hidden;
 }
 
+/* Home: navbar en overlay sur le hero, donc pas d'offset/padding global */
+.main-content--home {
+  margin-top: 0;
+  padding: 0;
+}
+
 @media (min-width: 768px) {
   .main-content {
     padding: 20px;

@@ -1,12 +1,64 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
+
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isHome = location.pathname === '/';
+
+  useEffect(() => {
+    const computeHeroVisible = () => {
+      if (!isHome) {
+        setHeroVisible(false);
+        return;
+      }
+
+      const hero = document.querySelector('.hero');
+      if (!hero) {
+        setHeroVisible(false);
+        return;
+      }
+
+      // Progression du style navbar sur le hero.
+      // 0 = tout en haut (très transparent + légère teinte), 1 = fin du hero (plus sombre).
+      const nav = document.querySelector('.navbar');
+      if (nav) {
+        const navHeight = 70;
+        const heroHeight = hero.offsetHeight || window.innerHeight;
+        const max = Math.max(1, heroHeight - navHeight);
+        const p = clamp01(window.scrollY / max);
+
+        // Valeurs "raisonnables" (pro):
+        // - alpha sombre augmente avec p
+        // - teinte verte diminue avec p
+        const alpha = 0.12 + 0.68 * p; // 0.12 -> 0.80
+        const tint = 0.14 * (1 - p);  // 0.14 -> 0
+        nav.style.setProperty('--nav-alpha', String(alpha));
+        nav.style.setProperty('--nav-tint-alpha', String(tint));
+      }
+
+      const rect = hero.getBoundingClientRect();
+      // Navbar height ~60px. Tant qu'on est dans la zone hero, on garde le style "hero".
+      const navHeight = 70;
+      setHeroVisible(rect.bottom > navHeight);
+    };
+
+    computeHeroVisible();
+    window.addEventListener('scroll', computeHeroVisible, { passive: true });
+    window.addEventListener('resize', computeHeroVisible);
+    return () => {
+      window.removeEventListener('scroll', computeHeroVisible);
+      window.removeEventListener('resize', computeHeroVisible);
+    };
+  }, [isHome]);
 
   const closeMenu = () => setOpen(false);
   const onSubmit = (e) => {
@@ -18,7 +70,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isHome && heroVisible ? 'navbar--hero' : 'navbar--solid'}`}>
       <div className="navbar-content">
         <Link to="/" className="navbar-brand" onClick={closeMenu}>
           <span className="brand-text">QuartierConnect</span>
@@ -36,18 +88,18 @@ const Navbar = () => {
         </button>
 
         <div className="navbar-links">
-          <Link to="/actualites" className="navbar-link">Actualités</Link>
-          <Link to="/forum" className="navbar-link">Forum</Link>
-          <Link to="/annuaire" className="navbar-link">Annuaire</Link>
-          <Link to="/services" className="navbar-link">Services</Link>
+          <NavLink to="/actualites" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Actualités</NavLink>
+          <NavLink to="/forum" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Forum</NavLink>
+          <NavLink to="/annuaire" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Annuaire</NavLink>
+          <NavLink to="/services" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Services</NavLink>
           <div className={`navbar-more ${moreOpen ? 'open' : ''}`}>
             <button type="button" className="navbar-more-btn" aria-haspopup="menu" aria-expanded={moreOpen} onClick={()=>setMoreOpen(v=>!v)}>
               Plus ▾
             </button>
             <div className="navbar-more-menu" role="menu" aria-label="Plus">
-              <Link to="/securite" className="navbar-link" role="menuitem" onClick={()=>setMoreOpen(false)}>Sécurité</Link>
-              <Link to="/projets" className="navbar-link" role="menuitem" onClick={()=>setMoreOpen(false)}>Projets</Link>
-              <Link to="/galerie" className="navbar-link" role="menuitem" onClick={()=>setMoreOpen(false)}>Galerie</Link>
+              <NavLink to="/securite" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Sécurité</NavLink>
+              <NavLink to="/projets" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Projets</NavLink>
+              <NavLink to="/galerie" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Galerie</NavLink>
             </div>
           </div>
         </div>
@@ -62,8 +114,8 @@ const Navbar = () => {
               aria-label="Rechercher"
             />
           </form>
-          <Link to="/espace-membres" className="navbar-link">Espace Membres</Link>
-          <Link to="/dons" className="navbar-link">Téléthon / Dons</Link>
+          <NavLink to="/espace-membres" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Espace Membres</NavLink>
+          <NavLink to="/dons" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Téléthon / Dons</NavLink>
         </div>
       </div>
 
