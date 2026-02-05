@@ -7,8 +7,13 @@ import './Home.css';
 
 const Home = () => {
   const [scrollY, setScrollY] = useState(0);
+  const [howVideoOpen, setHowVideoOpen] = useState(false);
 
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+
+  const howVideoId = 'cnA1htr1nzg';
+  const howVideoUrl = `https://www.youtube.com/embed/${howVideoId}?autoplay=1&rel=0&modestbranding=1`;
+  const howVideoThumb = `https://img.youtube.com/vi/${howVideoId}/hqdefault.jpg`;
 
   const [counts, setCounts] = useState({ posts: null, projects: null, events: null, services: null });
 
@@ -81,15 +86,15 @@ const Home = () => {
   const howSteps = [
     {
       title: 'Rejoins la communauté',
-      text: 'Crée ton compte pour accéder aux annonces, au forum et aux projets.'
+      text: ''
     },
     {
       title: 'Partage & entraide',
-      text: 'Publie une annonce, pose une question, aide un voisin, ou propose une idée.'
+      text: ''
     },
     {
       title: 'Construisons ensemble',
-      text: 'Vote, participe et suis l’avancement des projets de la Cité Gendarmerie.'
+      text: ''
     }
   ];
 
@@ -287,12 +292,40 @@ const Home = () => {
         <div className="home-inner">
           <h2 className="section-title">Comment ça marche</h2>
           <p className="section-subtitle">En 3 étapes, tu passes de visiteur à acteur de la cité.</p>
+          <div className="how-video">
+            {!howVideoOpen ? (
+              <button
+                type="button"
+                className="how-video__poster"
+                onClick={() => setHowVideoOpen(true)}
+                aria-label="Lire la vidéo de démonstration"
+              >
+                <img className="how-video__img" src={howVideoThumb} alt="Aperçu de la vidéo de démonstration" loading="lazy" />
+                <span className="how-video__play" aria-hidden="true">▶</span>
+              </button>
+            ) : (
+              <div className="how-video__frame">
+                <iframe
+                  title="Démo QuartierConnect"
+                  src={howVideoUrl}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            )}
+          </div>
+          <div className="how-chips" aria-label="Fonctionnalités principales">
+            <span className="how-chip">Forum</span>
+            <span className="how-chip">Annonces</span>
+            <span className="how-chip">Projets</span>
+            <span className="how-chip">Services</span>
+          </div>
           <div className="how-grid">
             {howSteps.map((s, idx) => (
               <div key={s.title} className="how-card">
                 <div className="how-step">0{idx + 1}</div>
                 <h3 className="how-title">{s.title}</h3>
-                <p className="how-text">{s.text}</p>
+                {s.text ? <p className="how-text">{s.text}</p> : null}
               </div>
             ))}
           </div>

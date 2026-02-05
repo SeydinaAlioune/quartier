@@ -125,8 +125,27 @@
   z-index: 50;
 }
 .navbar-more.open .navbar-more-menu { display: flex; flex-direction: column; gap: 6px; }
-.navbar-more-menu .navbar-link { padding: 6px 8px; border-radius: 8px; }
-.navbar-more-menu .navbar-link:hover { background: #f3f4f6; color: #00a651; }
+.navbar-more-menu .navbar-link {
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #111827;
+  text-shadow: none;
+  font-weight: 700;
+}
+
+.navbar-more-menu .navbar-link:hover {
+  background: #f3f4f6;
+  color: #00a651;
+}
+
+.navbar-more-menu .navbar-link.is-active {
+  background: rgba(0, 166, 81, 0.10);
+  color: #00843d;
+}
+
+.navbar-more-menu .navbar-link.is-active::after {
+  content: none;
+}
 
 .search-box input {
   padding: 8px 10px;
