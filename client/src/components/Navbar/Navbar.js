@@ -90,32 +90,26 @@ const Navbar = () => {
         <div className="navbar-links">
           <NavLink to="/actualites" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Actualités</NavLink>
           <NavLink to="/forum" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Forum</NavLink>
-          <NavLink to="/annuaire" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Annuaire</NavLink>
           <NavLink to="/services" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Services</NavLink>
           <div className={`navbar-more ${moreOpen ? 'open' : ''}`}>
             <button type="button" className="navbar-more-btn" aria-haspopup="menu" aria-expanded={moreOpen} onClick={()=>setMoreOpen(v=>!v)}>
               Plus ▾
             </button>
             <div className="navbar-more-menu" role="menu" aria-label="Plus">
+              <NavLink to="/annuaire" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Annuaire</NavLink>
               <NavLink to="/securite" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Sécurité</NavLink>
               <NavLink to="/projets" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Projets</NavLink>
+              <NavLink to="/dons" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Dons</NavLink>
               <NavLink to="/galerie" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Galerie</NavLink>
             </div>
           </div>
         </div>
 
         <div className="navbar-right">
-          <form className="search-box" onSubmit={onSubmit} role="search" aria-label="Recherche">
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={query}
-              onChange={(e)=>setQuery(e.target.value)}
-              aria-label="Rechercher"
-            />
-          </form>
+          <button type="button" className="navbar-search" aria-label="Recherche" onClick={() => navigate('/recherche')}>
+            ⌕
+          </button>
           <NavLink to="/espace-membres" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Espace Membres</NavLink>
-          <NavLink to="/dons" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Téléthon / Dons</NavLink>
         </div>
       </div>
 
@@ -133,14 +127,14 @@ const Navbar = () => {
           </form>
           <Link to="/actualites" className="mobile-link" onClick={closeMenu}>Actualités</Link>
           <Link to="/forum" className="mobile-link" onClick={closeMenu}>Forum</Link>
-          <Link to="/annuaire" className="mobile-link" onClick={closeMenu}>Annuaire</Link>
           <Link to="/services" className="mobile-link" onClick={closeMenu}>Services</Link>
+          <Link to="/annuaire" className="mobile-link" onClick={closeMenu}>Annuaire</Link>
           <Link to="/securite" className="mobile-link" onClick={closeMenu}>Sécurité</Link>
           <Link to="/projets" className="mobile-link" onClick={closeMenu}>Projets</Link>
+          <Link to="/dons" className="mobile-link" onClick={closeMenu}>Dons</Link>
           <Link to="/galerie" className="mobile-link" onClick={closeMenu}>Galerie</Link>
           <div className="mobile-sep" />
           <Link to="/espace-membres" className="mobile-link strong" onClick={closeMenu}>Espace Membres</Link>
-          <Link to="/dons" className="mobile-link strong" onClick={closeMenu}>Téléthon / Dons</Link>
         </div>
       )}
     </nav>

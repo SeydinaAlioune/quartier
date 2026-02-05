@@ -10,6 +10,8 @@ const Home = () => {
 
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
 
+  const [counts, setCounts] = useState({ posts: null, projects: null, events: null, services: null });
+
   const sliderSlides = [
     {
       src: process.env.PUBLIC_URL + '/images/slider/vue-de-ciel.jpeg',
@@ -70,10 +72,10 @@ const Home = () => {
   };
 
   const proofItems = [
-    { label: 'Membres', value: '250+' },
-    { label: 'Annonces', value: '80+' },
-    { label: 'Projets', value: '12' },
-    { label: 'Événements', value: '25+' }
+    { label: 'Actualités', value: counts.posts != null ? String(counts.posts) : '—' },
+    { label: 'Projets', value: counts.projects != null ? String(counts.projects) : '—' },
+    { label: 'Événements', value: counts.events != null ? String(counts.events) : '—' },
+    { label: 'Services', value: counts.services != null ? String(counts.services) : '—' }
   ];
 
   const howSteps = [
@@ -167,6 +169,43 @@ const Home = () => {
     };
   }, [API_BASE]);
 
+  useEffect(() => {
+    let mounted = true;
+    const fetchCounts = async () => {
+      try {
+        const [postsRes, projectsRes, eventsRes, servicesRes] = await Promise.all([
+          api.get('/api/posts?status=published&sort=-createdAt&limit=1&page=1'),
+          api.get('/api/projects'),
+          api.get('/api/events'),
+          api.get('/api/services'),
+        ]);
+
+        if (!mounted) return;
+
+        const postsPayload = postsRes?.data;
+        const postsTotal = typeof postsPayload?.total === 'number'
+          ? postsPayload.total
+          : (Array.isArray(postsPayload?.posts) ? postsPayload.posts.length : (Array.isArray(postsPayload) ? postsPayload.length : null));
+
+        const projectsArr = Array.isArray(projectsRes?.data) ? projectsRes.data : [];
+        const eventsArr = Array.isArray(eventsRes?.data) ? eventsRes.data : [];
+        const servicesArr = Array.isArray(servicesRes?.data) ? servicesRes.data : [];
+
+        setCounts({
+          posts: postsTotal,
+          projects: projectsArr.length,
+          events: eventsArr.length,
+          services: servicesArr.length,
+        });
+      } catch {
+        if (mounted) setCounts({ posts: null, projects: null, events: null, services: null });
+      }
+    };
+
+    fetchCounts();
+    return () => { mounted = false; };
+  }, []);
+
   // Parallax effect on hero
   useEffect(() => {
     const handleScroll = () => {
@@ -182,7 +221,7 @@ const Home = () => {
       <section 
         className="hero"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${process.env.PUBLIC_URL}/images/photo1.webp)`
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.48), rgba(0,0,0,0.48)), url(${process.env.PUBLIC_URL}/images/paronamique.jpg)`
         }}
       >
         <motion.div
@@ -193,13 +232,13 @@ const Home = () => {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         >
           <h1>Cité Gendarmerie</h1>
-          <p>La plateforme communautaire des anciens, des familles et des voisins : actualités, entraide et projets.</p>
+          <p>Actualités, entraide et projets — pour la Cité Gendarmerie.</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/register" className="cta-button">
               Rejoindre la communauté
             </Link>
-            <Link to="/forum" className="cta-button" style={{ backgroundColor: '#ff9800' }}>
-              Voir les annonces
+            <Link to="/actualites" className="cta-button" style={{ backgroundColor: '#111827' }}>
+              Voir les actualités
             </Link>
           </div>
         </motion.div>
@@ -248,6 +287,35 @@ const Home = () => {
                 <p className="how-text">{s.text}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section className="actions-section" {...sectionAnim}>
+        <div className="home-inner">
+          <h2 className="section-title">Actions rapides</h2>
+          <p className="section-subtitle">Accède vite aux espaces clés : projets, contacts utiles et dons.</p>
+          <div className="actions-grid">
+            <div className="actions-card">
+              <div className="actions-kicker">Projets</div>
+              <h3 className="actions-title">Voir les projets en cours</h3>
+              <p className="actions-text">Suis l’avancement, propose une idée, et participe aux décisions.</p>
+              <Link to="/projets" className="actions-link">Découvrir</Link>
+            </div>
+
+            <div className="actions-card">
+              <div className="actions-kicker">Contacts</div>
+              <h3 className="actions-title">Téléphones utiles</h3>
+              <p className="actions-text">Urgences, services, infos pratiques : tout au même endroit.</p>
+              <Link to="/services" className="actions-link">Voir</Link>
+            </div>
+
+            <div className="actions-card">
+              <div className="actions-kicker">Dons</div>
+              <h3 className="actions-title">Soutenir une action</h3>
+              <p className="actions-text">Aide à financer des projets concrets pour la cité.</p>
+              <Link to="/dons" className="actions-link">Faire un don</Link>
+            </div>
           </div>
         </div>
       </motion.section>
@@ -321,63 +389,58 @@ const Home = () => {
 
       {/* Carte Interactive */}
       <motion.section className="map-section" {...sectionAnim}>
-        <h2>Carte du Quartier</h2>
-        <p>Explorez les points d'intérêt et les services disponibles près de chez vous</p>
-        <div className="interactive-map">
-          <img 
-            src={`${process.env.PUBLIC_URL}/images/photo2.png`}
-            alt="Carte du quartier" 
-            className="map-image"
-            onError={(e) => {
-              console.log('Erreur chargement photo2.png depuis /images/');
-              e.target.src = `${process.env.PUBLIC_URL}/photo2.png`;
-            }}
-            onLoad={() => console.log('Image carte chargée avec succès')}
-          />
+        <div className="home-inner">
+          <div className="map-head">
+            <div>
+              <h2 className="section-title">Carte du Quartier</h2>
+              <p className="section-subtitle">Repère les points clés et les services autour de toi.</p>
+            </div>
+            <a className="map-open" href={`${process.env.PUBLIC_URL}/images/photo2.png`} target="_blank" rel="noreferrer">Ouvrir la carte</a>
+          </div>
+          <div className="interactive-map interactive-map--preview">
+            <img 
+              src={`${process.env.PUBLIC_URL}/images/photo2.png`}
+              alt="Carte du quartier" 
+              className="map-image map-image--preview"
+              onError={(e) => {
+                console.log('Erreur chargement photo2.png depuis /images/');
+                e.target.src = `${process.env.PUBLIC_URL}/photo2.png`;
+              }}
+              onLoad={() => console.log('Image carte chargée avec succès')}
+            />
+          </div>
         </div>
       </motion.section>
 
-      {/* Informations Utiles */}
-      <motion.section className="useful-info" {...sectionAnim}>
-        <h2>Informations Utiles</h2>
-        <motion.div
-          className="info-cards"
-          variants={cardsWrap}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.25 }}
-        >
-          <motion.div className="info-card" variants={cardItem}>
-            <h3>Horaires des Services</h3>
-            <ul>
-              <li>Mairie de quartier: Lun-Ven 9h-17h</li>
-              <li>Bibliothèque: Mar-Sam 10h-19h</li>
-              <li>Centre médical: 7j/7 8h-20h</li>
-              <li>Poste: Lun-Ven 9h-16h, Sam 9h-12h</li>
-              <li>Centre sportif: Lun-Dim 7h-22h</li>
-            </ul>
-          </motion.div>
-          <motion.div className="info-card" variants={cardItem}>
-            <h3>Contacts Importants</h3>
-            <ul>
-              <li>Urgences: 15 / 17 / 18</li>
-              <li>Mairie: 01 XX XX XX XX</li>
-              <li>Police de proximité: 01 XX XX XX XX</li>
-              <li>Médecin de garde: 01 XX XX XX XX</li>
-              <li>Services techniques: 01 XX XX XX XX</li>
-            </ul>
-          </motion.div>
-          <motion.div className="info-card" variants={cardItem}>
-            <h3>Liens Rapides</h3>
-            <ul>
-              <li><Link to="/services">Services municipaux</Link></li>
-              <li><Link to="/annuaire">Annuaire des commerçants</Link></li>
-              <li><Link to="/actualites">Dernières actualités</Link></li>
-              <li><Link to="/forum">Forum de discussion</Link></li>
-              <li><Link to="/projets">Projets en cours</Link></li>
-            </ul>
-          </motion.div>
-        </motion.div>
+      <motion.section className="essentials-section" {...sectionAnim}>
+        <div className="home-inner">
+          <div className="essentials-head">
+            <div>
+              <h2 className="section-title">Essentiel</h2>
+              <p className="section-subtitle">Contacts rapides et accès direct aux pages utiles.</p>
+            </div>
+            <Link to="/services" className="essentials-more">Voir tous les services</Link>
+          </div>
+          <div className="essentials-grid">
+            <div className="essentials-card">
+              <div className="essentials-kicker">Urgences</div>
+              <ul className="essentials-list">
+                <li><strong>15</strong> SAMU</li>
+                <li><strong>17</strong> Police</li>
+                <li><strong>18</strong> Pompiers</li>
+              </ul>
+            </div>
+            <div className="essentials-card">
+              <div className="essentials-kicker">Liens rapides</div>
+              <div className="essentials-links">
+                <Link to="/actualites">Actualités</Link>
+                <Link to="/forum">Forum</Link>
+                <Link to="/projets">Projets</Link>
+                <Link to="/annuaire">Annuaire</Link>
+              </div>
+            </div>
+          </div>
+        </div>
       </motion.section>
     </div>
   );
