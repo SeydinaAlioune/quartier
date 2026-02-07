@@ -11,6 +11,7 @@ const NewsDetail = () => {
   const [article, setArticle] = useState(location.state?.article || null);
   const [loading, setLoading] = useState(!location.state?.article);
   const [error, setError] = useState('');
+  const [related, setRelated] = useState([]);
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
   const extractFirstImageFromContent = (content) => {
     if (!content) return null;
@@ -24,6 +25,39 @@ const NewsDetail = () => {
     return null;
   };
 
+  const getTagForArticle = (a) => {
+    const title = (a?.title || '').toLowerCase();
+    const body = (a?.description || '').toLowerCase();
+    const hay = `${title} ${body}`;
+
+    if (/consultation|m[ée]dical|sant[ée]|docteur|hopital|vaccin/.test(hay)) return { label: 'Santé', tone: 'health' };
+    if (/kermesse|journ[ée]e|tournoi|match|culturel|assiko|assico|set\s*setal|setsetal|concert|festival/.test(hay)) return { label: 'Événement', tone: 'event' };
+    if (/travaux|coupure|eau|[ée]lectricit[ée]|circulation|route|signalisation|maintenance/.test(hay)) return { label: 'Info pratique', tone: 'info' };
+    if (/urgence|alerte|s[ée]curit[ée]|vol|agression|incendie/.test(hay)) return { label: 'Alerte', tone: 'alert' };
+    return { label: 'Actualité', tone: 'default' };
+  };
+
+  const getExcerpt = (value, max = 180) => {
+    if (!value) return '';
+    const plain = String(value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (plain.length <= max) return plain;
+    return `${plain.slice(0, max).trim()}…`;
+  };
+
+  const normalizePost = (p) => {
+    const fallbackFromContent = extractFirstImageFromContent(p.content);
+    const raw = p.coverUrl || fallbackFromContent;
+    const image = raw ? (String(raw).startsWith('http') ? raw : `${API_BASE}${raw}`) : '/images/setsetal.jpg';
+    return {
+      id: p._id || p.id,
+      date: p.createdAt || new Date().toISOString(),
+      title: p.title,
+      description: p.content,
+      image,
+      author: p.author?.name || 'Anonyme',
+    };
+  };
+
   useEffect(() => {
     let mounted = true;
     // Si on n'a pas l'article en state (navigation directe), on va le chercher via l'API
@@ -33,18 +67,7 @@ const NewsDetail = () => {
         setError('');
         const res = await api.get(`/api/posts/${id}`);
         if (!mounted) return;
-        const p = res.data;
-        const fallbackFromContent = extractFirstImageFromContent(p.content);
-        const raw = p.coverUrl || fallbackFromContent;
-        const image = raw ? (String(raw).startsWith('http') ? raw : `${API_BASE}${raw}`) : '/images/setsetal.jpg';
-        setArticle({
-          id: p._id || p.id,
-          date: p.createdAt || new Date().toISOString(),
-          title: p.title,
-          description: p.content,
-          image,
-          author: p.author?.name || 'Anonyme',
-        });
+        setArticle(normalizePost(res.data));
       } catch (e) {
         if (mounted) setError("Impossible de charger l'article.");
       } finally {
@@ -55,7 +78,25 @@ const NewsDetail = () => {
     if (!article) fetchArticle();
 
     return () => { mounted = false; };
-  }, [id]);
+  }, [API_BASE, id]);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchRelated = async () => {
+      try {
+        const res = await api.get('/api/posts?status=published&sort=-createdAt&limit=8&page=1');
+        if (!mounted) return;
+        const payload = res.data;
+        const list = Array.isArray(payload?.posts) ? payload.posts : (Array.isArray(payload) ? payload : []);
+        const items = list.map(normalizePost).filter((p) => String(p.id) !== String(id));
+        setRelated(items.slice(0, 3));
+      } catch {
+        if (mounted) setRelated([]);
+      }
+    };
+    fetchRelated();
+    return () => { mounted = false; };
+  }, [API_BASE, id]);
 
   if (loading) {
     return (
@@ -83,25 +124,70 @@ const NewsDetail = () => {
     );
   }
 
-  return (
-    <div className="news-container">
-      <header className="news-header">
-        <h1>{article.title}</h1>
-        <p>
-          Publié le {format(new Date(article.date), 'd MMMM yyyy', { locale: fr })}
-          {article.author ? ` • Par ${article.author}` : ''}
-        </p>
-      </header>
+  const tag = getTagForArticle(article);
 
-      <section className="news-detail">
-        <div className="article-card">
-          <img src={article.image} alt={article.title} />
-          <div className="article-content">
-            <p>{article.description}</p>
+  return (
+    <div className="news-detail-page">
+      <header className="news-detail-hero">
+        <div className="news-detail-hero__inner">
+          <div className="news-detail-hero__left">
+            <Link to="/actualites" className="news-detail-back">← Retour aux actualités</Link>
+
+            <div className="news-detail-meta">
+              <span className="news-badge-date">{format(new Date(article.date), 'd MMM yyyy', { locale: fr })}</span>
+              <span className={`news-tag news-tag--${tag.tone}`}>{tag.label}</span>
+              <span className="news-detail-author">{article.author ? `Par ${article.author}` : ''}</span>
+            </div>
+
+            <h1 className="news-detail-title">{article.title}</h1>
+            <p className="news-detail-dek">{getExcerpt(article.description, 200)}</p>
+          </div>
+
+          <div className="news-detail-hero__right">
+            <div className="news-detail-cover">
+              <img src={article.image} alt={article.title} onError={(e) => { e.currentTarget.src = '/images/setsetal.jpg'; }} />
+            </div>
           </div>
         </div>
-        <Link to="/actualites" className="read-more">← Retour aux actualités</Link>
-      </section>
+      </header>
+
+      <main className="news-detail-main">
+        <article className="news-detail-article">
+          <div
+            className="news-detail-content"
+            dangerouslySetInnerHTML={{ __html: String(article.description || '') }}
+          />
+          <div className="news-detail-bottom">
+            <Link to="/actualites" className="news-detail-back news-detail-back--bottom">← Retour aux actualités</Link>
+          </div>
+        </article>
+
+        {related.length > 0 && (
+          <section className="news-detail-related" aria-label="À lire ensuite">
+            <h2 className="news-detail-related__title">À lire ensuite</h2>
+            <div className="news-detail-related__grid">
+              {related.map((p) => {
+                const t = getTagForArticle(p);
+                return (
+                  <Link key={p.id} to={`/actualites/${p.id}`} state={{ article: p }} className="news-detail-related__card">
+                    <div className="news-detail-related__media">
+                      <img src={p.image} alt={p.title} onError={(e) => { e.currentTarget.src = '/images/setsetal.jpg'; }} />
+                    </div>
+                    <div className="news-detail-related__body">
+                      <div className="news-detail-related__meta">
+                        <span className="news-badge-date">{format(new Date(p.date), 'd MMM yyyy', { locale: fr })}</span>
+                        <span className={`news-tag news-tag--${t.tone}`}>{t.label}</span>
+                      </div>
+                      <div className="news-detail-related__headline">{p.title}</div>
+                      <div className="news-detail-related__cta">Lire →</div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </main>
     </div>
   );
 };
