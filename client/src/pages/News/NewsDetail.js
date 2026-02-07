@@ -222,6 +222,7 @@ const NewsDetail = () => {
         {related.length > 0 && (
           <section className="news-detail-related" aria-label="À lire ensuite">
             <h2 className="news-detail-related__title">À lire ensuite</h2>
+            <p className="news-detail-related__subtitle">Trois autres actualités récentes du quartier.</p>
             <div className="news-detail-related__grid">
               {related.map((p) => {
                 const t = getTagForArticle(p);

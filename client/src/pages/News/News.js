@@ -12,6 +12,7 @@ const News = () => {
   const [latestArticles, setLatestArticles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expandedAnnouncements, setExpandedAnnouncements] = useState({});
 
   const formatBadgeDate = (dateString) => {
     const date = new Date(dateString);
@@ -348,7 +349,21 @@ const News = () => {
                   <span className="announcement-icon" aria-hidden="true">📢</span>
                   {announcement.type}
                 </h3>
-                <p>{announcement.description}</p>
+                <p className={expandedAnnouncements[announcement.id] ? 'announcement-desc is-expanded' : 'announcement-desc'}>
+                  {announcement.description}
+                </p>
+                {!!announcement.description && String(announcement.description).length > 120 && (
+                  <button
+                    type="button"
+                    className="announcement-more"
+                    onClick={() => setExpandedAnnouncements((prev) => ({
+                      ...prev,
+                      [announcement.id]: !prev[announcement.id]
+                    }))}
+                  >
+                    {expandedAnnouncements[announcement.id] ? 'Réduire' : 'Voir plus'}
+                  </button>
+                )}
                 {announcement.buttonText && (
                   announcement.link ? (
                     <a className="announcement-button" href={announcement.link} target="_blank" rel="noreferrer">{announcement.buttonText}</a>
