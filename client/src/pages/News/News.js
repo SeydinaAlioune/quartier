@@ -331,13 +331,21 @@ const News = () => {
 
       {announcements.length > 0 && (
         <section id="news-announcements" className="important-announcements">
-          <h2>Annonces Importantes</h2>
-          <div className="announcements-grid">
+          <div className="announcements-head">
+            <div>
+              <h2>Annonces Importantes</h2>
+              <p className="announcements-subtitle">Travaux, coupures, infos urgentes : les points à ne pas rater.</p>
+            </div>
+            <div className="announcements-count" aria-label="Nombre d'annonces">
+              {announcements.length}
+            </div>
+          </div>
+          <div className={`announcements-grid ${announcements.length === 1 ? 'announcements-grid--single' : ''}`}>
             {announcements.map((announcement, idx) => (
               <AnimatedSection key={announcement.id} delay={idx} animation="scale">
                 <div className="announcement-card">
                 <h3>
-                  <i className="icon"></i>
+                  <span className="announcement-icon" aria-hidden="true">📢</span>
                   {announcement.type}
                 </h3>
                 <p>{announcement.description}</p>
