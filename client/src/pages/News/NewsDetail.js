@@ -12,6 +12,7 @@ const NewsDetail = () => {
   const [loading, setLoading] = useState(!location.state?.article);
   const [error, setError] = useState('');
   const [related, setRelated] = useState([]);
+  const [shareStatus, setShareStatus] = useState('');
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
   const extractFirstImageFromContent = (content) => {
     if (!content) return null;
@@ -42,6 +43,13 @@ const NewsDetail = () => {
     const plain = String(value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     if (plain.length <= max) return plain;
     return `${plain.slice(0, max).trim()}…`;
+  };
+
+  const estimateReadingTime = (html) => {
+    const plain = String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const words = plain ? plain.split(' ').filter(Boolean).length : 0;
+    const minutes = Math.max(1, Math.round(words / 220));
+    return `${minutes} min`;
   };
 
   const normalizePost = (p) => {
@@ -125,6 +133,32 @@ const NewsDetail = () => {
   }
 
   const tag = getTagForArticle(article);
+  const readingTime = estimateReadingTime(article.description);
+
+  const handleShare = async () => {
+    try {
+      setShareStatus('');
+      const url = window.location.href;
+      const title = article?.title || 'Actualité';
+
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareStatus('Lien copié');
+        window.setTimeout(() => setShareStatus(''), 1800);
+        return;
+      }
+
+      setShareStatus('Copie impossible');
+      window.setTimeout(() => setShareStatus(''), 1800);
+    } catch {
+      setShareStatus('');
+    }
+  };
 
   return (
     <div className="news-detail-page">
@@ -136,11 +170,20 @@ const NewsDetail = () => {
             <div className="news-detail-meta">
               <span className="news-badge-date">{format(new Date(article.date), 'd MMM yyyy', { locale: fr })}</span>
               <span className={`news-tag news-tag--${tag.tone}`}>{tag.label}</span>
-              <span className="news-detail-author">{article.author ? `Par ${article.author}` : ''}</span>
+              <span className="news-detail-author">{article.author ? `Par ${article.author}` : ' '}</span>
+              <span className="news-detail-sep" aria-hidden="true">•</span>
+              <span className="news-detail-reading">{readingTime} de lecture</span>
             </div>
 
             <h1 className="news-detail-title">{article.title}</h1>
             <p className="news-detail-dek">{getExcerpt(article.description, 200)}</p>
+
+            <div className="news-detail-actions">
+              <button type="button" className="news-detail-share" onClick={handleShare}>
+                Partager
+              </button>
+              {shareStatus && <span className="news-detail-share-status">{shareStatus}</span>}
+            </div>
           </div>
 
           <div className="news-detail-hero__right">
