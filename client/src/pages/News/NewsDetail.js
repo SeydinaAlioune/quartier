@@ -67,6 +67,11 @@ const NewsDetail = () => {
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    setShareStatus('');
+  }, [id]);
+
+  useEffect(() => {
     let mounted = true;
     // Si on n'a pas l'article en state (navigation directe), on va le chercher via l'API
     const fetchArticle = async () => {
@@ -83,10 +88,19 @@ const NewsDetail = () => {
       }
     };
 
-    if (!article) fetchArticle();
+    const stateArticle = location.state?.article;
+    const stateId = stateArticle?.id;
+    if (stateArticle && String(stateId) === String(id)) {
+      setArticle(stateArticle);
+      setLoading(false);
+      setError('');
+    } else {
+      setArticle(null);
+      fetchArticle();
+    }
 
     return () => { mounted = false; };
-  }, [API_BASE, id]);
+  }, [API_BASE, id, location.state]);
 
   useEffect(() => {
     let mounted = true;
