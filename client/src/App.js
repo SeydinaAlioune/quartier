@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
@@ -36,6 +36,11 @@ function AppLayout() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isHomeRoute = location.pathname === '/';
+
+  useEffect(() => {
+    if (isAdminRoute) return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [isAdminRoute, location.pathname]);
 
   return (
     <div className="App">
