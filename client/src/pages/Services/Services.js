@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Services.css';
 import api from '../../services/api';
 import SERVICE_CATEGORIES from '../../constants/serviceCategories';
 
 const Services = () => {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,8 +17,81 @@ const Services = () => {
   const [cityLoading, setCityLoading] = useState(false);
   const [cityError, setCityError] = useState('');
 
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+  const [submitForm, setSubmitForm] = useState({
+    name: '',
+    description: '',
+    category: 'Municipal',
+    providerName: '',
+    providerEmail: '',
+    providerPhone: '',
+    providerWebsite: '',
+    locationAddress: '',
+  });
+
   const categories = SERVICE_CATEGORIES;
   const SHOW_STATIC_CITY_SECTIONS = false; // Désactivé: sections désormais dynamiques via /api/city
+
+  const scrollToDeclared = () => {
+    const el = document.getElementById('services-declares');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const openSubmit = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    setSubmitError('');
+    setSubmitSuccess('');
+    setShowSubmitModal(true);
+  };
+
+  const handleSubmitService = async (e) => {
+    e.preventDefault();
+    try {
+      setSubmitLoading(true);
+      setSubmitError('');
+      setSubmitSuccess('');
+
+      await api.post('/api/services/submit', {
+        name: submitForm.name,
+        description: submitForm.description,
+        category: submitForm.category,
+        provider: {
+          name: submitForm.providerName,
+          contact: {
+            email: submitForm.providerEmail || undefined,
+            phone: submitForm.providerPhone || undefined,
+            website: submitForm.providerWebsite || undefined,
+          },
+        },
+        location: {
+          address: submitForm.locationAddress,
+        },
+      });
+
+      setSubmitSuccess('Merci ! Votre service a été envoyé et sera validé par un administrateur.');
+      setSubmitForm({
+        name: '',
+        description: '',
+        category: 'Municipal',
+        providerName: '',
+        providerEmail: '',
+        providerPhone: '',
+        providerWebsite: '',
+        locationAddress: '',
+      });
+    } catch (err) {
+      setSubmitError(err?.response?.data?.message || "Envoi impossible. Réessayez plus tard.");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   const fetchServices = async () => {
     try {
@@ -91,15 +166,30 @@ const Services = () => {
           backgroundPosition: 'center 35%'
         }}
       >
-        <h1>Services du Quartier</h1>
+        <div className="services-hero-inner">
+          <p className="services-hero-kicker">Annuaire local</p>
+          <h1>Services du Quartier</h1>
+          <p className="services-hero-lead">Un accès direct aux contacts utiles, horaires, et services proches de chez vous.</p>
+          <div className="services-hero-actions">
+            <button type="button" className="services-hero-btn" onClick={scrollToDeclared}>Explorer</button>
+            <button type="button" className="services-hero-btn secondary" onClick={openSubmit}>Proposer un service</button>
+          </div>
+        </div>
       </header>
 
       <div className="services-page">
-      <p className="page-intro">Découvrez tous les services disponibles pour faciliter votre quotidien</p>
+      <p className="page-intro">Découvrez les services essentiels du quartier, et proposez ceux qui manquent.</p>
 
-      <section className="service-section">
-        <h2>Services déclarés</h2>
-        <div className="service-controls" style={{display:'flex', gap:'0.5rem', flexWrap:'wrap', marginBottom:'1rem'}}>
+      <section className="service-section" id="services-declares">
+        <div className="service-section-head">
+          <div className="service-section-title">
+            <h2>Services déclarés</h2>
+            <p className="service-section-subtitle">Commerces, associations, municipal, santé… tout ce qui simplifie le quotidien.</p>
+          </div>
+          <button type="button" className="services-cta" onClick={openSubmit}>Proposer un service</button>
+        </div>
+
+        <div className="service-controls">
           <input className="service-search" type="text" placeholder="Rechercher un service..." value={search} onChange={(e)=>setSearch(e.target.value)} />
           <select className="service-category" value={category} onChange={(e)=>setCategory(e.target.value)}>
             <option value="">Toutes les catégories</option>
@@ -116,10 +206,15 @@ const Services = () => {
             <div key={s._id} className="service-card">
               <div className="card-header">
                 <i className="fas fa-concierge-bell"></i>
-                <h3>{s.name}</h3>
+                <div className="card-header-main">
+                  <h3>{s.name}</h3>
+                  <div className="service-meta">
+                    <span className="service-pill">{s.category}</span>
+                    <span className="service-pill subtle">Validé</span>
+                  </div>
+                </div>
               </div>
               <ul>
-                <li><strong>Catégorie:</strong> {s.category}</li>
                 <li><strong>Fournisseur:</strong> {s.provider?.name || '—'}</li>
                 <li><strong>Adresse:</strong> {s.location?.address || '—'}</li>
                 {s.provider?.contact?.phone && (
@@ -132,7 +227,7 @@ const Services = () => {
                   <li><strong>Site:</strong> <a href={s.provider.contact.website} target="_blank" rel="noreferrer">{s.provider.contact.website}</a></li>
                 )}
               </ul>
-              <p style={{marginTop:'0.5rem'}}>{s.description}</p>
+              <p className="service-description">{s.description}</p>
               <div className="contact-info">
                 {s.provider?.contact?.email && (
                   <a className="btn-secondary" href={`mailto:${s.provider.contact.email}`}>Contacter par email</a>
@@ -147,7 +242,12 @@ const Services = () => {
       </section>
 
       <section className="service-section">
-        <h2>Mairie de Quartier</h2>
+        <div className="service-section-head">
+          <div className="service-section-title">
+            <h2>Mairie de Quartier</h2>
+            <p className="service-section-subtitle">Horaires, services, et coordonnées pour vos démarches.</p>
+          </div>
+        </div>
         {cityLoading && <p>Chargement...</p>}
         {cityError && <p className="services-error">{cityError}</p>}
         {!cityLoading && !cityError && (
@@ -203,7 +303,12 @@ const Services = () => {
       </section>
 
       <section className="service-section">
-        <h2>Numéros d'Urgence</h2>
+        <div className="service-section-head">
+          <div className="service-section-title">
+            <h2>Numéros d'Urgence</h2>
+            <p className="service-section-subtitle">Contacts rapides à appeler en cas de besoin.</p>
+          </div>
+        </div>
         {ucError && <p className="services-error">{ucError}</p>}
         <div className="service-cards">
           {usefulCats.length === 0 && !ucError && (
@@ -228,7 +333,12 @@ const Services = () => {
       </section>
 
       <section className="service-section">
-        <h2>Gestion des Ordures</h2>
+        <div className="service-section-head">
+          <div className="service-section-title">
+            <h2>Gestion des Ordures</h2>
+            <p className="service-section-subtitle">Calendrier de collecte, tri, et infos déchèterie.</p>
+          </div>
+        </div>
         {cityLoading && <p>Chargement...</p>}
         {cityError && <p className="services-error">{cityError}</p>}
         {!cityLoading && !cityError && (
@@ -283,6 +393,74 @@ const Services = () => {
         )}
       </section>
     </div>
+
+    {showSubmitModal && (
+      <div className="services-modal-overlay" onMouseDown={() => setShowSubmitModal(false)}>
+        <div className="services-modal" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="services-modal-head">
+            <h3>Proposer un service</h3>
+            <button type="button" className="services-modal-close" onClick={() => setShowSubmitModal(false)}>✕</button>
+          </div>
+
+          <p className="services-modal-sub">Votre proposition sera vérifiée par un administrateur avant publication.</p>
+
+          <form onSubmit={handleSubmitService} className="services-modal-form">
+            <div className="services-form-row">
+              <label>Nom du service</label>
+              <input value={submitForm.name} onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })} required />
+            </div>
+
+            <div className="services-form-row">
+              <label>Description</label>
+              <textarea rows="4" value={submitForm.description} onChange={(e) => setSubmitForm({ ...submitForm, description: e.target.value })} required />
+            </div>
+
+            <div className="services-form-row">
+              <label>Catégorie</label>
+              <select value={submitForm.category} onChange={(e) => setSubmitForm({ ...submitForm, category: e.target.value })}>
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            <div className="services-form-row">
+              <label>Fournisseur</label>
+              <input value={submitForm.providerName} onChange={(e) => setSubmitForm({ ...submitForm, providerName: e.target.value })} required />
+            </div>
+
+            <div className="services-form-grid">
+              <div className="services-form-row">
+                <label>Email (optionnel)</label>
+                <input type="email" value={submitForm.providerEmail} onChange={(e) => setSubmitForm({ ...submitForm, providerEmail: e.target.value })} />
+              </div>
+              <div className="services-form-row">
+                <label>Téléphone (optionnel)</label>
+                <input value={submitForm.providerPhone} onChange={(e) => setSubmitForm({ ...submitForm, providerPhone: e.target.value })} />
+              </div>
+            </div>
+
+            <div className="services-form-row">
+              <label>Site web (optionnel)</label>
+              <input value={submitForm.providerWebsite} onChange={(e) => setSubmitForm({ ...submitForm, providerWebsite: e.target.value })} placeholder="https://" />
+            </div>
+
+            <div className="services-form-row">
+              <label>Adresse</label>
+              <input value={submitForm.locationAddress} onChange={(e) => setSubmitForm({ ...submitForm, locationAddress: e.target.value })} required />
+            </div>
+
+            {submitError && <div className="services-form-error">{submitError}</div>}
+            {submitSuccess && <div className="services-form-success">{submitSuccess}</div>}
+
+            <div className="services-modal-actions">
+              <button type="button" className="btn-secondary" onClick={() => setShowSubmitModal(false)}>Fermer</button>
+              <button type="submit" className="btn-primary" disabled={submitLoading}>
+                {submitLoading ? 'Envoi...' : 'Envoyer'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
     </>
   );
 };
