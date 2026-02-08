@@ -17,6 +17,7 @@ const Donations = () => {
   const [showQr, setShowQr] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
   const [copyMsg, setCopyMsg] = useState('');
+  const [toast, setToast] = useState('');
 
   const calculateProgress = (collected, goal) => {
     if (!goal || goal <= 0) return 0;
@@ -120,6 +121,7 @@ const Donations = () => {
       return navigate('/login');
     }
     try {
+      setToast('');
       const payload = {
         campaign: selectedCampaign.id,
         amount: parseFloat(donateData.amount),
@@ -144,34 +146,79 @@ const Donations = () => {
         setShowQr(true);
         return;
       }
-      // Feedback minimal et fermeture
-      alert('Don effectué avec succès. Merci !');
+      setToast('Merci ! Ton don a été enregistré.');
       setDonateOpen(false);
     } catch (err) {
-      alert("Échec du don. Réessayez plus tard.");
+      setToast("Échec du don. Réessaie plus tard.");
     }
   };
 
   const handleCreateCampaign = () => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (!user) return navigate('/login');
-    if (user.role !== 'admin') return alert('Accès réservé aux administrateurs.');
-    alert('Création de campagne: fonctionnalité à venir.');
+    if (user.role !== 'admin') {
+      setToast('Accès réservé aux administrateurs.');
+      window.setTimeout(() => setToast(''), 2000);
+      return;
+    }
+    setToast('Création de collecte: utilisez le panneau Admin (à intégrer).');
+    window.setTimeout(() => setToast(''), 2200);
   };
 
   const handleDonateNow = () => {
-    if (currentCampaigns.length === 0) return alert('Aucune campagne active pour le moment.');
+    if (currentCampaigns.length === 0) {
+      setToast('Aucune collecte active pour le moment.');
+      window.setTimeout(() => setToast(''), 2000);
+      return;
+    }
     openDonate(currentCampaigns[0], 'wave');
+  };
+
+  const stats = (() => {
+    const active = currentCampaigns.length;
+    const totalCollected = currentCampaigns.reduce((acc, c) => acc + (Number(c.collected) || 0), 0);
+    const totalGoal = currentCampaigns.reduce((acc, c) => acc + (Number(c.goal) || 0), 0);
+    return { active, totalCollected, totalGoal };
+  })();
+
+  const labels = {
+    telethon: 'Téléthon',
+    project: 'Projet',
+    emergency: 'Urgence',
+    community: 'Communauté',
+    other: 'Autre',
   };
 
   return (
     <div className="donations-container">
-      <header className="donations-header">
-        <h1>Téléthon & Collectes Solidaires</h1>
-        <p>Soutenez les causes qui nous tiennent à cœur et participez à l'entraide au sein de notre quartier</p>
+      <header
+        className="donations-hero"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${process.env.PUBLIC_URL}/pro.jpg)`,
+          backgroundPosition: 'center 35%'
+        }}
+      >
+        <div className="donations-hero-inner">
+          <p className="donations-hero-kicker">Solidarité</p>
+          <h1>Téléthon & Collectes</h1>
+          <p className="donations-hero-lead">Aide les personnes et les causes du quartier. Les dons sont indépendants des projets, mais certaines collectes peuvent être liées à un projet.</p>
+          <div className="donations-hero-actions">
+            <button type="button" className="donations-hero-btn" onClick={handleDonateNow}>Faire un don</button>
+            <button type="button" className="donations-hero-link" onClick={() => document.getElementById('donations-active')?.scrollIntoView({ behavior: 'smooth' })}>Voir les collectes</button>
+          </div>
+          <div className="donations-hero-stats">
+            <div className="donations-stat"><span className="v">{stats.active}</span><span className="l">collectes actives</span></div>
+            <div className="donations-stat"><span className="v">{stats.totalCollected.toLocaleString('fr-FR')}€</span><span className="l">collectés</span></div>
+            <div className="donations-stat"><span className="v">{stats.totalGoal.toLocaleString('fr-FR')}€</span><span className="l">objectif total</span></div>
+          </div>
+        </div>
       </header>
 
-      <section className="current-campaigns">
+      {toast && (
+        <div className="donations-toast" role="status">{toast}</div>
+      )}
+
+      <section className="current-campaigns" id="donations-active">
         <h2>Collectes en Cours</h2>
         {loading && <p>Chargement des collectes...</p>}
         {!loading && error && <p className="donations-error">{error}</p>}
@@ -181,12 +228,24 @@ const Donations = () => {
         <div className="campaigns-grid">
           {currentCampaigns.map(campaign => (
             <div key={campaign.id} className="campaign-card">
-              <img src={campaign.image} alt={campaign.title} />
-              <h3>{campaign.title}</h3>
-              <p>{campaign.description}</p>
+              <div className="campaign-media">
+                <img
+                  src={campaign.image}
+                  alt={campaign.title}
+                  onError={(e) => {
+                    if (e.currentTarget?.dataset?.fallbackApplied) return;
+                    e.currentTarget.dataset.fallbackApplied = '1';
+                    e.currentTarget.src = `${process.env.PUBLIC_URL}/pro.jpg`;
+                  }}
+                />
+                <div className="campaign-badges">
+                  <span className={`badge ${campaign.category}`}>{labels[campaign.category] || campaign.category}</span>
+                  {campaign.projectTitle && <span className="campaign-pill">Projet: {campaign.projectTitle}</span>}
+                </div>
+              </div>
+              <h3 className="campaign-title">{campaign.title}</h3>
+              <p className="campaign-desc">{campaign.description}</p>
               <div className="campaign-meta">
-                <span className={`badge ${campaign.category}`}>{campaign.category}</span>
-                {campaign.projectTitle && <span className="meta">Projet: {campaign.projectTitle}</span>}
                 <span className="meta">
                   {campaign.startDate ? campaign.startDate.toLocaleDateString('fr-FR') : '—'}
                   {campaign.endDate ? ` → ${campaign.endDate.toLocaleDateString('fr-FR')}` : ''}
@@ -199,15 +258,15 @@ const Donations = () => {
                 ></div>
               </div>
               <div className="campaign-stats">
-                <span>{campaign.collected}€ collectés</span>
-                <span>Objectif: {campaign.goal}€</span>
+                <span>{Number(campaign.collected || 0).toLocaleString('fr-FR')}€ collectés</span>
+                <span>Objectif: {Number(campaign.goal || 0).toLocaleString('fr-FR')}€</span>
               </div>
               <div className="payment-methods">
                 <button className="payment-btn wave" onClick={() => openDonate(campaign, 'wave')}>Wave</button>
                 <button className="payment-btn orange" onClick={() => openDonate(campaign, 'orange')}>Orange Money</button>
               </div>
               {!localStorage.getItem('token') && (
-                <div style={{marginTop:'0.5rem', color:'#777', fontSize:'0.9rem'}}>
+                <div className="donations-auth-hint">
                   Connectez-vous pour finaliser votre don.
                 </div>
               )}
@@ -257,42 +316,45 @@ const Donations = () => {
       </section>
 
       {paid && (
-        <div style={{maxWidth:1200, margin:'0 auto 1rem', padding:'0 2rem'}}>
-          <div style={{background:'#e8f5e9', border:'1px solid #c8e6c9', color:'#256029', padding:'0.75rem 1rem', borderRadius:6}}>
-            Paiement confirmé. Merci pour votre soutien !
-          </div>
+        <div className="donations-paid">
+          Paiement confirmé. Merci pour votre soutien !
         </div>
       )}
 
       {donateOpen && selectedCampaign && (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000}}>
-          <div style={{background:'#fff', padding:'1.5rem', borderRadius:'8px', width:'90%', maxWidth:'420px'}}>
-            <h3>Faire un don — {selectedCampaign.title}</h3>
-            <form onSubmit={submitDonation}>
-              <div className="form-group">
-                <label>Montant (€)</label>
-                <input type="number" min="1" step="1" required value={donateData.amount} onChange={(e)=>setDonateData({...donateData, amount:e.target.value})} />
+        <div className="donations-modal" role="dialog" aria-label="Faire un don">
+          <div className="donations-modal-card">
+            <div className="donations-modal-head">
+              <div>
+                <h3>Faire un don</h3>
+                <p>{selectedCampaign.title}</p>
               </div>
-              <div className="form-group">
-                <label>Méthode</label>
+              <button type="button" className="donations-modal-close" onClick={()=>setDonateOpen(false)}>Fermer</button>
+            </div>
+
+            <form className="donations-form" onSubmit={submitDonation}>
+              <label className="donations-field">
+                <span>Montant (€)</span>
+                <input type="number" min="1" step="1" required value={donateData.amount} onChange={(e)=>setDonateData({...donateData, amount:e.target.value})} />
+              </label>
+              <label className="donations-field">
+                <span>Méthode</span>
                 <select value={donateData.paymentMethod} onChange={(e)=>setDonateData({...donateData, paymentMethod:e.target.value})}>
                   <option value="wave">Wave</option>
                   <option value="orange">Orange Money</option>
                 </select>
-              </div>
-              <div className="form-group">
-                <label>Message (optionnel)</label>
+              </label>
+              <label className="donations-field donations-field--full">
+                <span>Message (optionnel)</span>
                 <textarea rows="3" value={donateData.message} onChange={(e)=>setDonateData({...donateData, message:e.target.value})}></textarea>
-              </div>
-              <div className="form-group">
-                <label>
-                  <input type="checkbox" checked={donateData.anonymous} onChange={(e)=>setDonateData({...donateData, anonymous:e.target.checked})} />
-                  Don anonyme
-                </label>
-              </div>
-              <div style={{display:'flex', gap:'0.5rem', justifyContent:'flex-end'}}>
-                <button type="button" onClick={()=>setDonateOpen(false)}>Annuler</button>
-                <button type="submit">Valider le don</button>
+              </label>
+              <label className="donations-check donations-field--full">
+                <input type="checkbox" checked={donateData.anonymous} onChange={(e)=>setDonateData({...donateData, anonymous:e.target.checked})} />
+                <span>Don anonyme</span>
+              </label>
+              <div className="donations-actions">
+                <button type="button" className="donations-btn-secondary" onClick={()=>setDonateOpen(false)}>Annuler</button>
+                <button type="submit" className="donations-btn-primary">Valider le don</button>
               </div>
             </form>
           </div>
@@ -300,22 +362,25 @@ const Donations = () => {
       )}
 
       {showQr && qrUrl && (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1001}}>
-          <div style={{background:'#fff', padding:'1.5rem', borderRadius:'8px', width:'min(520px,95vw)'}}>
-            <h3 style={{marginTop:0}}>Scanner et Payer</h3>
-            <p style={{color:'#555'}}>Scannez ce QR avec votre téléphone pour ouvrir la page de paiement {donateData.paymentMethod === 'orange' ? 'Orange Money' : 'Wave'}.
-              {" "}Si vous êtes déjà sur mobile, vous pouvez aussi ouvrir le lien directement.</p>
-            <div style={{display:'flex', gap:'1rem', alignItems:'center', justifyContent:'center', margin:'1rem 0'}}>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(qrUrl)}`} alt="QR paiement" style={{width:280, height:280}} />
+        <div className="donations-modal" role="dialog" aria-label="Scanner et payer">
+          <div className="donations-qr-card">
+            <div className="donations-modal-head">
+              <div>
+                <h3>Scanner et payer</h3>
+                <p>Ouvre la page de paiement {donateData.paymentMethod === 'orange' ? 'Orange Money' : 'Wave'} depuis ton téléphone.</p>
+              </div>
+              <button type="button" className="donations-modal-close" onClick={()=>setShowQr(false)}>Fermer</button>
             </div>
-            <div style={{wordBreak:'break-all', background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:6, padding:8, fontSize:12, color:'#334155'}}>{qrUrl}</div>
-            <div style={{display:'flex', gap:8, justifyContent:'flex-end', marginTop:10}}>
-              <button onClick={()=>{ window.open(qrUrl, '_blank'); }} style={{background:'#e5e7eb', border:'none', borderRadius:6, padding:'8px 10px', cursor:'pointer'}}>Ouvrir</button>
-              <button onClick={async()=>{ try{ await navigator.clipboard.writeText(qrUrl); setCopyMsg('Lien copié'); setTimeout(()=>setCopyMsg(''), 1200);}catch{}}} style={{background:'#e5e7eb', border:'none', borderRadius:6, padding:'8px 10px', cursor:'pointer'}}>Copier le lien</button>
-              <button onClick={()=>{ const wa = `https://wa.me/?text=${encodeURIComponent('Paiement don: '+qrUrl)}`; window.open(wa, '_blank'); }} style={{background:'#25D366', color:'#fff', border:'none', borderRadius:6, padding:'8px 10px', cursor:'pointer'}}>Partager WhatsApp</button>
-              <button onClick={()=>setShowQr(false)} style={{background:'#00a651', color:'#fff', border:'none', borderRadius:6, padding:'8px 10px', cursor:'pointer'}}>Fermer</button>
+            <div className="donations-qr-body">
+              <img className="donations-qr-img" src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(qrUrl)}`} alt="QR paiement" />
+              <div className="donations-qr-url">{qrUrl}</div>
+              <div className="donations-qr-actions">
+                <button type="button" className="donations-btn-secondary" onClick={()=>{ window.open(qrUrl, '_blank'); }}>Ouvrir</button>
+                <button type="button" className="donations-btn-secondary" onClick={async()=>{ try{ await navigator.clipboard.writeText(qrUrl); setCopyMsg('Lien copié'); setTimeout(()=>setCopyMsg(''), 1200);}catch{}}}>Copier</button>
+                <button type="button" className="donations-btn-whatsapp" onClick={()=>{ const wa = `https://wa.me/?text=${encodeURIComponent('Paiement don: '+qrUrl)}`; window.open(wa, '_blank'); }}>WhatsApp</button>
+              </div>
+              {copyMsg && <div className="donations-copy">{copyMsg}</div>}
             </div>
-            {copyMsg && <div style={{marginTop:8, color:'#16a34a'}}>{copyMsg}</div>}
           </div>
         </div>
       )}
