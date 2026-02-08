@@ -21,6 +21,7 @@ const Services = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
+  const [showOptionalContact, setShowOptionalContact] = useState(false);
   const [submitForm, setSubmitForm] = useState({
     name: '',
     description: '',
@@ -48,6 +49,7 @@ const Services = () => {
     }
     setSubmitError('');
     setSubmitSuccess('');
+    setShowOptionalContact(false);
     setShowSubmitModal(true);
   };
 
@@ -167,12 +169,12 @@ const Services = () => {
         }}
       >
         <div className="services-hero-inner">
-          <p className="services-hero-kicker">Annuaire local</p>
+          <p className="services-hero-kicker">Guide pratique</p>
           <h1>Services du Quartier</h1>
-          <p className="services-hero-lead">Un accès direct aux contacts utiles, horaires, et services proches de chez vous.</p>
+          <p className="services-hero-lead">Contacts utiles, horaires, démarches et infos de proximité — tout au même endroit.</p>
           <div className="services-hero-actions">
-            <button type="button" className="services-hero-btn" onClick={scrollToDeclared}>Explorer</button>
-            <button type="button" className="services-hero-btn secondary" onClick={openSubmit}>Proposer un service</button>
+            <button type="button" className="services-hero-btn primary" onClick={scrollToDeclared}>Explorer les services</button>
+            <button type="button" className="services-hero-link" onClick={openSubmit}>Proposer un service</button>
           </div>
         </div>
       </header>
@@ -189,12 +191,14 @@ const Services = () => {
           <button type="button" className="services-cta" onClick={openSubmit}>Proposer un service</button>
         </div>
 
-        <div className="service-controls">
-          <input className="service-search" type="text" placeholder="Rechercher un service..." value={search} onChange={(e)=>setSearch(e.target.value)} />
-          <select className="service-category" value={category} onChange={(e)=>setCategory(e.target.value)}>
-            <option value="">Toutes les catégories</option>
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+        <div className="service-toolbar">
+          <div className="service-controls">
+            <input className="service-search" type="text" placeholder="Rechercher (ex: pharmacie, transport…)" value={search} onChange={(e)=>setSearch(e.target.value)} />
+            <select className="service-category" value={category} onChange={(e)=>setCategory(e.target.value)}>
+              <option value="">Toutes les catégories</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
         </div>
         {loading && <p>Chargement des services...</p>}
         {!loading && error && <p className="services-error">{error}</p>}
@@ -252,6 +256,21 @@ const Services = () => {
         {cityError && <p className="services-error">{cityError}</p>}
         {!cityLoading && !cityError && (
           <div className="service-cards">
+            <div className="service-card featured">
+              <div className="card-header">
+                <i className="fas fa-map-marker-alt"></i>
+                <h3>Coordonnées</h3>
+              </div>
+              <div className="contact-info">
+                <p><strong>Adresse:</strong> {city?.mayorOffice?.contact?.address || '—'}</p>
+                <p><strong>Téléphone:</strong> {city?.mayorOffice?.contact?.phone || '—'}</p>
+                <p><strong>Email:</strong> {city?.mayorOffice?.contact?.email || '—'}</p>
+                {city?.mayorOffice?.contact?.appointmentUrl && (
+                  <a className="btn-primary" href={city.mayorOffice.contact.appointmentUrl} target="_blank" rel="noreferrer">Prendre rendez-vous</a>
+                )}
+              </div>
+            </div>
+
             <div className="service-card">
               <div className="card-header">
                 <i className="far fa-clock"></i>
@@ -283,21 +302,6 @@ const Services = () => {
                 )}
               </ul>
             </div>
-
-            <div className="service-card">
-              <div className="card-header">
-                <i className="fas fa-map-marker-alt"></i>
-                <h3>Coordonnées</h3>
-              </div>
-              <div className="contact-info">
-                <p><strong>Adresse:</strong> {city?.mayorOffice?.contact?.address || '—'}</p>
-                <p><strong>Téléphone:</strong> {city?.mayorOffice?.contact?.phone || '—'}</p>
-                <p><strong>Email:</strong> {city?.mayorOffice?.contact?.email || '—'}</p>
-                {city?.mayorOffice?.contact?.appointmentUrl && (
-                  <a className="btn-primary" href={city.mayorOffice.contact.appointmentUrl} target="_blank" rel="noreferrer">Prendre rendez-vous</a>
-                )}
-              </div>
-            </div>
           </div>
         )}
       </section>
@@ -323,7 +327,10 @@ const Services = () => {
               <ul className="emergency-list">
                 {(cat.contacts || []).map(c => (
                   <li key={c._id || c.name}>
-                    <strong>{c.name}:</strong> {c.number}
+                    <span className="emergency-name">{c.name}</span>
+                    <a className="emergency-number" href={`tel:${String(c.number || '').replace(/\s+/g, '')}`}>
+                      {c.number}
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -343,6 +350,21 @@ const Services = () => {
         {cityError && <p className="services-error">{cityError}</p>}
         {!cityLoading && !cityError && (
           <div className="service-cards">
+            <div className="service-card featured">
+              <div className="card-header">
+                <i className="fas fa-trash"></i>
+                <h3>Déchèterie</h3>
+              </div>
+              <div className="contact-info">
+                <p><strong>Adresse:</strong> {city?.waste?.decheterie?.address || '—'}</p>
+                <p><strong>Horaires:</strong> {city?.waste?.decheterie?.hoursText || '—'}</p>
+                <p><strong>Contact:</strong> {city?.waste?.decheterie?.contact || '—'}</p>
+                {city?.waste?.decheterie?.infoUrl && (
+                  <a className="btn-secondary" href={city.waste.decheterie.infoUrl} target="_blank" rel="noreferrer">Plus d'infos</a>
+                )}
+              </div>
+            </div>
+
             <div className="service-card">
               <div className="card-header">
                 <i className="fas fa-calendar-alt"></i>
@@ -374,21 +396,6 @@ const Services = () => {
                 )}
               </ul>
             </div>
-
-            <div className="service-card">
-              <div className="card-header">
-                <i className="fas fa-trash"></i>
-                <h3>Déchèterie</h3>
-              </div>
-              <div className="contact-info">
-                <p><strong>Adresse:</strong> {city?.waste?.decheterie?.address || '—'}</p>
-                <p><strong>Horaires:</strong> {city?.waste?.decheterie?.hoursText || '—'}</p>
-                <p><strong>Contact:</strong> {city?.waste?.decheterie?.contact || '—'}</p>
-                {city?.waste?.decheterie?.infoUrl && (
-                  <a className="btn-secondary" href={city.waste.decheterie.infoUrl} target="_blank" rel="noreferrer">Plus d'infos</a>
-                )}
-              </div>
-            </div>
           </div>
         )}
       </section>
@@ -405,48 +412,61 @@ const Services = () => {
           <p className="services-modal-sub">Votre proposition sera vérifiée par un administrateur avant publication.</p>
 
           <form onSubmit={handleSubmitService} className="services-modal-form">
-            <div className="services-form-row">
-              <label>Nom du service</label>
-              <input value={submitForm.name} onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })} required />
-            </div>
-
-            <div className="services-form-row">
-              <label>Description</label>
-              <textarea rows="4" value={submitForm.description} onChange={(e) => setSubmitForm({ ...submitForm, description: e.target.value })} required />
-            </div>
-
-            <div className="services-form-row">
-              <label>Catégorie</label>
-              <select value={submitForm.category} onChange={(e) => setSubmitForm({ ...submitForm, category: e.target.value })}>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            <div className="services-form-row">
-              <label>Fournisseur</label>
-              <input value={submitForm.providerName} onChange={(e) => setSubmitForm({ ...submitForm, providerName: e.target.value })} required />
-            </div>
-
             <div className="services-form-grid">
               <div className="services-form-row">
-                <label>Email (optionnel)</label>
-                <input type="email" value={submitForm.providerEmail} onChange={(e) => setSubmitForm({ ...submitForm, providerEmail: e.target.value })} />
+                <label>Nom</label>
+                <input placeholder="Ex: Pharmacie Centrale" value={submitForm.name} onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })} required />
               </div>
               <div className="services-form-row">
-                <label>Téléphone (optionnel)</label>
-                <input value={submitForm.providerPhone} onChange={(e) => setSubmitForm({ ...submitForm, providerPhone: e.target.value })} />
+                <label>Catégorie</label>
+                <select value={submitForm.category} onChange={(e) => setSubmitForm({ ...submitForm, category: e.target.value })}>
+                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
               </div>
-            </div>
-
-            <div className="services-form-row">
-              <label>Site web (optionnel)</label>
-              <input value={submitForm.providerWebsite} onChange={(e) => setSubmitForm({ ...submitForm, providerWebsite: e.target.value })} placeholder="https://" />
             </div>
 
             <div className="services-form-row">
               <label>Adresse</label>
-              <input value={submitForm.locationAddress} onChange={(e) => setSubmitForm({ ...submitForm, locationAddress: e.target.value })} required />
+              <input placeholder="Ex: Rue X, près du marché" value={submitForm.locationAddress} onChange={(e) => setSubmitForm({ ...submitForm, locationAddress: e.target.value })} required />
             </div>
+
+            <div className="services-form-row">
+              <label>Description</label>
+              <textarea rows="3" placeholder="Que propose ce service ? Pour qui ? Horaires, infos utiles…" value={submitForm.description} onChange={(e) => setSubmitForm({ ...submitForm, description: e.target.value })} required />
+            </div>
+
+            <div className="services-form-row">
+              <label>Organisme / Fournisseur</label>
+              <input placeholder="Ex: Mairie / Association / Boutique" value={submitForm.providerName} onChange={(e) => setSubmitForm({ ...submitForm, providerName: e.target.value })} required />
+            </div>
+
+            <button
+              type="button"
+              className="services-optional-toggle"
+              onClick={() => setShowOptionalContact(v => !v)}
+              aria-expanded={showOptionalContact}
+            >
+              {showOptionalContact ? 'Masquer les infos de contact' : 'Ajouter des infos de contact (optionnel)'}
+            </button>
+
+            {showOptionalContact && (
+              <div className="services-optional-panel">
+                <div className="services-form-grid">
+                  <div className="services-form-row">
+                    <label>Téléphone</label>
+                    <input placeholder="Ex: 77 123 45 67" value={submitForm.providerPhone} onChange={(e) => setSubmitForm({ ...submitForm, providerPhone: e.target.value })} />
+                  </div>
+                  <div className="services-form-row">
+                    <label>Email</label>
+                    <input type="email" placeholder="Ex: contact@exemple.sn" value={submitForm.providerEmail} onChange={(e) => setSubmitForm({ ...submitForm, providerEmail: e.target.value })} />
+                  </div>
+                </div>
+                <div className="services-form-row">
+                  <label>Site web</label>
+                  <input placeholder="https://" value={submitForm.providerWebsite} onChange={(e) => setSubmitForm({ ...submitForm, providerWebsite: e.target.value })} />
+                </div>
+              </div>
+            )}
 
             {submitError && <div className="services-form-error">{submitError}</div>}
             {submitSuccess && <div className="services-form-success">{submitSuccess}</div>}
