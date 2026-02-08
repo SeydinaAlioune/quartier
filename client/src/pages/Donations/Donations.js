@@ -44,7 +44,15 @@ const Donations = () => {
           const sep = u.startsWith('/') ? '' : '/';
           return `${base}${sep}${u}`;
         };
-        const imagePlaceholder = (seed) => `https://picsum.photos/seed/${encodeURIComponent(String(seed||'don'))}/600/300`;
+
+        const getCampaignImage = (c) => {
+          const direct = (c.images && c.images[0]?.url) ? toAbsolute(c.images[0].url) : '';
+          if (direct) return direct;
+          const projAttachments = Array.isArray(c?.project?.attachments) ? c.project.attachments : [];
+          const projImage = projAttachments.find(a => a?.type === 'image' && a?.url)?.url;
+          if (projImage) return toAbsolute(projImage);
+          return `${process.env.PUBLIC_URL}/pro.jpg`;
+        };
         // Adapter au format UI
         setCurrentCampaigns(active.map(c => ({
           id: c._id || c.id,
@@ -57,7 +65,7 @@ const Donations = () => {
           projectTitle: c.project?.title || '',
           startDate: c.startDate ? new Date(c.startDate) : null,
           endDate: c.endDate ? new Date(c.endDate) : null,
-          image: (c.images && c.images[0]?.url) ? toAbsolute(c.images[0].url) : imagePlaceholder(c._id || c.id || c.title)
+          image: getCampaignImage(c)
         })));
         setCompletedCampaigns(completed.map(c => ({
           id: c._id || c.id,

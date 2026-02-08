@@ -277,7 +277,7 @@ exports.getCampaigns = async (req, res) => {
 
         const campaigns = await DonationCampaign.find(query)
             .populate('organizer', 'name')
-            .populate('project', 'title')
+            .populate('project', 'title attachments')
             .sort(sort)
             .skip((page - 1) * limit)
             .limit(limit);

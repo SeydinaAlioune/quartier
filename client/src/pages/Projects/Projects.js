@@ -106,7 +106,17 @@ const Projects = () => {
       setVolunteerToast('Merci ! Tu es inscrit comme bénévole pour ce projet.');
       window.setTimeout(() => setVolunteerToast(''), 2000);
     } catch (e) {
-      setVolunteerToast("Impossible pour le moment. Vérifie si tu participes déjà.");
+      const status = e?.response?.status;
+      const msg = e?.response?.data?.message;
+      if (status === 401) {
+        navigate('/login');
+        return;
+      }
+      if (msg) {
+        setVolunteerToast(msg);
+      } else {
+        setVolunteerToast("Impossible pour le moment. Réessaie plus tard.");
+      }
       window.setTimeout(() => setVolunteerToast(''), 2500);
     }
   };
