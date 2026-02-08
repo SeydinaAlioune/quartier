@@ -13,12 +13,31 @@ const Forum = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [forumStats, setForumStats] = useState(null);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [activityExpanded, setActivityExpanded] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewDiscussion, setShowNewDiscussion] = useState(false);
   const [newDiscussion, setNewDiscussion] = useState({ title: '', categoryId: '', content: '' });
   const isLoggedIn = useMemo(() => !!localStorage.getItem('token'), []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobileView(!!mq.matches);
+    update();
+    if (mq.addEventListener) mq.addEventListener('change', update);
+    else mq.addListener(update);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener('change', update);
+      else mq.removeListener(update);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Quand on repasse en desktop, on force l'expanded à false pour garder un hub stable.
+    if (!isMobileView && activityExpanded) setActivityExpanded(false);
+  }, [isMobileView, activityExpanded]);
 
   const TITLE_MAX = 80;
   const CONTENT_MAX = 900;
@@ -126,6 +145,12 @@ const Forum = () => {
     }
   };
 
+  const recentActivity = useMemo(() => {
+    const list = Array.isArray(forumStats?.recentActivity) ? forumStats.recentActivity : [];
+    const max = isMobileView ? (activityExpanded ? 12 : 3) : 5;
+    return list.slice(0, max);
+  }, [forumStats, isMobileView, activityExpanded]);
+
   return (
     <>
       <header
@@ -194,8 +219,8 @@ const Forum = () => {
         {Array.isArray(forumStats?.recentActivity) && forumStats.recentActivity.length > 0 && (
           <div className="forum-hub-activity" aria-label="Activité récente">
             <div className="activity-title">Activité récente</div>
-            <div className="activity-list">
-              {forumStats.recentActivity.slice(0, 5).map((a, idx) => (
+            <div className={`activity-list ${isMobileView && !activityExpanded ? 'is-collapsed' : ''}`}>
+              {recentActivity.map((a, idx) => (
                 <div key={`${a.type}-${idx}`} className="activity-item">
                   <span className="activity-time">{a.time}</span>
                   <span className="activity-main">
@@ -206,6 +231,17 @@ const Forum = () => {
                 </div>
               ))}
             </div>
+
+            {isMobileView && Array.isArray(forumStats?.recentActivity) && forumStats.recentActivity.length > 3 && (
+              <button
+                type="button"
+                className="activity-more"
+                onClick={() => setActivityExpanded(v => !v)}
+                aria-expanded={activityExpanded}
+              >
+                {activityExpanded ? 'Voir moins' : 'Voir plus'}
+              </button>
+            )}
           </div>
         )}
       </section>
