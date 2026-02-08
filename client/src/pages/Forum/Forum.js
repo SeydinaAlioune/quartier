@@ -12,6 +12,7 @@ const Forum = () => {
   const [categories, setCategories] = useState([{ id: 'all', name: 'Toutes les catégories' }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [forumStats, setForumStats] = useState(null);
 
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,15 +26,17 @@ const Forum = () => {
       try {
         setLoading(true);
         setError('');
-        const [catRes, topicsRes] = await Promise.all([
+        const [catRes, topicsRes, statsRes] = await Promise.all([
           api.get('/api/forum/categories'),
           api.get('/api/forum/topics/recent'),
+          api.get('/api/forum/stats'),
         ]);
         if (!mounted) return;
         const cats = Array.isArray(catRes.data) ? catRes.data : [];
         setCategories([{ id: 'all', name: 'Toutes les catégories' }, ...cats.map(c => ({ id: c.id || c._id, name: c.name }))]);
         const list = Array.isArray(topicsRes.data) ? topicsRes.data : [];
         setTopics(list);
+        setForumStats(statsRes?.data || null);
       } catch (e) {
         if (mounted) setError('Impossible de charger le forum.');
       } finally {
@@ -43,6 +46,15 @@ const Forum = () => {
     load();
     return () => { mounted = false; };
   }, []);
+
+  const openNewDiscussionWithSuggestion = (suggestedTitle) => {
+    setShowNewDiscussion(true);
+    setNewDiscussion(prev => ({ ...prev, title: suggestedTitle || prev.title }));
+    setTimeout(() => {
+      const el = document.querySelector('.new-discussion-modal input[type="text"]');
+      if (el) el.focus();
+    }, 50);
+  };
 
   const handleNewDiscussionSubmit = async (e) => {
     e.preventDefault();
@@ -112,6 +124,76 @@ const Forum = () => {
 
       <div className="forum-page">
       <p className="page-intro">Échangez, partagez et connectez-vous avec vos voisins</p>
+
+      <section className="forum-hub" aria-label="Accueil du forum">
+        <div className="forum-hub-top">
+          <div className="forum-hub-copy">
+            <h2 className="forum-hub-title">Bienvenue sur le Forum</h2>
+            <p className="forum-hub-subtitle">Un espace pour demander, aider, proposer et faire avancer la vie du quartier.</p>
+            <div className="forum-quick-actions">
+              <button className="quick-action" onClick={() => openNewDiscussionWithSuggestion('Question : ')}>
+                <span className="qa-icon"><i className="far fa-question-circle" aria-hidden="true"></i></span>
+                <span className="qa-text">
+                  <span className="qa-title">Poser une question</span>
+                  <span className="qa-desc">Obtenez des réponses rapides</span>
+                </span>
+              </button>
+              <button className="quick-action" onClick={() => openNewDiscussionWithSuggestion('Info : ')}>
+                <span className="qa-icon"><i className="far fa-bell" aria-hidden="true"></i></span>
+                <span className="qa-text">
+                  <span className="qa-title">Partager une info</span>
+                  <span className="qa-desc">Événements, travaux, alertes</span>
+                </span>
+              </button>
+              <button className="quick-action" onClick={() => openNewDiscussionWithSuggestion('Je cherche : ')}>
+                <span className="qa-icon"><i className="far fa-handshake" aria-hidden="true"></i></span>
+                <span className="qa-text">
+                  <span className="qa-title">Demander un service</span>
+                  <span className="qa-desc">Covoiturage, garde, aide…</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div className="forum-hub-stats" aria-label="Statistiques du forum">
+            <div className="hub-stat">
+              <div className="hub-stat-value">{forumStats?.topics ?? '—'}</div>
+              <div className="hub-stat-label">Sujets</div>
+            </div>
+            <div className="hub-stat">
+              <div className="hub-stat-value">{forumStats?.posts ?? '—'}</div>
+              <div className="hub-stat-label">Messages</div>
+            </div>
+            <div className="hub-stat">
+              <div className="hub-stat-value">{forumStats?.activeUsers ?? '—'}</div>
+              <div className="hub-stat-label">Actifs (30j)</div>
+            </div>
+            <div className="hub-stat">
+              <div className="hub-stat-value">{forumStats?.postsLastWeek ?? '—'}</div>
+              <div className="hub-stat-label">Cette semaine</div>
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(forumStats?.recentActivity) && forumStats.recentActivity.length > 0 && (
+          <div className="forum-hub-activity" aria-label="Activité récente">
+            <div className="activity-title">Activité récente</div>
+            <div className="activity-list">
+              {forumStats.recentActivity.slice(0, 5).map((a, idx) => (
+                <div key={`${a.type}-${idx}`} className="activity-item">
+                  <span className="activity-time">{a.time}</span>
+                  <span className="activity-main">
+                    <span className="activity-user">{a.user}</span>
+                    <span className="activity-action">{a.type === 'topic' ? 'a créé' : 'a répondu à'}</span>
+                    <span className="activity-content">{a.content}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
       <div className="forum-controls">
         <div className="search-filters">
           <div className="search-input-wrap">
