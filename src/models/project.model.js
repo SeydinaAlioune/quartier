@@ -57,6 +57,17 @@ const projectSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    approved: {
+        type: Boolean,
+        default: false
+    },
+    reviewedAt: {
+        type: Date
+    },
+    reviewedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     participants: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,

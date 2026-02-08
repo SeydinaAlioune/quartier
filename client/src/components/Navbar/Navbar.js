@@ -96,7 +96,7 @@ const Navbar = () => {
   const cta = (() => {
     if (isForum) return { label: 'Nouveau sujet', to: '/forum?compose=1' };
     if (isNews) return { label: 'Voir les annonces', to: '/actualites#news-announcements' };
-    if (isProjects) return { label: 'Proposer un projet', to: '/projets#proposer' };
+    if (isProjects) return { label: 'Proposer une idée', to: '/projets#proposer' };
     return { label: 'Explorer', to: '/actualites' };
   })();
 

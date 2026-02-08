@@ -7,8 +7,16 @@ const { auth, checkRole } = require('../middleware/auth.middleware');
 router.get('/', projectController.getProjects);
 router.get('/:id([0-9a-fA-F]{24})', projectController.getProject);
 
+// Public CTA: submission requires auth (mounted below after auth)
+
 // Routes nécessitant une authentification
 router.use(auth);
+
+// Admin/moderator: liste complète (inclut les propositions)
+router.get('/admin', checkRole(['admin', 'moderator']), projectController.getProjectsAdmin);
+
+// Utilisateur authentifié: proposer une idée de projet
+router.post('/submit', projectController.submitProject);
 
 // Routes pour les projets (admin/moderator)
 router.post('/', checkRole(['admin', 'moderator']), projectController.createProject);

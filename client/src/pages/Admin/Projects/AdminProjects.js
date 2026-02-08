@@ -39,7 +39,7 @@ const AdminProjects = () => {
     try {
       setLoading(true);
       setError('');
-      const res = await api.get('/api/projects');
+      const res = await api.get('/api/projects/admin');
       const data = Array.isArray(res.data) ? res.data : [];
       setProjects(data);
     } catch (e) {

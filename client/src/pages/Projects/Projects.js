@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './Projects.css';
 import api from '../../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [events, setEvents] = useState([]);
   const [projConfig, setProjConfig] = useState(null);
@@ -12,6 +13,101 @@ const Projects = () => {
   const [error, setError] = useState('');
 
   const [selectedProject, setSelectedProject] = useState(null);
+
+  const [volunteerToast, setVolunteerToast] = useState('');
+
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitToast, setSubmitToast] = useState('');
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitForm, setSubmitForm] = useState({
+    title: '',
+    description: '',
+    category: 'infrastructure',
+    location: '',
+  });
+  const [submitFiles, setSubmitFiles] = useState([]);
+
+  const openSubmit = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return navigate('/login');
+    setShowSubmitModal(true);
+  };
+
+  const closeSubmit = () => {
+    setShowSubmitModal(false);
+    setSubmitLoading(false);
+  };
+
+  const uploadSubmitImages = async (files) => {
+    const attachments = [];
+    for (const file of files || []) {
+      const fd = new FormData();
+      fd.append('media', file);
+      try {
+        const up = await api.post('/api/media', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const url = up?.data?.media?.url;
+        if (url) attachments.push({ type: 'image', url, name: file.name });
+      } catch (e) {
+        // skip failed file
+      }
+    }
+    return attachments;
+  };
+
+  const handleSubmitIdea = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) return navigate('/login');
+    try {
+      setSubmitLoading(true);
+      setSubmitToast('');
+      const title = (submitForm.title || '').trim();
+      const description = (submitForm.description || '').trim();
+      if (!title) return;
+      if (!description) return;
+      const attachments = await uploadSubmitImages(submitFiles);
+      await api.post('/api/projects/submit', {
+        title,
+        description,
+        category: submitForm.category,
+        location: submitForm.location ? { address: submitForm.location } : undefined,
+        attachments: attachments.length ? attachments : undefined,
+      });
+      setSubmitToast('Merci ! Ta proposition est en cours de validation.');
+      setSubmitForm({ title: '', description: '', category: 'infrastructure', location: '' });
+      setSubmitFiles([]);
+      window.setTimeout(() => {
+        setSubmitToast('');
+        closeSubmit();
+      }, 1800);
+    } catch (err) {
+      setSubmitToast("Impossible d'envoyer la proposition. Réessaie plus tard.");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const stats = useMemo(() => {
+    const total = projects.length;
+    const inProgress = projects.filter(p => p?.raw?.status === 'in_progress').length;
+    const completed = projects.filter(p => p?.raw?.status === 'completed').length;
+    return { total, inProgress, completed };
+  }, [projects]);
+
+  const volunteerForProject = async (projectId) => {
+    const token = localStorage.getItem('token');
+    if (!token) return navigate('/login');
+    if (!projectId) return;
+    try {
+      setVolunteerToast('');
+      await api.post(`/api/projects/${projectId}/participate`, { role: 'volunteer' });
+      setVolunteerToast('Merci ! Tu es inscrit comme bénévole pour ce projet.');
+      window.setTimeout(() => setVolunteerToast(''), 2000);
+    } catch (e) {
+      setVolunteerToast("Impossible pour le moment. Vérifie si tu participes déjà.");
+      window.setTimeout(() => setVolunteerToast(''), 2500);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -63,7 +159,7 @@ const Projects = () => {
             progress,
             phase: p.status,
             phaseLabel: statusLabels[p.status] || p.status || '',
-            image: firstImage?.url ? toAbsolute(firstImage.url) : 'https://via.placeholder.com/800x400?text=Projet',
+            image: firstImage?.url ? toAbsolute(firstImage.url) : `${process.env.PUBLIC_URL}/pro.jpg`,
           };
         }));
         setEvents(evtArr.map(e => ({
@@ -92,12 +188,33 @@ const Projects = () => {
           backgroundPosition: 'center 35%'
         }}
       >
-        <h1>Projets du Quartier</h1>
+        <div className="projects-hero-inner">
+          <p className="projects-hero-kicker">Initiatives</p>
+          <h1>Projets du Quartier</h1>
+          <p className="projects-hero-lead">Découvrez les initiatives en cours pour améliorer notre cadre de vie.</p>
+          <div className="projects-hero-actions">
+            <button type="button" className="projects-hero-btn" onClick={openSubmit}>Proposer une idée</button>
+            <button type="button" className="projects-hero-link" onClick={() => document.getElementById('projects-list')?.scrollIntoView({ behavior: 'smooth' })}>Voir les projets</button>
+          </div>
+          <div className="projects-hero-stats">
+            <div className="projects-stat"><span className="v">{stats.total}</span><span className="l">projets publiés</span></div>
+            <div className="projects-stat"><span className="v">{stats.inProgress}</span><span className="l">en cours</span></div>
+            <div className="projects-stat"><span className="v">{stats.completed}</span><span className="l">terminés</span></div>
+          </div>
+        </div>
       </div>
 
-      <p className="page-intro">Découvrez les initiatives en cours pour améliorer notre cadre de vie</p>
+      <section className="projects-proposer" id="proposer" aria-label="Proposer une idée">
+        <div className="projects-proposer-card">
+          <div>
+            <h2>Proposer une idée</h2>
+            <p>Une bonne idée peut changer le quartier. Les propositions sont examinées avant publication.</p>
+          </div>
+          <button type="button" className="projects-proposer-btn" onClick={openSubmit}>Proposer une idée</button>
+        </div>
+      </section>
 
-      <section className="projects-section">
+      <section className="projects-section" id="projects-list">
         <h2>Projets en Cours</h2>
         {loading && <p>Chargement des projets...</p>}
         {!loading && error && <p className="projects-error">{error}</p>}
@@ -215,8 +332,16 @@ const Projects = () => {
         <h2>Participez aux Projets du Quartier</h2>
         <p>Vous souhaitez vous impliquer dans l'amélioration de notre quartier? Rejoignez nos équipes de bénévoles ou participez aux réunions publiques!</p>
         <div className="action-buttons">
-          <Link to="/dons" className="primary-button" style={{ textDecoration: 'none', display: 'inline-block' }}>Devenir Bénévole</Link>
+          <button type="button" className="primary-button" onClick={() => {
+            const pid = projects?.[0]?.id;
+            if (pid) volunteerForProject(pid);
+          }} style={{ display: 'inline-block' }}>
+            Je veux aider
+          </button>
         </div>
+        {volunteerToast && (
+          <div style={{marginTop:'1rem', color:'#555'}}>{volunteerToast}</div>
+        )}
       </section>
 
       <section className="faq-section">
@@ -234,6 +359,61 @@ const Projects = () => {
           <p style={{marginTop:'1rem'}}>Les questions fréquentes seront bientôt disponibles.</p>
         )}
       </section>
+
+      {showSubmitModal && (
+        <div className="project-details-modal" role="dialog" aria-label="Proposer une idée">
+          <div className="modal-content">
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'.75rem'}}>
+              <h2 style={{margin:0}}>Proposer une idée</h2>
+              <button type="button" className="details-button" onClick={closeSubmit} style={{width:'auto', marginTop:0}}>Fermer</button>
+            </div>
+
+            <p style={{marginTop:'.75rem', color:'#555'}}>Les propositions sont examinées avant publication.</p>
+            <form onSubmit={handleSubmitIdea}>
+              <div className="info-item">
+                <h4>Titre</h4>
+                <input type="text" value={submitForm.title} onChange={(e)=>setSubmitForm(prev=>({ ...prev, title: e.target.value }))} required style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}} />
+              </div>
+              <div className="info-item">
+                <h4>Description</h4>
+                <textarea rows="5" value={submitForm.description} onChange={(e)=>setSubmitForm(prev=>({ ...prev, description: e.target.value }))} required style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}} />
+              </div>
+              <div className="info-item">
+                <h4>Catégorie</h4>
+                <select value={submitForm.category} onChange={(e)=>setSubmitForm(prev=>({ ...prev, category: e.target.value }))} style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}}>
+                  <option value="infrastructure">Infrastructure</option>
+                  <option value="environnement">Environnement</option>
+                  <option value="social">Social</option>
+                  <option value="culture">Culture</option>
+                  <option value="securite">Sécurité</option>
+                  <option value="autre">Autre</option>
+                </select>
+              </div>
+              <div className="info-item">
+                <h4>Lieu (optionnel)</h4>
+                <input type="text" value={submitForm.location} onChange={(e)=>setSubmitForm(prev=>({ ...prev, location: e.target.value }))} placeholder="Ex: près de la mairie" style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}} />
+              </div>
+              <div className="info-item">
+                <h4>Photos (optionnel)</h4>
+                <input type="file" accept="image/*" multiple onChange={(e)=> setSubmitFiles(Array.from(e.target.files || []))} />
+              </div>
+
+              {submitToast && (
+                <div style={{marginTop:'.75rem', padding:'.75rem', borderRadius:8, background:'#f6f6f6'}}>{submitToast}</div>
+              )}
+
+              <div style={{display:'flex', gap:'.5rem', marginTop:'1rem'}}>
+                <button type="submit" className="donate-button" disabled={submitLoading} style={{flex:1}}>
+                  {submitLoading ? 'Envoi...' : 'Envoyer la proposition'}
+                </button>
+                <button type="button" className="details-button" onClick={closeSubmit} style={{flex:1}}>
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
