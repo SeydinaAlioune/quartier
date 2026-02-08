@@ -383,6 +383,8 @@
   border: 1px solid rgba(15, 23, 42, 0.10);
   box-shadow: 0 20px 70px rgba(0,0,0,0.28);
   padding: 1.25rem;
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
 }
 
 .services-modal-head {
@@ -391,6 +393,11 @@
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.25rem;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 0.25rem 0;
+  z-index: 1;
 }
 
 .services-modal-head h3 {
@@ -556,6 +563,23 @@
 
   .services-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .services-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .services-modal {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 1rem;
+    max-height: calc(100dvh - 0.5rem);
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .services-modal-head {
+    padding-top: calc(0.25rem + env(safe-area-inset-top));
   }
 
   .service-card {
