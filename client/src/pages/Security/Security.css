@@ -21,9 +21,25 @@
   flex-direction: column;
 }
 
+.security-header {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  border-radius: 0;
+}
+
 .security-hero-inner {
   width: min(1180px, calc(100% - 2rem));
   margin: 0 auto;
+}
+
+.security-hero-inner {
+  padding: 1.75rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: linear-gradient(180deg, rgba(15,23,42,0.42) 0%, rgba(15,23,42,0.26) 100%);
+  box-shadow: 0 22px 80px rgba(0,0,0,0.28);
+  backdrop-filter: blur(10px);
 }
 
 .security-hero-kicker {
@@ -53,6 +69,10 @@
   font-size: 1.12rem;
   color: rgba(255,255,255,0.92);
   text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.security-hero-lead {
+  line-height: 1.55;
 }
 
 .security-hero-actions {
@@ -96,6 +116,10 @@
   margin-top: 1.1rem;
 }
 
+.security-hero-stats {
+  align-items: stretch;
+}
+
 .security-stat {
   display: grid;
   gap: 0.05rem;
@@ -103,6 +127,10 @@
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(15,23,42,0.20);
+}
+
+.security-stat {
+  min-width: 160px;
 }
 
 .security-stat .v {
@@ -136,6 +164,10 @@
   padding: 0 1rem;
   margin: 0.25rem auto 1.25rem;
   max-width: 1200px;
+}
+
+.security-landmarks {
+  margin-top: -1.1rem;
 }
 
 .security-chip {
@@ -608,6 +640,25 @@ section h2 {
 
   .security-header h1 {
     font-size: 2rem;
+  }
+
+  .security-hero-inner {
+    padding: 1.1rem;
+    border-radius: 18px;
+  }
+
+  .security-hero-actions {
+    gap: 0.65rem;
+  }
+
+  .security-hero-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .security-hero-link {
+    width: 100%;
+    text-align: left;
   }
 
   .security-hero-stats {

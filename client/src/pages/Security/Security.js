@@ -150,7 +150,14 @@ const Security = () => {
       .map(d => new Date(d).getTime())
       .filter(t => Number.isFinite(t))
       .sort((a, b) => b - a)[0];
-    const recentLabel = mostRecent ? formatRelativeTime(mostRecent) : 'Récent';
+    const recentLabel = (() => {
+      if (!mostRecent) return 'Récent';
+      const diff = Date.now() - mostRecent;
+      if (Number.isFinite(diff) && diff > 45 * 24 * 60 * 60 * 1000) {
+        return new Date(mostRecent).toLocaleDateString('fr-FR');
+      }
+      return formatRelativeTime(mostRecent);
+    })();
     return { activeAlerts, last24h, recentLabel };
   }, [alerts, incidents]);
 
