@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Donations.css';
 import api from '../../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Modal, Badge, Card, SectionHead } from '../../components/UI';
 
 const Donations = () => {
   const navigate = useNavigate();
@@ -219,7 +220,7 @@ const Donations = () => {
       )}
 
       <section className="current-campaigns" id="donations-active">
-        <h2>Collectes en Cours</h2>
+        <SectionHead title="Collectes en Cours" />
         {loading && <p>Chargement des collectes...</p>}
         {!loading && error && <p className="donations-error">{error}</p>}
         {!loading && !error && currentCampaigns.length === 0 && (
@@ -227,7 +228,7 @@ const Donations = () => {
         )}
         <div className="campaigns-grid">
           {currentCampaigns.map(campaign => (
-            <div key={campaign.id} className="campaign-card">
+            <Card key={campaign.id} className="campaign-card">
               <div className="campaign-media">
                 <img
                   src={campaign.image}
@@ -239,7 +240,7 @@ const Donations = () => {
                   }}
                 />
                 <div className="campaign-badges">
-                  <span className={`badge ${campaign.category}`}>{labels[campaign.category] || campaign.category}</span>
+                  <Badge className={`badge ${campaign.category}`}>{labels[campaign.category] || campaign.category}</Badge>
                   {campaign.projectTitle && <span className="campaign-pill">Projet: {campaign.projectTitle}</span>}
                 </div>
               </div>
@@ -270,23 +271,23 @@ const Donations = () => {
                   Connectez-vous pour finaliser votre don.
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       </section>
 
       <section className="completed-campaigns">
-        <h2>Collectes Réussies</h2>
+        <SectionHead title="Collectes Réussies" />
         {!loading && !error && completedCampaigns.length === 0 && (
           <p>Aucune collecte terminée.</p>
         )}
         <div className="campaigns-grid">
           {completedCampaigns.map(campaign => (
-            <div key={campaign.id} className="campaign-card completed">
+            <Card key={campaign.id} className="campaign-card completed">
               <h3>{campaign.title}</h3>
               <p>{campaign.description}</p>
               <div className="campaign-meta">
-                <span className={`badge ${campaign.category}`}>{campaign.category}</span>
+                <Badge className={`badge ${campaign.category}`}>{labels[campaign.category] || campaign.category}</Badge>
                 {campaign.projectTitle && <span className="meta">Projet: {campaign.projectTitle}</span>}
                 <span className="meta">
                   {campaign.startDate ? campaign.startDate.toLocaleDateString('fr-FR') : '—'}
@@ -298,7 +299,7 @@ const Donations = () => {
                 <span>Objectif initial: {campaign.goal}€</span>
               </div>
               <button className="view-details">Voir les détails</button>
-            </div>
+            </Card>
           ))}
         </div>
       </section>
@@ -321,9 +322,15 @@ const Donations = () => {
         </div>
       )}
 
-      {donateOpen && selectedCampaign && (
-        <div className="donations-modal" role="dialog" aria-label="Faire un don">
-          <div className="donations-modal-card">
+      <Modal
+        open={Boolean(donateOpen && selectedCampaign)}
+        onClose={() => setDonateOpen(false)}
+        overlayClassName="donations-modal"
+        cardClassName="donations-modal-card"
+        ariaLabel="Faire un don"
+      >
+        {selectedCampaign && (
+          <>
             <div className="donations-modal-head">
               <div>
                 <h3>Faire un don</h3>
@@ -357,33 +364,35 @@ const Donations = () => {
                 <button type="submit" className="donations-btn-primary">Valider le don</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
-      {showQr && qrUrl && (
-        <div className="donations-modal" role="dialog" aria-label="Scanner et payer">
-          <div className="donations-qr-card">
-            <div className="donations-modal-head">
-              <div>
-                <h3>Scanner et payer</h3>
-                <p>Ouvre la page de paiement {donateData.paymentMethod === 'orange' ? 'Orange Money' : 'Wave'} depuis ton téléphone.</p>
-              </div>
-              <button type="button" className="donations-modal-close" onClick={()=>setShowQr(false)}>Fermer</button>
-            </div>
-            <div className="donations-qr-body">
-              <img className="donations-qr-img" src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(qrUrl)}`} alt="QR paiement" />
-              <div className="donations-qr-url">{qrUrl}</div>
-              <div className="donations-qr-actions">
-                <button type="button" className="donations-btn-secondary" onClick={()=>{ window.open(qrUrl, '_blank'); }}>Ouvrir</button>
-                <button type="button" className="donations-btn-secondary" onClick={async()=>{ try{ await navigator.clipboard.writeText(qrUrl); setCopyMsg('Lien copié'); setTimeout(()=>setCopyMsg(''), 1200);}catch{}}}>Copier</button>
-                <button type="button" className="donations-btn-whatsapp" onClick={()=>{ const wa = `https://wa.me/?text=${encodeURIComponent('Paiement don: '+qrUrl)}`; window.open(wa, '_blank'); }}>WhatsApp</button>
-              </div>
-              {copyMsg && <div className="donations-copy">{copyMsg}</div>}
-            </div>
+      <Modal
+        open={Boolean(showQr && qrUrl)}
+        onClose={() => setShowQr(false)}
+        overlayClassName="donations-modal"
+        cardClassName="donations-qr-card"
+        ariaLabel="Scanner et payer"
+      >
+        <div className="donations-modal-head">
+          <div>
+            <h3>Scanner et payer</h3>
+            <p>Ouvre la page de paiement {donateData.paymentMethod === 'orange' ? 'Orange Money' : 'Wave'} depuis ton téléphone.</p>
           </div>
+          <button type="button" className="donations-modal-close" onClick={()=>setShowQr(false)}>Fermer</button>
         </div>
-      )}
+        <div className="donations-qr-body">
+          <img className="donations-qr-img" src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(qrUrl)}`} alt="QR paiement" />
+          <div className="donations-qr-url">{qrUrl}</div>
+          <div className="donations-qr-actions">
+            <button type="button" className="donations-btn-secondary" onClick={()=>{ window.open(qrUrl, '_blank'); }}>Ouvrir</button>
+            <button type="button" className="donations-btn-secondary" onClick={async()=>{ try{ await navigator.clipboard.writeText(qrUrl); setCopyMsg('Lien copié'); setTimeout(()=>setCopyMsg(''), 1200);}catch{}}}>Copier</button>
+            <button type="button" className="donations-btn-whatsapp" onClick={()=>{ const wa = `https://wa.me/?text=${encodeURIComponent('Paiement don: '+qrUrl)}`; window.open(wa, '_blank'); }}>WhatsApp</button>
+          </div>
+          {copyMsg && <div className="donations-copy">{copyMsg}</div>}
+        </div>
+      </Modal>
     </div>
   );
 };

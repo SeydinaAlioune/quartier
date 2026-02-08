@@ -3,6 +3,7 @@ import './Projects.css';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
+import { Modal, SectionHead } from '../../components/UI';
 
 const STATUS_LABELS_FR = {
   proposed: 'en attente',
@@ -301,7 +302,7 @@ const Projects = () => {
       </section>
 
       <section className="projects-section" id="projects-list">
-        <h2>Projets en Cours</h2>
+        <SectionHead title="Projets en Cours" />
         {loading && <p>Chargement des projets...</p>}
         {!loading && error && <p className="projects-error">{error}</p>}
         {!loading && !error && projects.length === 0 && (
@@ -354,7 +355,7 @@ const Projects = () => {
       </section>
 
       <section className="events-section">
-        <h2>Calendrier des Événements</h2>
+        <SectionHead title="Calendrier des Événements" />
         {loading && <p>Chargement des événements...</p>}
         {!loading && error && <p className="projects-error">{error}</p>}
         {!loading && !error && events.length === 0 && (
@@ -381,9 +382,15 @@ const Projects = () => {
         </div>
       </section>
 
-      {selectedProject && (
-        <div className="project-details-modal" role="dialog" aria-label="Détails du projet">
-          <div className="projects-project-modal">
+      <Modal
+        open={Boolean(selectedProject)}
+        onClose={() => setSelectedProject(null)}
+        overlayClassName="project-details-modal"
+        cardClassName="projects-project-modal"
+        ariaLabel="Détails du projet"
+      >
+        {selectedProject && (
+          <>
             <div className="projects-project-modal__header">
               <div className="projects-project-modal__title">
                 <h2>{selectedProject.title}</h2>
@@ -500,9 +507,9 @@ const Projects = () => {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       <section className="participation-section">
         <h2>Participez aux Projets du Quartier</h2>
@@ -518,7 +525,7 @@ const Projects = () => {
       </section>
 
       <section className="faq-section">
-        <h2>Questions Fréquentes</h2>
+        <SectionHead title="Questions Fréquentes" />
         {Array.isArray(projConfig?.faq) && projConfig.faq.length > 0 ? (
           <div className="faq-accordion">
             {projConfig.faq.map((item, idx) => {
@@ -546,68 +553,70 @@ const Projects = () => {
         )}
       </section>
 
-      {showSubmitModal && (
-        <div className="project-details-modal" role="dialog" aria-label="Proposer une idée">
-          <div className="projects-submit-modal">
-            <div className="projects-submit-header">
-              <div>
-                <h2>Proposer une idée</h2>
-                <p>Les propositions sont examinées avant publication.</p>
-              </div>
-              <button type="button" className="projects-submit-close" onClick={closeSubmit} aria-label="Fermer">
-                Fermer
-              </button>
-            </div>
-
-            <form className="projects-submit-form" onSubmit={handleSubmitIdea}>
-              <label className="projects-field">
-                <span>Titre</span>
-                <input type="text" value={submitForm.title} onChange={(e)=>setSubmitForm(prev=>({ ...prev, title: e.target.value }))} required />
-              </label>
-
-              <label className="projects-field projects-field--full">
-                <span>Description</span>
-                <textarea rows="5" value={submitForm.description} onChange={(e)=>setSubmitForm(prev=>({ ...prev, description: e.target.value }))} required />
-              </label>
-
-              <label className="projects-field">
-                <span>Catégorie</span>
-                <select value={submitForm.category} onChange={(e)=>setSubmitForm(prev=>({ ...prev, category: e.target.value }))}>
-                  <option value="infrastructure">Infrastructure</option>
-                  <option value="environnement">Environnement</option>
-                  <option value="social">Social</option>
-                  <option value="culture">Culture</option>
-                  <option value="securite">Sécurité</option>
-                  <option value="autre">Autre</option>
-                </select>
-              </label>
-
-              <label className="projects-field">
-                <span>Lieu (optionnel)</span>
-                <input type="text" value={submitForm.location} onChange={(e)=>setSubmitForm(prev=>({ ...prev, location: e.target.value }))} placeholder="Ex: près de la mairie" />
-              </label>
-
-              <label className="projects-field projects-field--full">
-                <span>Photos (optionnel)</span>
-                <input type="file" accept="image/*" multiple onChange={(e)=> setSubmitFiles(Array.from(e.target.files || []))} />
-              </label>
-
-              {submitToast && (
-                <div className="projects-toast">{submitToast}</div>
-              )}
-
-              <div className="projects-submit-actions">
-                <button type="submit" className="projects-submit-primary" disabled={submitLoading}>
-                  {submitLoading ? 'Envoi...' : 'Envoyer la proposition'}
-                </button>
-                <button type="button" className="projects-submit-secondary" onClick={closeSubmit}>
-                  Annuler
-                </button>
-              </div>
-            </form>
+      <Modal
+        open={Boolean(showSubmitModal)}
+        onClose={closeSubmit}
+        overlayClassName="project-details-modal"
+        cardClassName="projects-submit-modal"
+        ariaLabel="Proposer une idée"
+      >
+        <div className="projects-submit-header">
+          <div>
+            <h2>Proposer une idée</h2>
+            <p>Les propositions sont examinées avant publication.</p>
           </div>
+          <button type="button" className="projects-submit-close" onClick={closeSubmit} aria-label="Fermer">
+            Fermer
+          </button>
         </div>
-      )}
+
+        <form className="projects-submit-form" onSubmit={handleSubmitIdea}>
+          <label className="projects-field">
+            <span>Titre</span>
+            <input type="text" value={submitForm.title} onChange={(e)=>setSubmitForm(prev=>({ ...prev, title: e.target.value }))} required />
+          </label>
+
+          <label className="projects-field projects-field--full">
+            <span>Description</span>
+            <textarea rows="5" value={submitForm.description} onChange={(e)=>setSubmitForm(prev=>({ ...prev, description: e.target.value }))} required />
+          </label>
+
+          <label className="projects-field">
+            <span>Catégorie</span>
+            <select value={submitForm.category} onChange={(e)=>setSubmitForm(prev=>({ ...prev, category: e.target.value }))}>
+              <option value="infrastructure">Infrastructure</option>
+              <option value="environnement">Environnement</option>
+              <option value="social">Social</option>
+              <option value="culture">Culture</option>
+              <option value="securite">Sécurité</option>
+              <option value="autre">Autre</option>
+            </select>
+          </label>
+
+          <label className="projects-field">
+            <span>Lieu (optionnel)</span>
+            <input type="text" value={submitForm.location} onChange={(e)=>setSubmitForm(prev=>({ ...prev, location: e.target.value }))} placeholder="Ex: près de la mairie" />
+          </label>
+
+          <label className="projects-field projects-field--full">
+            <span>Photos (optionnel)</span>
+            <input type="file" accept="image/*" multiple onChange={(e)=> setSubmitFiles(Array.from(e.target.files || []))} />
+          </label>
+
+          {submitToast && (
+            <div className="projects-toast">{submitToast}</div>
+          )}
+
+          <div className="projects-submit-actions">
+            <button type="submit" className="projects-submit-primary" disabled={submitLoading}>
+              {submitLoading ? 'Envoi...' : 'Envoyer la proposition'}
+            </button>
+            <button type="button" className="projects-submit-secondary" onClick={closeSubmit}>
+              Annuler
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
