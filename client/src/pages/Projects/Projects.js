@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './Projects.css';
 import api from '../../services/api';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const Projects = () => {
@@ -9,6 +9,7 @@ const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [events, setEvents] = useState([]);
   const [projConfig, setProjConfig] = useState(null);
+  const [activeDonationCampaigns, setActiveDonationCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,6 +20,7 @@ const Projects = () => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitToast, setSubmitToast] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [supportToast, setSupportToast] = useState('');
   const [submitForm, setSubmitForm] = useState({
     title: '',
     description: '',
@@ -179,6 +181,41 @@ const Projects = () => {
     return () => { mounted = false; };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const fetchDonationCampaigns = async () => {
+      try {
+        const res = await api.get('/api/donations/campaigns?status=active');
+        if (!mounted) return;
+        const list = Array.isArray(res.data?.campaigns) ? res.data.campaigns : [];
+        setActiveDonationCampaigns(list);
+      } catch (_) {
+        if (mounted) setActiveDonationCampaigns([]);
+      }
+    };
+    fetchDonationCampaigns();
+    return () => { mounted = false; };
+  }, []);
+
+  const canDonateForProject = (projectId) => {
+    if (!projectId) return false;
+    return activeDonationCampaigns.some(c => {
+      const category = c?.category;
+      const pid = c?.project?._id || (typeof c?.project === 'string' ? c.project : '');
+      return category === 'project' && String(pid) === String(projectId);
+    });
+  };
+
+  const handleDonateForProject = (projectId) => {
+    if (!projectId) return;
+    if (!canDonateForProject(projectId)) {
+      setSupportToast("Aucune collecte n'est liée à ce projet pour le moment.");
+      window.setTimeout(() => setSupportToast(''), 2500);
+      return;
+    }
+    navigate(`/dons?project=${projectId}`);
+  };
+
   return (
     <div className="projects-page">
       <div
@@ -225,7 +262,16 @@ const Projects = () => {
           {projects.map((project, idx) => (
             <AnimatedSection key={project.id} delay={idx % 3} animation="scale">
               <div className="project-card">
-              <img className="project-image" src={project.image} alt="" />
+              <img
+                className="project-image"
+                src={project.image}
+                alt=""
+                onError={(e) => {
+                  if (e.currentTarget?.dataset?.fallbackApplied) return;
+                  e.currentTarget.dataset.fallbackApplied = '1';
+                  e.currentTarget.src = `${process.env.PUBLIC_URL}/pro.jpg`;
+                }}
+              />
               <div className="project-content">
                 <h3>{project.title}</h3>
                 <p className="project-dates">Du {project.startDate} au {project.endDate}</p>
@@ -243,7 +289,7 @@ const Projects = () => {
                 </div>
                 <div style={{display:'flex', gap:'.5rem', marginTop:'.5rem'}}>
                   <button className="details-button" onClick={() => setSelectedProject(project)} style={{flex:1}}>Voir les détails</button>
-                  <Link className="donate-button" to={`/dons?project=${project.id}`} style={{flex:1, textAlign:'center', textDecoration:'none'}}>Soutenir ce projet</Link>
+                  <button className="donate-button" type="button" onClick={() => setSelectedProject(project)} style={{flex:1}}>Participer</button>
                 </div>
               </div>
             </div>
@@ -320,9 +366,19 @@ const Projects = () => {
                 </div>
               )}
             </div>
-            <div style={{display:'flex', gap:'.5rem', marginTop:'.5rem'}}>
-              <Link className="donate-button" to={`/dons?project=${selectedProject.id}`} style={{flex:1, textAlign:'center', textDecoration:'none'}}>Soutenir ce projet</Link>
-              <button className="details-button" onClick={() => setSelectedProject(null)} style={{flex:1}}>Fermer</button>
+            {supportToast && (
+              <div className="projects-toast">{supportToast}</div>
+            )}
+            <div className="projects-modal-actions">
+              <button className="details-button" type="button" onClick={() => volunteerForProject(selectedProject.id)} style={{flex:1}}>
+                Participer (bénévole)
+              </button>
+              <button className="donate-button" type="button" onClick={() => handleDonateForProject(selectedProject.id)} style={{flex:1}}>
+                Faire un don
+              </button>
+              <button className="projects-modal-close" type="button" onClick={() => setSelectedProject(null)}>
+                Fermer
+              </button>
             </div>
           </div>
         </div>
@@ -362,25 +418,31 @@ const Projects = () => {
 
       {showSubmitModal && (
         <div className="project-details-modal" role="dialog" aria-label="Proposer une idée">
-          <div className="modal-content">
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:'.75rem'}}>
-              <h2 style={{margin:0}}>Proposer une idée</h2>
-              <button type="button" className="details-button" onClick={closeSubmit} style={{width:'auto', marginTop:0}}>Fermer</button>
+          <div className="projects-submit-modal">
+            <div className="projects-submit-header">
+              <div>
+                <h2>Proposer une idée</h2>
+                <p>Les propositions sont examinées avant publication.</p>
+              </div>
+              <button type="button" className="projects-submit-close" onClick={closeSubmit} aria-label="Fermer">
+                Fermer
+              </button>
             </div>
 
-            <p style={{marginTop:'.75rem', color:'#555'}}>Les propositions sont examinées avant publication.</p>
-            <form onSubmit={handleSubmitIdea}>
-              <div className="info-item">
-                <h4>Titre</h4>
-                <input type="text" value={submitForm.title} onChange={(e)=>setSubmitForm(prev=>({ ...prev, title: e.target.value }))} required style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}} />
-              </div>
-              <div className="info-item">
-                <h4>Description</h4>
-                <textarea rows="5" value={submitForm.description} onChange={(e)=>setSubmitForm(prev=>({ ...prev, description: e.target.value }))} required style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}} />
-              </div>
-              <div className="info-item">
-                <h4>Catégorie</h4>
-                <select value={submitForm.category} onChange={(e)=>setSubmitForm(prev=>({ ...prev, category: e.target.value }))} style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}}>
+            <form className="projects-submit-form" onSubmit={handleSubmitIdea}>
+              <label className="projects-field">
+                <span>Titre</span>
+                <input type="text" value={submitForm.title} onChange={(e)=>setSubmitForm(prev=>({ ...prev, title: e.target.value }))} required />
+              </label>
+
+              <label className="projects-field projects-field--full">
+                <span>Description</span>
+                <textarea rows="5" value={submitForm.description} onChange={(e)=>setSubmitForm(prev=>({ ...prev, description: e.target.value }))} required />
+              </label>
+
+              <label className="projects-field">
+                <span>Catégorie</span>
+                <select value={submitForm.category} onChange={(e)=>setSubmitForm(prev=>({ ...prev, category: e.target.value }))}>
                   <option value="infrastructure">Infrastructure</option>
                   <option value="environnement">Environnement</option>
                   <option value="social">Social</option>
@@ -388,25 +450,27 @@ const Projects = () => {
                   <option value="securite">Sécurité</option>
                   <option value="autre">Autre</option>
                 </select>
-              </div>
-              <div className="info-item">
-                <h4>Lieu (optionnel)</h4>
-                <input type="text" value={submitForm.location} onChange={(e)=>setSubmitForm(prev=>({ ...prev, location: e.target.value }))} placeholder="Ex: près de la mairie" style={{width:'100%', padding:'.8rem', border:'1px solid #ddd', borderRadius:6}} />
-              </div>
-              <div className="info-item">
-                <h4>Photos (optionnel)</h4>
+              </label>
+
+              <label className="projects-field">
+                <span>Lieu (optionnel)</span>
+                <input type="text" value={submitForm.location} onChange={(e)=>setSubmitForm(prev=>({ ...prev, location: e.target.value }))} placeholder="Ex: près de la mairie" />
+              </label>
+
+              <label className="projects-field projects-field--full">
+                <span>Photos (optionnel)</span>
                 <input type="file" accept="image/*" multiple onChange={(e)=> setSubmitFiles(Array.from(e.target.files || []))} />
-              </div>
+              </label>
 
               {submitToast && (
-                <div style={{marginTop:'.75rem', padding:'.75rem', borderRadius:8, background:'#f6f6f6'}}>{submitToast}</div>
+                <div className="projects-toast">{submitToast}</div>
               )}
 
-              <div style={{display:'flex', gap:'.5rem', marginTop:'1rem'}}>
-                <button type="submit" className="donate-button" disabled={submitLoading} style={{flex:1}}>
+              <div className="projects-submit-actions">
+                <button type="submit" className="projects-submit-primary" disabled={submitLoading}>
                   {submitLoading ? 'Envoi...' : 'Envoyer la proposition'}
                 </button>
-                <button type="button" className="details-button" onClick={closeSubmit} style={{flex:1}}>
+                <button type="button" className="projects-submit-secondary" onClick={closeSubmit}>
                   Annuler
                 </button>
               </div>

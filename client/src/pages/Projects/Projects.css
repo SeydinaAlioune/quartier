@@ -393,6 +393,153 @@
   overflow: auto;
 }
 
+.projects-submit-modal {
+  background: #fff;
+  border-radius: 18px;
+  width: min(860px, calc(100% - 2rem));
+  max-height: min(84vh, 720px);
+  overflow: auto;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 30px 120px rgba(0,0,0,0.35);
+}
+
+.projects-submit-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+}
+
+.projects-submit-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+}
+
+.projects-submit-header p {
+  margin: 0.35rem 0 0;
+  color: #5b6472;
+}
+
+.projects-submit-close {
+  border: 1px solid rgba(0,132,61,0.25);
+  background: rgba(0,132,61,0.10);
+  color: #006630;
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.projects-submit-form {
+  padding: 1.1rem 1.25rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.projects-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.projects-field--full {
+  grid-column: 1 / -1;
+}
+
+.projects-field span {
+  font-weight: 800;
+  color: #334155;
+}
+
+.projects-field input[type="text"],
+.projects-field textarea,
+.projects-field select {
+  width: 100%;
+  padding: 0.85rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.02);
+  outline: none;
+}
+
+.projects-field textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.projects-field input[type="file"] {
+  width: 100%;
+}
+
+.projects-toast {
+  margin-top: 0.85rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  color: #334155;
+}
+
+.projects-submit-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.projects-submit-primary {
+  flex: 1;
+  border: 1px solid rgba(0,132,61,0.35);
+  background: linear-gradient(180deg, rgba(0,166,81,0.20) 0%, rgba(0,166,81,0.10) 100%);
+  color: #006630;
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.projects-submit-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.projects-submit-secondary {
+  flex: 1;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(15, 23, 42, 0.03);
+  color: #0f172a;
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.projects-modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.projects-modal-close {
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(15, 23, 42, 0.03);
+  color: #0f172a;
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
 .project-info {
   margin: 2rem 0;
 }
@@ -500,6 +647,24 @@
 
   .projects-proposer-btn {
     width: 100%;
+  }
+
+  .projects-submit-modal {
+    width: calc(100% - 1.25rem);
+    border-radius: 16px;
+    max-height: 88vh;
+  }
+
+  .projects-submit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .projects-submit-actions {
+    flex-direction: column;
+  }
+
+  .projects-modal-actions {
+    flex-direction: column;
   }
   
   .action-buttons {
