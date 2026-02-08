@@ -60,6 +60,11 @@ const Navbar = () => {
     };
   }, [isHome]);
 
+  useEffect(() => {
+    setOpen(false);
+    setMoreOpen(false);
+  }, [location.pathname]);
+
   const closeMenu = () => setOpen(false);
   const onSubmit = (e) => {
     e.preventDefault();
@@ -69,11 +74,24 @@ const Navbar = () => {
     setOpen(false);
   };
 
+  const pathname = location.pathname || '/';
+  const isForum = pathname === '/forum' || pathname.startsWith('/forum/');
+  const isNews = pathname === '/actualites' || pathname.startsWith('/actualites/');
+  const isProjects = pathname === '/projets' || pathname.startsWith('/projets/');
+
+  const cta = (() => {
+    if (isForum) return { label: 'Nouveau sujet', to: '/forum?compose=1' };
+    if (isNews) return { label: 'Voir les annonces', to: '/actualites#news-announcements' };
+    if (isProjects) return { label: 'Proposer un projet', to: '/projets#proposer' };
+    return { label: 'Explorer', to: '/actualites' };
+  })();
+
   return (
     <nav className={`navbar ${isHome && heroVisible ? 'navbar--hero' : 'navbar--solid'}`}>
       <div className="navbar-content">
         <Link to="/" className="navbar-brand" onClick={closeMenu}>
           <span className="brand-text">QuartierConnect</span>
+          <span className="brand-badge" aria-label="Quartier">Cité Gendarmerie</span>
         </Link>
 
         <button
@@ -96,11 +114,20 @@ const Navbar = () => {
               Plus ▾
             </button>
             <div className="navbar-more-menu" role="menu" aria-label="Plus">
-              <NavLink to="/annuaire" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Annuaire</NavLink>
-              <NavLink to="/securite" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Sécurité</NavLink>
-              <NavLink to="/projets" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Projets</NavLink>
-              <NavLink to="/dons" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Dons</NavLink>
-              <NavLink to="/galerie" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Galerie</NavLink>
+              <div className="navbar-more-group" role="presentation">
+                <div className="navbar-more-title">Vie du quartier</div>
+                <NavLink to="/annuaire" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Annuaire</NavLink>
+                <NavLink to="/securite" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Sécurité</NavLink>
+              </div>
+              <div className="navbar-more-group" role="presentation">
+                <div className="navbar-more-title">Initiatives</div>
+                <NavLink to="/projets" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Projets</NavLink>
+                <NavLink to="/dons" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Dons</NavLink>
+              </div>
+              <div className="navbar-more-group" role="presentation">
+                <div className="navbar-more-title">Médias</div>
+                <NavLink to="/galerie" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}` } role="menuitem" onClick={()=>setMoreOpen(false)}>Galerie</NavLink>
+              </div>
             </div>
           </div>
         </div>
@@ -108,6 +135,9 @@ const Navbar = () => {
         <div className="navbar-right">
           <button type="button" className="navbar-search" aria-label="Recherche" onClick={() => navigate('/recherche')}>
             ⌕
+          </button>
+          <button type="button" className="navbar-cta" onClick={() => navigate(cta.to)}>
+            {cta.label}
           </button>
           <NavLink to="/espace-membres" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Espace Membres</NavLink>
         </div>

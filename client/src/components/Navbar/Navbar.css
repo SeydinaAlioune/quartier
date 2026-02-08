@@ -15,6 +15,25 @@
   z-index: 1000;
 }
 
+.navbar-cta {
+  height: 34px;
+  border-radius: 12px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 166, 81, 0.20);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  text-shadow: 1px 2px 6px rgba(0,0,0,0.40);
+}
+
+.navbar-cta:hover {
+  transform: translateY(-1px);
+  background: rgba(0, 166, 81, 0.28);
+  border-color: rgba(0, 166, 81, 0.42);
+}
+
 /* Variante sur le Hero (Accueil, en haut de page) */
 .navbar--hero {
   --nav-alpha: 0.12;
@@ -56,12 +75,31 @@
 
 .navbar-brand {
   text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
 }
 .brand-text {
   color: #fff; /* Blanc pour contraster sur fond transparent */
   font-size: 1.25rem;
   font-weight: 800;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .navbar-links { display: flex; gap: 14px; }
@@ -124,7 +162,28 @@
   display: none;
   z-index: 50;
 }
-.navbar-more.open .navbar-more-menu { display: flex; flex-direction: column; gap: 6px; }
+
+.navbar-more.open .navbar-more-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.navbar-more-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 2px;
+}
+
+.navbar-more-title {
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 0 10px;
+}
 .navbar-more-menu .navbar-link {
   padding: 8px 10px;
   border-radius: 10px;
