@@ -42,69 +42,105 @@ const Topic = () => {
       setReply('');
       await load();
     } catch (err) {
-      alert("Réponse impossible (vérifiez votre connexion).");
+      alert("Réponse impossible (vérifiez votre connexion). ");
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <div className="forum-page">
-      {loading && <div>Chargement…</div>}
+    <div className="forum-page topic-page">
+      {loading && <div className="forum-muted">Chargement…</div>}
       {!loading && error && <div className="forum-error">{error}</div>}
       {!loading && !error && topic && (
         <>
-          <header className="forum-header">
-            <h1>{topic.title}</h1>
-            <p>
-              <span className="category-tag" style={{ marginRight: 8 }}>{topic.category}</span>
-              <span style={{ color: '#e6fffb', opacity: .9 }}>Par {topic.author} — {new Date(topic.created).toLocaleDateString('fr-FR')}</span>
-            </p>
+          <header className="topic-header">
+            <div className="topic-breadcrumb">
+              <Link to="/forum" className="link-like" style={{ textDecoration: 'none' }}>
+                <i className="fas fa-arrow-left" aria-hidden="true"></i> Retour au forum
+              </Link>
+            </div>
+
+            <div className="topic-hero">
+              <div className="topic-title-row">
+                <h1 className="topic-title">{topic.title}</h1>
+                {topic.status && topic.status !== 'active' && (
+                  <span className={`topic-status is-${topic.status}`}>{topic.status}</span>
+                )}
+              </div>
+              <div className="topic-meta">
+                <span className="category-tag">{topic.category}</span>
+                <span className="topic-meta-item">Créé par <strong>{topic.author}</strong></span>
+                <span className="topic-meta-item">{new Date(topic.created).toLocaleDateString('fr-FR')}</span>
+                <span className="topic-meta-item">{Math.max(0, (posts?.length || 0) - 1)} réponses</span>
+              </div>
+            </div>
           </header>
 
-          <section className="discussions-list">
-            {posts.map((p) => (
-              <div key={p.id} className="discussion-card">
-                <div className="discussion-main">
-                  <div className="discussion-meta">
-                    <span className="author">{p.author}</span>
-                    <span className="date">{new Date(p.createdAt).toLocaleString('fr-FR')}</span>
-                    {p.status === 'hidden' && <span className="category-tag" style={{ background:'#fff5f5', color:'#c53030' }}>Masqué</span>}
-                  </div>
-                  <div className="discussion-preview" style={{ whiteSpace: 'pre-wrap' }}>{p.content}</div>
-                </div>
-              </div>
-            ))}
+          <section className="topic-posts" aria-label="Messages">
             {posts.length === 0 && (
               <div className="empty-state"><p>Aucun message pour le moment.</p></div>
             )}
+            {posts.map((p, idx) => {
+              const initials = (p.author || '—').trim().slice(0, 1).toUpperCase();
+              return (
+                <article key={p.id} className={`post-card ${idx === 0 ? 'is-first' : ''} ${p.status === 'hidden' ? 'is-hidden' : ''}`}>
+                  <div className="post-left">
+                    <div className="post-avatar" aria-hidden="true">{initials}</div>
+                  </div>
+                  <div className="post-body">
+                    <div className="post-head">
+                      <div className="post-author">
+                        <span className="post-author-name">{p.author}</span>
+                        {idx === 0 && <span className="post-badge">Message initial</span>}
+                        {p.status === 'hidden' && <span className="post-badge danger">Masqué</span>}
+                      </div>
+                      <time className="post-time">{new Date(p.createdAt).toLocaleString('fr-FR')}</time>
+                    </div>
+                    <div className="post-content" style={{ whiteSpace: 'pre-wrap' }}>{p.content}</div>
+                  </div>
+                </article>
+              );
+            })}
           </section>
 
-          <section className="annonces-section" style={{ marginTop: '1.5rem' }}>
-            <h2>Répondre</h2>
+          <div className="topic-compose-spacer" aria-hidden="true" />
+
+          <section className="topic-compose" aria-label="Répondre">
             {topic?.status === 'closed' && (
-              <div className="empty-state"><p>Ce sujet est fermé. Vous ne pouvez plus répondre.</p></div>
+              <div className="compose-locked">
+                <div className="compose-locked-title">Sujet fermé</div>
+                <div className="compose-locked-desc">Vous ne pouvez plus répondre à cette discussion.</div>
+              </div>
             )}
-            {topic?.status !== 'closed' && !isLoggedIn ? (
-              <div className="empty-state">
-                <p>Vous devez être connecté pour répondre.</p>
-                <div style={{ display: 'flex', gap: 8 }}>
+
+            {topic?.status !== 'closed' && !isLoggedIn && (
+              <div className="compose-login">
+                <div className="compose-login-title">Connectez-vous pour répondre</div>
+                <div className="compose-login-actions">
                   <Link to="/login" className="btn-submit" style={{ textDecoration: 'none' }}>Se connecter</Link>
                   <Link to="/register" className="btn-cancel" style={{ textDecoration: 'none' }}>Créer un compte</Link>
                 </div>
               </div>
-            ) : topic?.status !== 'closed' ? (
-              <form className="new-discussion-form" onSubmit={handleReply}>
-                <div className="form-group">
-                  <label>Votre message</label>
-                  <textarea rows="4" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Écrivez votre réponse…" />
-                </div>
-                <div className="form-actions">
+            )}
+
+            {topic?.status !== 'closed' && isLoggedIn && (
+              <form className="compose-form" onSubmit={handleReply}>
+                <textarea
+                  className="compose-textarea"
+                  rows={3}
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder="Écrivez une réponse utile et respectueuse…"
+                />
+                <div className="compose-actions">
                   <Link to="/forum" className="btn-cancel" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Retour</Link>
-                  <button type="submit" className="btn-submit" disabled={sending}>{sending ? 'Envoi…' : 'Publier la réponse'}</button>
+                  <button type="submit" className="btn-submit" disabled={sending || !reply.trim()}>
+                    {sending ? 'Envoi…' : 'Publier'}
+                  </button>
                 </div>
               </form>
-            ) : null}
+            )}
           </section>
         </>
       )}
