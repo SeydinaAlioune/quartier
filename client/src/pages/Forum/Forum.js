@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Annonces from './Annonces';
 import BoiteIdees from './BoiteIdees';
@@ -18,6 +18,13 @@ const Forum = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewDiscussion, setShowNewDiscussion] = useState(false);
   const [newDiscussion, setNewDiscussion] = useState({ title: '', categoryId: '', content: '' });
+  const isLoggedIn = useMemo(() => !!localStorage.getItem('token'), []);
+
+  const TITLE_MAX = 80;
+  const CONTENT_MAX = 900;
+  const titleCount = (newDiscussion.title || '').length;
+  const contentCount = (newDiscussion.content || '').length;
+  const canSubmit = !!(newDiscussion.title || '').trim() && !!newDiscussion.categoryId && !!(newDiscussion.content || '').trim();
 
   // Charger catégories et sujets récents
   useEffect(() => {
@@ -46,6 +53,15 @@ const Forum = () => {
     load();
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    if (!showNewDiscussion) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowNewDiscussion(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showNewDiscussion]);
 
   const openNewDiscussionWithSuggestion = (suggestedTitle) => {
     setShowNewDiscussion(true);
@@ -300,52 +316,94 @@ const Forum = () => {
       <BoiteIdees />
 
       {showNewDiscussion && (
-        <div className="modal-overlay">
-          <div className="new-discussion-modal">
-            <h2>Créer une Nouvelle Discussion</h2>
-            <form className="new-discussion-form" onSubmit={handleNewDiscussionSubmit}>
-              <div className="form-group">
-                <label>Titre</label>
-                <input
-                  type="text"
-                  placeholder="Le sujet de votre discussion"
-                  value={newDiscussion.title}
-                  onChange={(e) => setNewDiscussion({ ...newDiscussion, title: e.target.value })}
-                  required
-                />
+        <div className="modal-overlay" onClick={() => setShowNewDiscussion(false)}>
+          <div className="new-discussion-modal premium" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-head-left">
+                <div className="modal-icon" aria-hidden="true"><i className="far fa-comment-dots"></i></div>
+                <div>
+                  <h2>Nouvelle discussion</h2>
+                  <p className="modal-subtitle">Pose une question, partage une info ou lance une idée pour le quartier.</p>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Catégorie</label>
-                <select
-                  value={newDiscussion.categoryId}
-                  onChange={(e) => setNewDiscussion({ ...newDiscussion, categoryId: e.target.value })}
-                  required
-                >
-                  <option value="">Sélectionnez une catégorie</option>
-                  {categories.filter(c => c.id !== 'all').map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
-                </select>
+              <button className="modal-close" type="button" onClick={() => setShowNewDiscussion(false)} aria-label="Fermer">
+                <i className="fas fa-times" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            {!isLoggedIn ? (
+              <div className="modal-cta">
+                <div className="modal-cta-title">Connexion requise</div>
+                <div className="modal-cta-desc">Pour publier dans le forum, connecte-toi (ou crée un compte en quelques secondes).</div>
+                <div className="modal-cta-actions">
+                  <button type="button" className="btn-submit" onClick={() => navigate('/login')}>Se connecter</button>
+                  <button type="button" className="btn-cancel" onClick={() => navigate('/register')}>Créer un compte</button>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Contenu</label>
-                <textarea
-                  placeholder="Détaillez votre message ici..."
-                  rows="5"
-                  value={newDiscussion.content}
-                  onChange={(e) => setNewDiscussion({ ...newDiscussion, content: e.target.value })}
-                  required
-                ></textarea>
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowNewDiscussion(false)}>
-                  Annuler
-                </button>
-                <button type="submit" className="btn-submit">
-                  Publier
-                </button>
-              </div>
-            </form>
+            ) : (
+              <form className="new-discussion-form" onSubmit={handleNewDiscussionSubmit}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <div className="label-row">
+                      <label>Titre</label>
+                      <span className={`char-count ${titleCount > TITLE_MAX ? 'is-over' : ''}`}>{titleCount}/{TITLE_MAX}</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Ex: Question : Où trouver un plombier fiable ?"
+                      value={newDiscussion.title}
+                      maxLength={TITLE_MAX + 50}
+                      onChange={(e) => setNewDiscussion({ ...newDiscussion, title: e.target.value })}
+                      required
+                    />
+                    <div className="field-help">Un bon titre aide les voisins à comprendre en 2 secondes.</div>
+                  </div>
+
+                  <div className="form-group">
+                    <div className="label-row">
+                      <label>Catégorie</label>
+                      <span className="field-chip">Obligatoire</span>
+                    </div>
+                    <select
+                      value={newDiscussion.categoryId}
+                      onChange={(e) => setNewDiscussion({ ...newDiscussion, categoryId: e.target.value })}
+                      required
+                    >
+                      <option value="">Sélectionnez une catégorie</option>
+                      {categories.filter(c => c.id !== 'all').map(category => (
+                        <option key={category.id} value={category.id}>{category.name}</option>
+                      ))}
+                    </select>
+                    <div className="field-help">Choisis la catégorie pour que la discussion soit bien classée.</div>
+                  </div>
+
+                  <div className="form-group span-2">
+                    <div className="label-row">
+                      <label>Message</label>
+                      <span className={`char-count ${contentCount > CONTENT_MAX ? 'is-over' : ''}`}>{contentCount}/{CONTENT_MAX}</span>
+                    </div>
+                    <textarea
+                      placeholder="Explique ton besoin, le contexte (lieu/heure) et ce que tu attends comme réponse…"
+                      rows="6"
+                      value={newDiscussion.content}
+                      maxLength={CONTENT_MAX + 200}
+                      onChange={(e) => setNewDiscussion({ ...newDiscussion, content: e.target.value })}
+                      required
+                    ></textarea>
+                    <div className="field-help">Conseil : un message clair = plus de réponses utiles.</div>
+                  </div>
+                </div>
+
+                <div className="form-actions premium">
+                  <button type="button" className="btn-cancel" onClick={() => setShowNewDiscussion(false)}>
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-submit" disabled={!canSubmit || titleCount > TITLE_MAX || contentCount > CONTENT_MAX}>
+                    Publier
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

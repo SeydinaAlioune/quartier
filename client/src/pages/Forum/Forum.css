@@ -505,6 +505,159 @@
   overflow-y: auto;
 }
 
+.new-discussion-modal.premium {
+  max-width: 780px;
+  padding: 14px;
+  border-radius: 16px;
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px 12px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.modal-head-left {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(0, 132, 61, 0.10);
+  border: 1px solid rgba(0, 132, 61, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  flex-shrink: 0;
+}
+
+.new-discussion-modal.premium h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 1000;
+  color: #0f172a;
+}
+
+.modal-subtitle {
+  margin: 4px 0 0 0;
+  color: rgba(51, 65, 85, 0.90);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+  color: rgba(15, 23, 42, 0.70);
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.modal-cta {
+  padding: 14px 12px;
+}
+
+.modal-cta-title {
+  font-weight: 1000;
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.modal-cta-desc {
+  margin-top: 6px;
+  color: rgba(71, 85, 105, 0.92);
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.modal-cta-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 12px;
+}
+
+.form-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.char-count {
+  font-weight: 900;
+  font-size: 0.82rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.char-count.is-over {
+  color: #b91c1c;
+}
+
+.field-chip {
+  font-weight: 900;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.04);
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.field-help {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  color: rgba(71, 85, 105, 0.92);
+  font-weight: 650;
+}
+
+.form-actions.premium {
+  padding: 0 12px 12px 12px;
+}
+
+.form-actions.premium .btn-submit[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .new-discussion-modal.premium {
+    padding: 10px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .modal-cta-actions {
+    flex-direction: column;
+  }
+}
+
 .new-discussion-form {
   display: flex;
   flex-direction: column;
