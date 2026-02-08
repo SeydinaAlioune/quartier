@@ -358,77 +358,112 @@ const Projects = () => {
       </section>
 
       {selectedProject && (
-        <div className="project-details-modal">
-          <div className="modal-content">
-            <h2>{selectedProject.title}</h2>
-            {selectedProject.image && (
-              <div style={{marginBottom: '1rem'}}>
-                <img src={selectedProject.image} alt="" style={{width:'100%', maxHeight:'280px', objectFit:'cover', borderRadius:6}} />
-              </div>
-            )}
-            <div className="project-info">
-              <div className="info-item">
-                <h4>Budget:</h4>
-                <p>
-                  {selectedProject.raw?.budget?.estimated != null ? `${selectedProject.raw.budget.estimated.toLocaleString('fr-FR')} €` : '—'}
-                  {selectedProject.raw?.budget?.collected != null ? ` (collecté: ${selectedProject.raw.budget.collected.toLocaleString('fr-FR')} €)` : ''}
-                </p>
-              </div>
-              <div className="info-item">
-                <h4>Catégorie / Statut:</h4>
-                <p>
-                  {(labels.category[selectedProject.raw?.category] || selectedProject.raw?.category || '—')}
-                  {' / '}
-                  {(labels.status[selectedProject.raw?.status] || selectedProject.raw?.status || '—')}
-                </p>
-              </div>
-              <div className="info-item">
-                <h4>Responsable:</h4>
-                <p>{selectedProject.raw?.organizer?.name || '—'}</p>
-              </div>
-              {Array.isArray(selectedProject.raw?.attachments) && selectedProject.raw.attachments.length > 0 && (
-                <div className="info-item">
-                  <h4>Galerie:</h4>
-                  <div className="projects-attachments">
-                  {selectedProject.raw.attachments.map((att, idx) => {
-                    const base = api.defaults.baseURL || '';
-                    const sep = att.url?.startsWith('/') ? '' : '/';
-                    const url = att.url?.startsWith('http') ? att.url : `${base}${sep}${att.url}`;
-                    const name = att?.name || (att?.type === 'image' ? 'Image' : 'Fichier');
-                    return (
-                      <a key={idx} href={url} target="_blank" rel="noreferrer">
-                        {att.type === 'image' ? (
-                          <img
-                            src={url}
-                            alt=""
-                            className="projects-attachment-img"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <span className="projects-attachment-file">{name}</span>
-                        )}
-                      </a>
-                    );
-                  })}
-                  </div>
+        <div className="project-details-modal" role="dialog" aria-label="Détails du projet">
+          <div className="projects-project-modal">
+            <div className="projects-project-modal__header">
+              <div className="projects-project-modal__title">
+                <h2>{selectedProject.title}</h2>
+                <div className="projects-project-modal__badges">
+                  <span className="projects-badge projects-badge--category">{labels.category[selectedProject.raw?.category] || selectedProject.raw?.category || '—'}</span>
+                  <span className={`projects-badge projects-badge--status projects-badge--${selectedProject.raw?.status || 'unknown'}`}>{labels.status[selectedProject.raw?.status] || selectedProject.raw?.status || '—'}</span>
                 </div>
-              )}
-            </div>
-            {supportToast && (
-              <div className="projects-toast">{supportToast}</div>
-            )}
-            <div className="projects-modal-actions">
-              <button className="details-button" type="button" onClick={() => volunteerForProject(selectedProject.id)} style={{flex:1}}>
-                Participer (bénévole)
-              </button>
-              <button className="donate-button" type="button" onClick={() => handleDonateForProject(selectedProject.id)} style={{flex:1}}>
-                Faire un don
-              </button>
-              <button className="projects-modal-close" type="button" onClick={() => setSelectedProject(null)}>
+              </div>
+              <button type="button" className="projects-project-modal__close" onClick={() => setSelectedProject(null)} aria-label="Fermer">
                 Fermer
               </button>
+            </div>
+
+            <div className="projects-project-modal__body">
+              <div className="projects-project-modal__media">
+                {selectedProject.image ? (
+                  <img
+                    src={selectedProject.image}
+                    alt=""
+                    className="projects-project-modal__cover"
+                    onError={(e) => {
+                      if (e.currentTarget?.dataset?.fallbackApplied) return;
+                      e.currentTarget.dataset.fallbackApplied = '1';
+                      e.currentTarget.src = `${process.env.PUBLIC_URL}/pro.jpg`;
+                    }}
+                  />
+                ) : (
+                  <div className="projects-project-modal__cover projects-project-modal__cover--placeholder" />
+                )}
+
+                <div className="projects-project-modal__cta">
+                  <button className="projects-cta-primary" type="button" onClick={() => volunteerForProject(selectedProject.id)}>
+                    Devenir bénévole
+                  </button>
+                  <button className="projects-cta-secondary" type="button" onClick={() => handleDonateForProject(selectedProject.id)}>
+                    Faire un don
+                  </button>
+                  <p className="projects-project-modal__cta-note">Tu peux aider en participant sur le terrain ou soutenir financièrement si une collecte est active.</p>
+                </div>
+
+                {supportToast && (
+                  <div className="projects-toast">{supportToast}</div>
+                )}
+              </div>
+
+              <div className="projects-project-modal__content">
+                {selectedProject.description && (
+                  <section className="projects-project-section">
+                    <h3>Résumé</h3>
+                    <p className="projects-project-text">{selectedProject.description}</p>
+                  </section>
+                )}
+
+                <section className="projects-project-section">
+                  <h3>Informations</h3>
+                  <div className="projects-project-kv">
+                    <div className="k">
+                      <span className="t">Période</span>
+                      <span className="v">Du {selectedProject.startDate} au {selectedProject.endDate}</span>
+                    </div>
+                    <div className="k">
+                      <span className="t">Responsable</span>
+                      <span className="v">{selectedProject.raw?.organizer?.name || '—'}</span>
+                    </div>
+                    <div className="k">
+                      <span className="t">Budget</span>
+                      <span className="v">
+                        {selectedProject.raw?.budget?.estimated != null ? `${selectedProject.raw.budget.estimated.toLocaleString('fr-FR')} €` : '—'}
+                        {selectedProject.raw?.budget?.collected != null ? ` (collecté: ${selectedProject.raw.budget.collected.toLocaleString('fr-FR')} €)` : ''}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                {Array.isArray(selectedProject.raw?.attachments) && selectedProject.raw.attachments.length > 0 && (
+                  <section className="projects-project-section">
+                    <h3>Pièces jointes</h3>
+                    <div className="projects-attachments">
+                      {selectedProject.raw.attachments.map((att, idx) => {
+                        const base = api.defaults.baseURL || '';
+                        const sep = att.url?.startsWith('/') ? '' : '/';
+                        const url = att.url?.startsWith('http') ? att.url : `${base}${sep}${att.url}`;
+                        const name = att?.name || (att?.type === 'image' ? 'Image' : 'Fichier');
+                        return (
+                          <a key={idx} href={url} target="_blank" rel="noreferrer">
+                            {att.type === 'image' ? (
+                              <img
+                                src={url}
+                                alt=""
+                                className="projects-attachment-img"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <span className="projects-attachment-file">{name}</span>
+                            )}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+              </div>
             </div>
           </div>
         </div>

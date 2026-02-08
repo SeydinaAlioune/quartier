@@ -385,6 +385,202 @@
   z-index: 1000;
 }
 
+.projects-project-modal {
+  width: min(980px, calc(100% - 2rem));
+  max-height: min(88vh, 760px);
+  overflow: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #fff;
+  box-shadow: 0 40px 140px rgba(0,0,0,0.35);
+}
+
+.projects-project-modal__header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.2rem 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+}
+
+.projects-project-modal__title h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+}
+
+.projects-project-modal__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.projects-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  font-weight: 900;
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.projects-badge--status {
+  border-color: rgba(0,132,61,0.25);
+  background: rgba(0,132,61,0.10);
+  color: #0b5d30;
+}
+
+.projects-badge--proposed,
+.projects-badge--planning {
+  border-color: rgba(234, 179, 8, 0.30);
+  background: rgba(234, 179, 8, 0.12);
+  color: #7a5b00;
+}
+
+.projects-badge--in_progress,
+.projects-badge--completed {
+  border-color: rgba(0,132,61,0.25);
+  background: rgba(0,132,61,0.10);
+  color: #0b5d30;
+}
+
+.projects-badge--cancelled {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.10);
+  color: #7a1d1d;
+}
+
+.projects-project-modal__close {
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  background: rgba(15, 23, 42, 0.03);
+  color: #0f172a;
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.projects-project-modal__body {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1.25rem;
+  padding: 1.2rem;
+}
+
+.projects-project-modal__cover {
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.03);
+  display: block;
+}
+
+.projects-project-modal__cover--placeholder {
+  height: 220px;
+}
+
+.projects-project-modal__cta {
+  margin-top: 0.85rem;
+  padding: 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.02);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.projects-cta-primary {
+  width: 100%;
+  border: 1px solid rgba(0,132,61,0.35);
+  background: linear-gradient(180deg, rgba(0,166,81,0.22) 0%, rgba(0,166,81,0.10) 100%);
+  color: #006630;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.projects-cta-secondary {
+  width: 100%;
+  border: 1px solid rgba(25, 118, 210, 0.22);
+  background: rgba(25, 118, 210, 0.08);
+  color: #115293;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.projects-project-modal__cta-note {
+  margin: 0.2rem 0 0;
+  color: #5b6472;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.projects-project-modal__content {
+  display: grid;
+  gap: 1rem;
+}
+
+.projects-project-section {
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255,255,255,0.9);
+  border-radius: 16px;
+  padding: 1rem;
+}
+
+.projects-project-section h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.projects-project-text {
+  margin: 0.6rem 0 0;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.projects-project-kv {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.projects-project-kv .k {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.projects-project-kv .t {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.projects-project-kv .v {
+  color: #0f172a;
+  font-weight: 800;
+}
+
 .modal-content {
   background: white;
   padding: 2rem;
@@ -694,6 +890,21 @@
 
   .projects-modal-actions {
     flex-direction: column;
+  }
+
+  .projects-project-modal {
+    width: calc(100% - 1.25rem);
+    border-radius: 16px;
+    max-height: 90vh;
+  }
+
+  .projects-project-modal__body {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .projects-project-modal__cover {
+    height: 200px;
   }
   
   .action-buttons {
