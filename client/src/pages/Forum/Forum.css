@@ -181,12 +181,18 @@
 
 @media (max-width: 768px) {
   .forum-header {
-    padding: 3.25rem 1rem 1.5rem;
-    min-height: 220px;
-    background-position: center 20%;
+    padding: 2.75rem 1rem 1.25rem;
+    min-height: 190px;
+    background-position: center 22% !important;
+    border-radius: 0 0 18px 18px;
   }
   .forum-header h1 { font-size: 1.75rem; }
-  .page-intro { font-size: 0.95rem; margin: 0.5rem auto 1.25rem; }
+  .page-intro {
+    font-size: 0.95rem;
+    margin: 0.75rem auto 1.25rem;
+    line-height: 1.45;
+    padding: 0 0.25rem;
+  }
 
   .forum-hub-top {
     grid-template-columns: 1fr;
@@ -194,6 +200,37 @@
 
   .forum-quick-actions {
     grid-template-columns: 1fr;
+  }
+
+  .new-discussion-btn {
+    display: none;
+  }
+}
+
+.forum-fab {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .forum-fab {
+    display: inline-flex;
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 60;
+    background: #00843D;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 14px;
+    gap: 10px;
+    font-weight: 950;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.22);
+    cursor: pointer;
+  }
+
+  .forum-fab i {
+    font-size: 0.95rem;
   }
 }
 

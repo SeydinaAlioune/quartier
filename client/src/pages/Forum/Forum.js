@@ -315,6 +315,16 @@ const Forum = () => {
       <Annonces />
       <BoiteIdees />
 
+      <button
+        className="forum-fab"
+        onClick={() => setShowNewDiscussion(true)}
+        aria-label="Nouvelle discussion"
+        type="button"
+      >
+        <i className="fas fa-plus" aria-hidden="true"></i>
+        Nouvelle discussion
+      </button>
+
       {showNewDiscussion && (
         <div className="modal-overlay" onClick={() => setShowNewDiscussion(false)}>
           <div className="new-discussion-modal premium" onClick={(e) => e.stopPropagation()}>
