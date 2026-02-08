@@ -395,6 +395,11 @@
   flex-shrink: 0;
 }
 
+.discussion-meta.v2 .author,
+.discussion-meta.v2 .last {
+  white-space: nowrap;
+}
+
 .discussion-kpis .replies {
   font-weight: 900;
   color: #0f172a;
@@ -1383,6 +1388,89 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
+  }
+
+  .forum-page {
+    padding: 1rem;
+  }
+
+  .discussions-grid {
+    gap: 10px;
+  }
+
+  .discussion-card.v2 {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .discussion-left {
+    gap: 10px;
+  }
+
+  .discussion-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .discussion-title {
+    font-size: 1rem;
+  }
+
+  .discussion-preview {
+    font-size: 0.95rem;
+  }
+
+  .discussion-meta.v2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .discussion-meta.v2 .category-tag {
+    width: fit-content;
+  }
+
+  .discussion-meta.v2 .author,
+  .discussion-meta.v2 .last {
+    white-space: normal;
+  }
+
+  .discussion-right {
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .discussion-kpis .replies {
+    padding: 6px 10px;
+  }
+
+  .open-arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .new-idee-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .annonce-category {
+    padding: 1.1rem;
+  }
+
+  .my-ad-item {
+    padding: 12px;
+  }
+
+  .my-ad-actions {
+    justify-content: flex-end;
   }
 }
 
