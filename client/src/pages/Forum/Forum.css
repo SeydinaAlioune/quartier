@@ -410,10 +410,17 @@
 }
 
 .discussion-meta.v2 {
+  display: flex;
+  align-items: center;
   margin-top: 8px;
   gap: 10px;
   flex-wrap: wrap;
   color: rgba(71, 85, 105, 0.95);
+}
+
+.discussion-meta.v2 .last {
+  display: inline-flex;
+  align-items: baseline;
 }
 
 .discussion-meta.v2 .last-label {
@@ -1458,10 +1465,15 @@
 
   .forum-page {
     padding: 1.25rem;
+    padding-bottom: calc(1.25rem + 92px + env(safe-area-inset-bottom));
   }
 
   .discussions-grid {
     gap: 14px;
+  }
+
+  .discussions-list {
+    gap: 1.25rem;
   }
 
   .discussion-card.v2 {
