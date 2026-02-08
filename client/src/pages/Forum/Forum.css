@@ -69,6 +69,19 @@
   font-size: 1.5rem;
   font-weight: 1000;
   letter-spacing: -0.01em;
+  position: relative;
+  padding-left: 14px;
+}
+
+.forum-hub-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.22em;
+  bottom: 0.22em;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(0, 132, 61, 0.95), rgba(0, 132, 61, 0.20));
 }
 
 .forum-hub-subtitle {
@@ -76,6 +89,7 @@
   color: rgba(51, 65, 85, 0.90);
   font-weight: 650;
   line-height: 1.4;
+  max-width: 56ch;
 }
 
 .forum-quick-actions {
@@ -156,6 +170,20 @@
   font-weight: 950;
   color: #0f172a;
   margin-bottom: 8px;
+  position: relative;
+  padding-left: 12px;
+  letter-spacing: -0.01em;
+}
+
+.activity-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.22em;
+  bottom: 0.22em;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.00));
 }
 
 .activity-list {
@@ -220,6 +248,11 @@
 
   .forum-hub-title {
     font-size: 1.35rem;
+    padding-left: 12px;
+  }
+
+  .forum-hub-title::before {
+    width: 3px;
   }
 
   .forum-hub-top {
@@ -458,6 +491,7 @@
   font-size: 1.06rem;
   font-weight: 900;
   line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .discussion-meta.v2 {
@@ -466,7 +500,9 @@
   margin-top: 8px;
   gap: 10px;
   flex-wrap: wrap;
-  color: rgba(71, 85, 105, 0.95);
+  color: rgba(71, 85, 105, 0.92);
+  font-weight: 650;
+  line-height: 1.25;
 }
 
 .discussion-meta.v2 .last {
@@ -480,8 +516,9 @@
 
 .discussion-preview {
   margin: 6px 0 0 0;
-  color: rgba(51, 65, 85, 0.95);
-  font-size: 0.98rem;
+  color: rgba(51, 65, 85, 0.94);
+  font-size: 1rem;
+  line-height: 1.48;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -1163,12 +1200,27 @@
   font-weight: 1000;
   letter-spacing: -0.01em;
   color: #0f172a;
+  position: relative;
+  padding-left: 14px;
+}
+
+.section-head h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.22em;
+  bottom: 0.22em;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(0, 132, 61, 0.95), rgba(0, 132, 61, 0.20));
 }
 
 .section-subtitle {
   margin: 6px 0 0 0;
-  color: rgba(71, 85, 105, 0.95);
-  font-weight: 600;
+  color: rgba(51, 65, 85, 0.88);
+  font-weight: 650;
+  line-height: 1.55;
+  max-width: 62ch;
 }
 
 .forum-muted {
@@ -1548,6 +1600,7 @@
 
   .section-head h2 {
     font-size: 1.35rem;
+    padding-left: 12px;
   }
 
   .discussion-card.v2 {
@@ -1575,6 +1628,10 @@
     line-height: 1.45;
     -webkit-line-clamp: 3;
     line-clamp: 3;
+  }
+
+  .discussion-meta.v2 {
+    line-height: 1.3;
   }
 
   .discussion-meta.v2 .last {
