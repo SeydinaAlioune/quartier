@@ -9,6 +9,8 @@ const Navbar = () => {
   const [query, setQuery] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
   const [heroVisible, setHeroVisible] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState('mobile');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -65,6 +67,18 @@ const Navbar = () => {
     setMoreOpen(false);
   }, [location.pathname]);
 
+  const isDev = process.env.NODE_ENV !== 'production';
+  const isInPreviewFrame = new URLSearchParams(location.search || '').get('preview') === '1';
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [previewOpen]);
+
   const closeMenu = () => setOpen(false);
   const onSubmit = (e) => {
     e.preventDefault();
@@ -87,6 +101,7 @@ const Navbar = () => {
   })();
 
   return (
+    <>
     <nav className={`navbar ${isHome && heroVisible ? 'navbar--hero' : 'navbar--solid'}`}>
       <div className="navbar-content">
         <Link to="/" className="navbar-brand" onClick={closeMenu}>
@@ -136,6 +151,16 @@ const Navbar = () => {
           <button type="button" className="navbar-search" aria-label="Recherche" onClick={() => navigate('/recherche')}>
             ⌕
           </button>
+          {isDev && !isInPreviewFrame && (
+            <button
+              type="button"
+              className="navbar-preview"
+              aria-label="Preview mobile/desktop"
+              onClick={() => setPreviewOpen(true)}
+            >
+              ⧉
+            </button>
+          )}
           <button type="button" className="navbar-cta" onClick={() => navigate(cta.to)}>
             {cta.label}
           </button>
@@ -168,6 +193,43 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+    {isDev && !isInPreviewFrame && previewOpen && (
+      <div className="dev-preview-overlay" role="dialog" aria-label="Preview responsive" onClick={() => setPreviewOpen(false)}>
+        <div className="dev-preview-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="dev-preview-top">
+            <div className="dev-preview-title">Preview</div>
+            <div className="dev-preview-actions">
+              <button
+                type="button"
+                className={`dev-preview-chip ${previewMode === 'mobile' ? 'is-active' : ''}`}
+                onClick={() => setPreviewMode('mobile')}
+              >
+                Mobile
+              </button>
+              <button
+                type="button"
+                className={`dev-preview-chip ${previewMode === 'desktop' ? 'is-active' : ''}`}
+                onClick={() => setPreviewMode('desktop')}
+              >
+                Desktop
+              </button>
+              <button type="button" className="dev-preview-close" onClick={() => setPreviewOpen(false)} aria-label="Fermer">
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div className={`dev-preview-viewport is-${previewMode}`}>
+            <iframe
+              title="Preview"
+              className="dev-preview-iframe"
+              src={`${window.location.pathname}${window.location.search ? `${window.location.search}&preview=1` : '?preview=1'}${window.location.hash || ''}`}
+            />
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
