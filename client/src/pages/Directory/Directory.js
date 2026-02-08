@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Directory.css';
 import api from '../../services/api';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
 const Directory = () => {
+  const navigate = useNavigate();
   // Données dynamiques pour les commerçants (annuaire) depuis l'API
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,88 @@ const Directory = () => {
   const [cityFilter, setCityFilter] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [landmark, setLandmark] = useState('');
+
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+  const [toast, setToast] = useState({ open: false, message: '' });
+  const [showOptionalContact, setShowOptionalContact] = useState(false);
+  const [submitForm, setSubmitForm] = useState({
+    name: '',
+    category: 'commerce',
+    description: '',
+    street: '',
+    city: '',
+    phone: '',
+    email: '',
+    website: '',
+  });
+
+  const openSubmit = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    setSubmitError('');
+    setSubmitSuccess('');
+    setShowOptionalContact(false);
+    setShowSubmitModal(true);
+  };
+
+  const closeSubmit = () => {
+    setShowSubmitModal(false);
+  };
+
+  useEffect(() => {
+    if (!toast.open) return;
+    const t = setTimeout(() => setToast({ open: false, message: '' }), 4000);
+    return () => clearTimeout(t);
+  }, [toast.open]);
+
+  const handleSubmitBusiness = async (e) => {
+    e.preventDefault();
+    try {
+      setSubmitLoading(true);
+      setSubmitError('');
+      setSubmitSuccess('');
+
+      await api.post('/api/business', {
+        name: submitForm.name,
+        category: submitForm.category,
+        description: submitForm.description,
+        address: {
+          street: submitForm.street,
+          city: submitForm.city,
+        },
+        contact: {
+          phone: submitForm.phone || undefined,
+          email: submitForm.email || undefined,
+          website: submitForm.website || undefined,
+        },
+      });
+
+      setSubmitSuccess('Merci ! Votre proposition a été envoyée et sera validée avant publication.');
+      setToast({ open: true, message: 'Proposition envoyée. Merci !' });
+      setSubmitForm({
+        name: '',
+        category: 'commerce',
+        description: '',
+        street: '',
+        city: '',
+        phone: '',
+        email: '',
+        website: '',
+      });
+
+      setTimeout(() => closeSubmit(), 1400);
+    } catch (err) {
+      setSubmitError(err?.response?.data?.message || 'Envoi impossible. Réessayez plus tard.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -164,6 +248,7 @@ const Directory = () => {
           <p className="directory-hero-lead">Commerces, artisans et services de proximité — trouvez vite, contactez direct.</p>
           <div className="directory-hero-actions">
             <button type="button" className="directory-hero-btn" onClick={scrollToResults}>Trouver un commerce</button>
+            <button type="button" className="directory-hero-link" onClick={openSubmit}>Proposer un commerce</button>
           </div>
           <div className="directory-hero-stats" aria-label="Résumé de l'annuaire">
             <div className="directory-stat"><span className="v">{heroStats.count}</span><span className="l">adresses</span></div>
@@ -340,7 +425,7 @@ const Directory = () => {
         <div className="directory-callout-inner">
           <div className="directory-callout-title">Tu connais un commerce à ajouter ?</div>
           <div className="directory-callout-sub">Aide le quartier: propose une adresse, on l'ajoutera à l'annuaire.</div>
-          <button type="button" className="directory-callout-cta" onClick={scrollToResults}>Proposer un commerce</button>
+          <button type="button" className="directory-callout-cta" onClick={openSubmit}>Proposer un commerce</button>
         </div>
       </section>
 
@@ -365,6 +450,101 @@ const Directory = () => {
         </section>
       )}
     </div>
+    {showSubmitModal && (
+      <div className="directory-modal-overlay" onMouseDown={() => closeSubmit()}>
+        <div className="directory-modal" onMouseDown={(e) => e.stopPropagation()}>
+          <div className="directory-modal-head">
+            <h3>Proposer un commerce</h3>
+            <button type="button" className="directory-modal-close" onClick={() => closeSubmit()}>✕</button>
+          </div>
+
+          <p className="directory-modal-sub">Ta proposition sera vérifiée avant publication dans l'annuaire.</p>
+
+          <form onSubmit={handleSubmitBusiness} className="directory-modal-form">
+            <div className="directory-form-grid">
+              <div className="directory-form-row">
+                <label>Nom</label>
+                <input value={submitForm.name} onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })} placeholder="Ex: Boulangerie du Marché" required />
+              </div>
+              <div className="directory-form-row">
+                <label>Catégorie</label>
+                <select value={submitForm.category} onChange={(e) => setSubmitForm({ ...submitForm, category: e.target.value })}>
+                  <option value="restaurant">restaurant</option>
+                  <option value="commerce">commerce</option>
+                  <option value="service">service</option>
+                  <option value="sante">santé</option>
+                  <option value="education">education</option>
+                  <option value="artisan">artisan</option>
+                  <option value="autre">autre</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="directory-form-grid">
+              <div className="directory-form-row">
+                <label>Rue / Adresse</label>
+                <input value={submitForm.street} onChange={(e) => setSubmitForm({ ...submitForm, street: e.target.value })} placeholder="Ex: Rue X, près de la mairie" required />
+              </div>
+              <div className="directory-form-row">
+                <label>Ville</label>
+                <input value={submitForm.city} onChange={(e) => setSubmitForm({ ...submitForm, city: e.target.value })} placeholder="Ex: Dakar" required />
+              </div>
+            </div>
+
+            <div className="directory-form-row">
+              <label>Description</label>
+              <textarea rows="3" value={submitForm.description} onChange={(e) => setSubmitForm({ ...submitForm, description: e.target.value })} placeholder="Que propose ce commerce ? Horaires, spécialités, infos utiles…" required />
+            </div>
+
+            <button
+              type="button"
+              className="directory-optional-toggle"
+              onClick={() => setShowOptionalContact(v => !v)}
+              aria-expanded={showOptionalContact}
+            >
+              {showOptionalContact ? 'Masquer les infos de contact' : 'Ajouter des infos de contact (optionnel)'}
+            </button>
+
+            {showOptionalContact && (
+              <div className="directory-optional-panel">
+                <div className="directory-form-grid">
+                  <div className="directory-form-row">
+                    <label>Téléphone</label>
+                    <input value={submitForm.phone} onChange={(e) => setSubmitForm({ ...submitForm, phone: e.target.value })} placeholder="Ex: 77 123 45 67" />
+                  </div>
+                  <div className="directory-form-row">
+                    <label>Email</label>
+                    <input type="email" value={submitForm.email} onChange={(e) => setSubmitForm({ ...submitForm, email: e.target.value })} placeholder="contact@exemple.sn" />
+                  </div>
+                </div>
+                <div className="directory-form-row">
+                  <label>Site web</label>
+                  <input value={submitForm.website} onChange={(e) => setSubmitForm({ ...submitForm, website: e.target.value })} placeholder="https://" />
+                </div>
+              </div>
+            )}
+
+            {submitError && <div className="directory-form-error">{submitError}</div>}
+            {submitSuccess && <div className="directory-form-success">{submitSuccess}</div>}
+
+            <div className="directory-modal-actions">
+              <button type="button" className="directory-btn secondary" onClick={() => closeSubmit()}>Fermer</button>
+              <button type="submit" className="directory-btn primary" disabled={submitLoading}>
+                {submitLoading ? 'Envoi...' : 'Envoyer'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {toast.open && (
+      <div className="directory-toast" role="status" aria-live="polite">
+        <span className="directory-toast-dot" />
+        <span className="directory-toast-text">{toast.message}</span>
+        <button type="button" className="directory-toast-close" onClick={() => setToast({ open: false, message: '' })}>✕</button>
+      </div>
+    )}
     </>
   );
 };
