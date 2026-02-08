@@ -176,10 +176,11 @@
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 360px));
   gap: 2rem;
   margin: 0 auto;
   max-width: 1200px;
+  justify-content: center;
 }
 
 .project-card {
@@ -190,6 +191,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
 .project-image {
@@ -551,6 +553,33 @@
 .info-item h4 {
   color: #666;
   margin-bottom: 0.5rem;
+}
+
+.projects-attachments {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.projects-attachment-img {
+  width: 96px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  display: block;
+}
+
+.projects-attachment-file {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.02);
+  color: #0f172a;
+  font-weight: 800;
 }
 
 .participation-section {

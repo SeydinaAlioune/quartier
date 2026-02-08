@@ -29,6 +29,25 @@ const Projects = () => {
   });
   const [submitFiles, setSubmitFiles] = useState([]);
 
+  const labels = useMemo(() => {
+    const status = {
+      proposed: 'en attente',
+      planning: 'planifié',
+      in_progress: 'en cours',
+      completed: 'terminé',
+      cancelled: 'annulé',
+    };
+    const category = {
+      infrastructure: 'Infrastructure',
+      environnement: 'Environnement',
+      social: 'Social',
+      culture: 'Culture',
+      securite: 'Sécurité',
+      autre: 'Autre',
+    };
+    return { status, category };
+  }, []);
+
   const openSubmit = () => {
     const token = localStorage.getItem('token');
     if (!token) return navigate('/login');
@@ -226,6 +245,15 @@ const Projects = () => {
     navigate(`/dons?project=${projectId}`);
   };
 
+  const handleHelpClick = () => {
+    const first = projects?.[0] || null;
+    if (first) {
+      setSelectedProject(first);
+      return;
+    }
+    document.getElementById('projects-list')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="projects-page">
       <div
@@ -348,7 +376,11 @@ const Projects = () => {
               </div>
               <div className="info-item">
                 <h4>Catégorie / Statut:</h4>
-                <p>{selectedProject.raw?.category || '—'} / {selectedProject.raw?.status || '—'}</p>
+                <p>
+                  {(labels.category[selectedProject.raw?.category] || selectedProject.raw?.category || '—')}
+                  {' / '}
+                  {(labels.status[selectedProject.raw?.status] || selectedProject.raw?.status || '—')}
+                </p>
               </div>
               <div className="info-item">
                 <h4>Responsable:</h4>
@@ -357,17 +389,25 @@ const Projects = () => {
               {Array.isArray(selectedProject.raw?.attachments) && selectedProject.raw.attachments.length > 0 && (
                 <div className="info-item">
                   <h4>Galerie:</h4>
-                  <div style={{display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
+                  <div className="projects-attachments">
                   {selectedProject.raw.attachments.map((att, idx) => {
                     const base = api.defaults.baseURL || '';
                     const sep = att.url?.startsWith('/') ? '' : '/';
                     const url = att.url?.startsWith('http') ? att.url : `${base}${sep}${att.url}`;
+                    const name = att?.name || (att?.type === 'image' ? 'Image' : 'Fichier');
                     return (
                       <a key={idx} href={url} target="_blank" rel="noreferrer">
                         {att.type === 'image' ? (
-                          <img src={url} alt="pièce jointe" style={{width: 96, height: 72, objectFit: 'cover', borderRadius: 6, border:'1px solid #eee'}} />
+                          <img
+                            src={url}
+                            alt=""
+                            className="projects-attachment-img"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
                         ) : (
-                          <span>Fichier</span>
+                          <span className="projects-attachment-file">{name}</span>
                         )}
                       </a>
                     );
@@ -398,11 +438,8 @@ const Projects = () => {
         <h2>Participez aux Projets du Quartier</h2>
         <p>Vous souhaitez vous impliquer dans l'amélioration de notre quartier? Rejoignez nos équipes de bénévoles ou participez aux réunions publiques!</p>
         <div className="action-buttons">
-          <button type="button" className="primary-button" onClick={() => {
-            const pid = projects?.[0]?.id;
-            if (pid) volunteerForProject(pid);
-          }} style={{ display: 'inline-block' }}>
-            Je veux aider
+          <button type="button" className="primary-button" onClick={handleHelpClick} style={{ display: 'inline-block' }}>
+            Choisir un projet
           </button>
         </div>
         {volunteerToast && (
