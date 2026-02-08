@@ -9,28 +9,36 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .report-modal-content {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
+  padding: 1.25rem;
+  border-radius: 16px;
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   position: relative;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 20px 70px rgba(0,0,0,0.28);
 }
 
 .close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+  position: sticky;
+  top: 0;
+  margin-left: auto;
+  background: rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 1.2rem;
   cursor: pointer;
-  color: #666;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
 }
 
 .close-button:hover {
@@ -39,8 +47,9 @@
 
 .report-modal h2 {
   color: #333;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  margin: 0.35rem 0 1.1rem;
+  text-align: left;
+  letter-spacing: -0.02em;
 }
 
 .form-group {
@@ -57,7 +66,8 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   color: #333;
-  font-weight: 500;
+  font-weight: 900;
+  font-size: 0.85rem;
 }
 
 input[type="text"],
@@ -66,9 +76,9 @@ input[type="time"],
 select,
 textarea {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
   font-size: 1rem;
 }
 
@@ -101,23 +111,24 @@ textarea {
 
 .cancel-button,
 .submit-button {
-  padding: 0.8rem 1.5rem;
-  border-radius: 4px;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  font-weight: 1000;
 }
 
 .cancel-button {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  color: #333;
+  background-color: rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #0f172a;
 }
 
 .submit-button {
-  background-color: #00a651;
-  border: none;
-  color: white;
+  background-color: rgba(0,132,61,0.10);
+  border: 1px solid rgba(0,132,61,0.25);
+  color: #006630;
 }
 
 .cancel-button:hover {
@@ -130,7 +141,7 @@ textarea {
 
 @media (max-width: 768px) {
   .report-modal-content {
-    padding: 1.5rem;
+    padding: 1.1rem;
     width: 95%;
   }
 

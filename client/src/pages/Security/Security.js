@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './Security.css';
 import ReportIncident from './ReportIncident';
 import api from '../../services/api';
@@ -19,10 +19,7 @@ const Security = () => {
   const [configError, setConfigError] = useState('');
 
   const [showReportForm, setShowReportForm] = useState(false);
-
-  const handleReportClick = () => {
-    setShowReportForm(true);
-  };
+  const [landmark, setLandmark] = useState('');
 
   const handleCloseReport = () => {
     setShowReportForm(false);
@@ -77,6 +74,85 @@ const Security = () => {
       alert("Échec de l'envoi. Réessayez plus tard.");
     }
   };
+
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const openReport = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return navigate('/login');
+    setShowReportForm(true);
+  };
+
+  const formatRelativeTime = (d) => {
+    try {
+      const date = new Date(d);
+      const diff = Date.now() - date.getTime();
+      if (!Number.isFinite(diff)) return '';
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return "à l'instant";
+      if (mins < 60) return `il y a ${mins} min`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `il y a ${hours} h`;
+      const days = Math.floor(hours / 24);
+      return `il y a ${days} j`;
+    } catch {
+      return '';
+    }
+  };
+
+  const statusLabel = (s) => {
+    const v = String(s || '').toLowerCase();
+    if (v === 'nouveau') return 'Nouveau';
+    if (v === 'en_cours') return 'En cours';
+    if (v === 'resolu') return 'Résolu';
+    return s || '';
+  };
+
+  const severityLabel = (s) => {
+    const v = String(s || '').toLowerCase();
+    if (v === 'high') return 'Élevée';
+    if (v === 'low') return 'Faible';
+    return 'Moyenne';
+  };
+
+  const filteredAlerts = useMemo(() => {
+    const lm = String(landmark || '').trim().toLowerCase();
+    if (!lm) return alerts;
+    return (alerts || []).filter((a) => {
+      const hay = [a.type, a.message, a.zone].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(lm);
+    });
+  }, [alerts, landmark]);
+
+  const filteredIncidents = useMemo(() => {
+    const lm = String(landmark || '').trim().toLowerCase();
+    if (!lm) return incidents;
+    return (incidents || []).filter((i) => {
+      const hay = [i.type, i.description, i.location].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(lm);
+    });
+  }, [incidents, landmark]);
+
+  const heroStats = useMemo(() => {
+    const activeAlerts = (alerts || []).length;
+    const last24h = (incidents || []).filter((i) => {
+      const d = i.createdAt || i.date;
+      if (!d) return false;
+      const t = new Date(d).getTime();
+      return Number.isFinite(t) && (Date.now() - t) <= 24 * 60 * 60 * 1000;
+    }).length;
+    const mostRecent = [...(alerts || []), ...(incidents || [])]
+      .map(x => x.createdAt || x.date)
+      .filter(Boolean)
+      .map(d => new Date(d).getTime())
+      .filter(t => Number.isFinite(t))
+      .sort((a, b) => b - a)[0];
+    const recentLabel = mostRecent ? formatRelativeTime(mostRecent) : 'Récent';
+    return { activeAlerts, last24h, recentLabel };
+  }, [alerts, incidents]);
 
   const fetchAlerts = async () => {
     try {
@@ -152,74 +228,152 @@ const Security = () => {
           backgroundPosition: 'center 35%'
         }}
       >
-        <h1>Sécurité du Quartier</h1>
+        <div className="security-hero-inner">
+          <p className="security-hero-kicker">Cité Gendarmerie</p>
+          <h1>Sécurité du quartier</h1>
+          <p className="security-hero-lead">Alertes en temps réel, signalements et informations utiles — pour protéger notre communauté.</p>
+          <div className="security-hero-actions">
+            <button type="button" className="security-hero-btn" onClick={openReport}>Signaler un incident</button>
+            <button type="button" className="security-hero-link" onClick={() => scrollToSection('security-alerts')}>Voir les alertes</button>
+          </div>
+          <div className="security-hero-stats" aria-label="Résumé sécurité">
+            <div className="security-stat"><span className="v">{heroStats.activeAlerts}</span><span className="l">alertes actives</span></div>
+            <div className="security-stat"><span className="v">{heroStats.last24h}</span><span className="l">signalements (24h)</span></div>
+            <div className="security-stat"><span className="v">{heroStats.recentLabel}</span><span className="l">mise à jour</span></div>
+          </div>
+          <p className="security-hero-note">Les signalements sont modérés avant publication. En cas d’urgence, privilégie un appel.</p>
+        </div>
       </header>
 
-      <p className="page-intro">Ensemble, veillons à la tranquillité et à la sécurité de notre communauté</p>
+      <div className="security-landmarks" aria-label="Repères du quartier">
+        <button type="button" className={`security-chip ${landmark === 'mairie' ? 'active' : ''}`} onClick={() => setLandmark(v => (v === 'mairie' ? '' : 'mairie'))}>Mairie</button>
+        <button type="button" className={`security-chip ${landmark === 'marche' ? 'active' : ''}`} onClick={() => setLandmark(v => (v === 'marche' ? '' : 'marche'))}>Marché</button>
+        <button type="button" className={`security-chip ${landmark === 'ecole' ? 'active' : ''}`} onClick={() => setLandmark(v => (v === 'ecole' ? '' : 'ecole'))}>École</button>
+        <button type="button" className={`security-chip ${landmark === 'mosquee' ? 'active' : ''}`} onClick={() => setLandmark(v => (v === 'mosquee' ? '' : 'mosquee'))}>Mosquée</button>
+      </div>
 
-      <section className="report-incident">
-        <h2>Signaler un Incident</h2>
-        <button className="report-button" onClick={handleReportClick}>
+      <section className="security-urgent" aria-label="Urgence">
+        <div className="security-section-head">
+          <div className="security-section-title">
+            <h2>Urgence immédiate ?</h2>
+            <p className="security-section-sub">Si quelqu’un est en danger, appelle un service d’urgence.</p>
+          </div>
+        </div>
+        <div className="security-urgent-actions">
+          <a className="security-urgent-btn" href="tel:17">Police</a>
+          <a className="security-urgent-btn" href="tel:18">Pompiers</a>
+          <a className="security-urgent-btn" href="tel:15">SAMU / Urgences</a>
+        </div>
+        <p className="security-urgent-note">Si ce n’est pas urgent, fais un signalement pour prévenir le quartier.</p>
+      </section>
+
+      <section className="report-incident" id="security-report">
+        <div className="security-section-head">
+          <div className="security-section-title">
+            <h2>Faire un signalement</h2>
+            <p className="security-section-sub">Décris ce qui s’est passé, ajoute une photo si besoin, et indique le lieu.</p>
+          </div>
+        </div>
+        <div className="security-points">
+          <div className="security-point">Anonyme si tu le souhaites</div>
+          <div className="security-point">Photo + localisation GPS (optionnel)</div>
+          <div className="security-point">Traitement et modération avant publication</div>
+        </div>
+        <button className="report-button" onClick={openReport}>
           <i className="fas fa-exclamation-triangle"></i> Signaler un incident
         </button>
         {showReportForm && <ReportIncident onClose={handleCloseReport} onSubmit={handleSubmitIncident} />}
       </section>
 
-      <section className="real-time-alerts">
-        <h2>Alertes en Temps Réel</h2>
+      <section className="real-time-alerts" id="security-alerts">
+        <div className="security-section-head">
+          <div className="security-section-title">
+            <h2>Alertes en temps réel</h2>
+            <p className="security-section-sub">Infos courtes et utiles pour rester vigilant dans le quartier.</p>
+          </div>
+          <div className="security-section-meta">
+            <span className="security-results">{filteredAlerts.length} alertes</span>
+          </div>
+        </div>
         {loading && <p>Chargement des alertes...</p>}
         {!loading && error && <p>{error}</p>}
-        {!loading && !error && alerts.length === 0 && <p>Aucune alerte pour le moment.</p>}
-        {!loading && !error && alerts.map((alert) => {
+        {!loading && !error && filteredAlerts.length === 0 && (
+          <div className="security-empty">
+            <div className="security-empty-title">Aucune alerte pour le moment</div>
+            <div className="security-empty-sub">Bonne nouvelle. Reste quand même vigilant et signale en cas de besoin.</div>
+          </div>
+        )}
+        {!loading && !error && filteredAlerts.map((alert) => {
           const t = (alert.type || '').toLowerCase();
+          const sev = String(alert.severity || 'medium').toLowerCase();
+          const when = alert.createdAt || alert.date;
           return (
-            <div key={alert._id || alert.id} className={`alert-card ${alert.severity || 'medium'}`}>
-              <div className="alert-header">
-                {t === 'cambriolage' && <i className="fas fa-shield-alt"></i>}
-                {t === 'circulation' && <i className="fas fa-car"></i>}
-                {t !== 'cambriolage' && t !== 'circulation' && <i className="fas fa-info-circle"></i>}
-                <h3>Alerte {t.charAt(0).toUpperCase() + t.slice(1)} - {new Date(alert.createdAt || alert.date).toLocaleDateString('fr-FR')}</h3>
+            <div key={alert._id || alert.id} className={`alert-card alert-${sev}`}>
+              <div className="alert-top">
+                <div className="alert-title">
+                  <span className="alert-type">{t ? (t.charAt(0).toUpperCase() + t.slice(1)) : 'Alerte'}</span>
+                  <span className={`alert-badge badge-${sev}`}>{severityLabel(sev)}</span>
+                </div>
+                <div className="alert-meta">
+                  {alert.zone ? <span className="alert-zone">{alert.zone}</span> : <span className="alert-zone">Quartier</span>}
+                  {when ? <span className="alert-time">{formatRelativeTime(when)}</span> : null}
+                </div>
               </div>
-              <p>{alert.message}</p>
+              <p className="alert-message">{alert.message}</p>
             </div>
           );
         })}
 
-        <div className="police-info">
-          <i className="fas fa-police-box"></i>
-          <h3>{config?.policeInfo?.title || 'Patrouilles de Police'}</h3>
+        <div className="police-info" aria-label="Infos officielles">
+          <h3>Infos officielles</h3>
           {configError && <p className="contact-info">{configError}</p>}
-          {!configError && (
+          {!configError && !config?.policeInfo?.message && !config?.policeInfo?.contact && (
+            <div className="police-empty">
+              <div className="police-empty-title">Aucune info publiée</div>
+              <div className="police-empty-sub">Cette section sera mise à jour par l’administration du quartier.</div>
+            </div>
+          )}
+          {!configError && (config?.policeInfo?.message || config?.policeInfo?.contact) && (
             <>
-              <p>{config?.policeInfo?.message || '—'}</p>
-              <p className="contact-info">{config?.policeInfo?.contact || ''}</p>
+              {config?.policeInfo?.message && <p className="police-message">{config.policeInfo.message}</p>}
+              {config?.policeInfo?.contact && <p className="contact-info">{config.policeInfo.contact}</p>}
             </>
           )}
         </div>
       </section>
 
       <section className="security-incidents">
-        <h2>Derniers Incidents Déclarés</h2>
+        <div className="security-section-head">
+          <div className="security-section-title">
+            <h2>Signalements récents</h2>
+            <p className="security-section-sub">Historique des incidents signalés par les membres du quartier.</p>
+          </div>
+          <div className="security-section-meta">
+            <span className="security-results">{filteredIncidents.length} signalements</span>
+          </div>
+        </div>
         {loading && <p>Chargement des incidents...</p>}
-        {!loading && !error && incidents.length === 0 && <p>Aucun incident pour le moment.</p>}
+        {!loading && !error && filteredIncidents.length === 0 && (
+          <div className="security-empty">
+            <div className="security-empty-title">Aucun signalement récent</div>
+            <div className="security-empty-sub">Si tu constates un problème, tu peux faire un signalement en 2 minutes.</div>
+            <button type="button" className="security-empty-cta" onClick={openReport}>Faire un signalement</button>
+          </div>
+        )}
         <div className="incidents-grid">
-          {incidents.map((it) => (
+          {filteredIncidents.map((it) => (
             <div key={it._id || it.id} className="incident-card">
               <div className="incident-header">
-                <i className="fas fa-bullhorn"></i>
-                <h3>{it.type}</h3>
-                <span className={`status ${it.status}`}>{it.status}</span>
+                <div className="incident-title">{it.type || 'Signalement'}</div>
+                <span className={`incident-badge status-${String(it.status || '').toLowerCase()}`}>{statusLabel(it.status)}</span>
               </div>
-              <p className="incident-date">{new Date(it.createdAt || it.date).toLocaleString('fr-FR')}</p>
-              {it.location && <p><strong>Lieu:</strong> {it.location}</p>}
-              <p>{it.description}</p>
-              {it.locationCoords && typeof it.locationCoords.lat === 'number' && typeof it.locationCoords.lng === 'number' && (
-                <p>
-                  <a href={`https://www.google.com/maps?q=${it.locationCoords.lat},${it.locationCoords.lng}`} target="_blank" rel="noreferrer">Voir sur la carte</a>
-                </p>
-              )}
+              <div className="incident-meta">
+                <span className="incident-time">{formatRelativeTime(it.createdAt || it.date)}</span>
+                {it.location && <span className="incident-loc">{it.location}</span>}
+              </div>
+              <p className="incident-desc">{it.description}</p>
               {Array.isArray(it.attachments) && it.attachments.length > 0 && (
-                <div style={{marginTop: '.5rem', display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
+                <div className="incident-att">
                   {it.attachments.map((att, idx) => (
                     <a key={idx} href={att.url} target="_blank" rel="noreferrer">
                       {att.type === 'image' ? (
@@ -231,6 +385,11 @@ const Security = () => {
                   ))}
                 </div>
               )}
+              {it.locationCoords && typeof it.locationCoords.lat === 'number' && typeof it.locationCoords.lng === 'number' && (
+                <div className="incident-actions">
+                  <a className="incident-link" href={`https://www.google.com/maps?q=${it.locationCoords.lat},${it.locationCoords.lng}`} target="_blank" rel="noreferrer">Voir sur la carte</a>
+                </div>
+              )}
               {it.contact && <p className="contact-info"><strong>Contact:</strong> {it.contact}</p>}
               {it.anonymous && <p className="contact-info">Signalement anonyme</p>}
             </div>
@@ -239,7 +398,18 @@ const Security = () => {
       </section>
 
       <section className="security-tips">
-        <h2>Conseils de Sécurité</h2>
+        <div className="security-section-head">
+          <div className="security-section-title">
+            <h2>Conseils de sécurité</h2>
+            <p className="security-section-sub">Gestes simples, bons réflexes et prévention.</p>
+          </div>
+        </div>
+        {!configError && (!Array.isArray(config?.tips) || config.tips.length === 0) && (
+          <div className="security-empty">
+            <div className="security-empty-title">Conseils bientôt disponibles</div>
+            <div className="security-empty-sub">L’administration ajoutera des recommandations adaptées au quartier.</div>
+          </div>
+        )}
         <div className="tips-grid">
           {(config?.tips || []).map((category, index) => (
             <div key={index} className="tip-card">
