@@ -287,7 +287,10 @@ const Forum = () => {
                         <span className="author">Par {t.author}</span>
                         {lastDate && (
                           <span className="last">
-                            Dernière activité {lastDate}{lastTime ? ` · ${lastTime}` : ''}{t.lastReplyBy ? ` · ${t.lastReplyBy}` : ''}
+                            <span className="last-label">Dernière activité</span>
+                            <span className="last-value">
+                              {lastDate}{lastTime ? ` · ${lastTime}` : ''}{t.lastReplyBy ? ` · ${t.lastReplyBy}` : ''}
+                            </span>
                           </span>
                         )}
                       </div>
