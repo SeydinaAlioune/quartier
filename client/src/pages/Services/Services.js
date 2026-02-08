@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Services.css';
 import api from '../../services/api';
@@ -22,6 +22,13 @@ const Services = () => {
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
   const [showOptionalContact, setShowOptionalContact] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: '' });
+  const [modalDragY, setModalDragY] = useState(0);
+  const [isDraggingModal, setIsDraggingModal] = useState(false);
+
+  const modalRef = useRef(null);
+  const dragStartYRef = useRef(0);
+  const dragActiveRef = useRef(false);
   const [submitForm, setSubmitForm] = useState({
     name: '',
     description: '',
@@ -50,8 +57,22 @@ const Services = () => {
     setSubmitError('');
     setSubmitSuccess('');
     setShowOptionalContact(false);
+    setModalDragY(0);
+    setIsDraggingModal(false);
     setShowSubmitModal(true);
   };
+
+  const closeSubmit = () => {
+    setShowSubmitModal(false);
+    setModalDragY(0);
+    setIsDraggingModal(false);
+  };
+
+  useEffect(() => {
+    if (!toast.open) return;
+    const t = setTimeout(() => setToast({ open: false, message: '' }), 4000);
+    return () => clearTimeout(t);
+  }, [toast.open]);
 
   const handleSubmitService = async (e) => {
     e.preventDefault();
@@ -78,6 +99,8 @@ const Services = () => {
       });
 
       setSubmitSuccess('Merci ! Votre service a été envoyé et sera validé par un administrateur.');
+      setToast({ open: true, message: 'Proposition envoyée. Merci !' });
+      setTimeout(() => closeSubmit(), 1400);
       setSubmitForm({
         name: '',
         description: '',
@@ -203,7 +226,11 @@ const Services = () => {
         {loading && <p>Chargement des services...</p>}
         {!loading && error && <p className="services-error">{error}</p>}
         {!loading && !error && services.length === 0 && (
-          <p>Aucun service pour le moment. Les administrateurs pourront en ajouter prochainement.</p>
+          <div className="services-empty">
+            <div className="services-empty-title">Aucun service publié</div>
+            <div className="services-empty-sub">Soyez le premier à proposer un service. Il sera validé avant publication.</div>
+            <button type="button" className="services-empty-cta" onClick={openSubmit}>Proposer le premier service</button>
+          </div>
         )}
         <div className="service-cards">
           {services.map((s) => (
@@ -402,11 +429,46 @@ const Services = () => {
     </div>
 
     {showSubmitModal && (
-      <div className="services-modal-overlay" onMouseDown={() => setShowSubmitModal(false)}>
-        <div className="services-modal" onMouseDown={(e) => e.stopPropagation()}>
+      <div className="services-modal-overlay" onMouseDown={() => closeSubmit()}>
+        <div
+          ref={modalRef}
+          className={`services-modal ${isDraggingModal ? 'dragging' : ''}`}
+          style={{ transform: modalDragY ? `translateY(${modalDragY}px)` : undefined }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => {
+            const el = modalRef.current;
+            if (!el) return;
+            if (el.scrollTop > 0) return;
+            if (!e.touches || e.touches.length !== 1) return;
+            dragActiveRef.current = true;
+            dragStartYRef.current = e.touches[0].clientY;
+            setIsDraggingModal(true);
+          }}
+          onTouchMove={(e) => {
+            if (!dragActiveRef.current) return;
+            if (!e.touches || e.touches.length !== 1) return;
+            const delta = e.touches[0].clientY - dragStartYRef.current;
+            if (delta <= 0) {
+              setModalDragY(0);
+              return;
+            }
+            setModalDragY(Math.min(delta, 320));
+            e.preventDefault();
+          }}
+          onTouchEnd={() => {
+            if (!dragActiveRef.current) return;
+            dragActiveRef.current = false;
+            setIsDraggingModal(false);
+            if (modalDragY > 120) {
+              closeSubmit();
+              return;
+            }
+            setModalDragY(0);
+          }}
+        >
           <div className="services-modal-head">
             <h3>Proposer un service</h3>
-            <button type="button" className="services-modal-close" onClick={() => setShowSubmitModal(false)}>✕</button>
+            <button type="button" className="services-modal-close" onClick={() => closeSubmit()}>✕</button>
           </div>
 
           <p className="services-modal-sub">Votre proposition sera vérifiée par un administrateur avant publication.</p>
@@ -472,13 +534,21 @@ const Services = () => {
             {submitSuccess && <div className="services-form-success">{submitSuccess}</div>}
 
             <div className="services-modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => setShowSubmitModal(false)}>Fermer</button>
+              <button type="button" className="btn-secondary" onClick={() => closeSubmit()}>Fermer</button>
               <button type="submit" className="btn-primary" disabled={submitLoading}>
                 {submitLoading ? 'Envoi...' : 'Envoyer'}
               </button>
             </div>
           </form>
         </div>
+      </div>
+    )}
+
+    {toast.open && (
+      <div className="services-toast" role="status" aria-live="polite">
+        <span className="services-toast-dot" />
+        <span className="services-toast-text">{toast.message}</span>
+        <button type="button" className="services-toast-close" onClick={() => setToast({ open: false, message: '' })}>✕</button>
       </div>
     )}
     </>
