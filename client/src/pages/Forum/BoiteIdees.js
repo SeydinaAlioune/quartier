@@ -98,9 +98,18 @@ const BoiteIdees = () => {
 
   return (
     <section className="boite-idees-section">
-      <h2>Boîte à Idées</h2>
+      <div className="section-head">
+        <div>
+          <h2>Boîte à Idées</h2>
+          <p className="section-subtitle">Proposez des améliorations concrètes pour le quartier et votez pour celles qui vous inspirent.</p>
+        </div>
+        <button className="new-idee-btn" onClick={() => setShowModal(true)}>
+          <i className="fas fa-lightbulb"></i> Proposer une idée
+        </button>
+      </div>
+
       <div className="idees-grid">
-        {loading && <div>Chargement...</div>}
+        {loading && <div className="forum-muted">Chargement...</div>}
         {!loading && error && <div className="forum-error">{error}</div>}
         {!loading && !error && idees.length === 0 && (
           <div className="idee-card">
@@ -122,19 +131,17 @@ const BoiteIdees = () => {
             </p>
             <p className="idee-description">{idee.description}</p>
             <div className="idee-votes">
-              <button className="vote-btn" onClick={() => handleVote(idee)}>
-                <i className="fas fa-thumbs-up"></i>
+              <button className="vote-btn v2" onClick={() => handleVote(idee)}>
+                <i className="fas fa-thumbs-up" aria-hidden="true"></i>
+                <span>Vote</span>
               </button>
-              <span>{idee.votes} votes</span>
-              <button className="link-like" style={{marginLeft:'8px'}} onClick={() => handleReport(idee)}>Signaler</button>
+              <span className="votes-pill">{idee.votes} votes</span>
+              <button className="link-like" onClick={() => handleReport(idee)}>Signaler</button>
             </div>
           </div>
           </AnimatedSection>
         ))}
       </div>
-      <button className="new-idee-btn" onClick={() => setShowModal(true)}>
-        <i className="fas fa-lightbulb"></i> Proposer une idée
-      </button>
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>

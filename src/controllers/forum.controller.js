@@ -523,6 +523,20 @@ exports.getRecentTopics = async (req, res) => {
     const topics = await ForumTopic.find().sort({ updatedAt: -1 }).limit(10).populate('author', 'name').populate('category', 'name');
     const result = await Promise.all(topics.map(async (t) => {
       const replies = await ForumPost.countDocuments({ topic: t._id });
+
+      const lastPost = await ForumPost.findOne({ topic: t._id })
+        .sort({ createdAt: -1 })
+        .select('content createdAt author')
+        .populate('author', 'name');
+
+      const lastPostContent = (lastPost?.content || '').toString();
+      const normalizedPreview = lastPostContent
+        .replace(/\s+/g, ' ')
+        .trim();
+      const lastPostPreview = normalizedPreview.length > 160
+        ? `${normalizedPreview.slice(0, 160)}…`
+        : normalizedPreview;
+
       return {
         id: t._id,
         title: t.title,
@@ -533,6 +547,10 @@ exports.getRecentTopics = async (req, res) => {
         status: t.status,
         created: t.createdAt,
         lastReply: t.updatedAt,
+
+        lastReplyAt: lastPost?.createdAt || t.updatedAt,
+        lastReplyBy: lastPost?.author?.name || '—',
+        lastPostPreview,
       };
     }));
     res.json(result);

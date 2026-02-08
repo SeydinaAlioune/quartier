@@ -80,6 +80,24 @@ const Forum = () => {
     return matchesCategory && matchesSearch;
   });
 
+  const formatShortDate = (iso) => {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    } catch {
+      return '';
+    }
+  };
+
+  const formatTime = (iso) => {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <>
       <header
@@ -96,13 +114,16 @@ const Forum = () => {
       <p className="page-intro">Échangez, partagez et connectez-vous avec vos voisins</p>
       <div className="forum-controls">
         <div className="search-filters">
-          <input
-            type="text"
-            placeholder="Rechercher une discussion..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
+          <div className="search-input-wrap">
+            <i className="fas fa-search" aria-hidden="true"></i>
+            <input
+              type="text"
+              placeholder="Rechercher une discussion..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -131,25 +152,66 @@ const Forum = () => {
             <p>Aucune discussion pour le moment. Soyez le premier à en créer une !</p>
           </div>
         )}
-        {!loading && !error && filteredTopics.map(t => (
-          <div key={t.id} className="discussion-card">
-            <div className="discussion-main">
-              <h3>{t.title}</h3>
-              <div className="discussion-meta">
-                <span className="category-tag">{t.category}</span>
-                <span className="author">Par {t.author}</span>
-                <span className="date">{new Date(t.created).toLocaleDateString('fr-FR')}</span>
-              </div>
-            </div>
-            <div className="discussion-stats">
-              <span className="replies">
-                <i className="far fa-comment"></i>
-                {t.replies} réponses
-              </span>
-              <button className="view-discussion" onClick={() => navigate(`/forum/topics/${t.id}`)} title="Voir la discussion">Voir la discussion</button>
-            </div>
+        {!loading && !error && (
+          <div className="discussions-grid">
+            {filteredTopics.map(t => {
+              const initials = (t.author || '—').trim().slice(0, 1).toUpperCase();
+              const lastAt = t.lastReplyAt || t.lastReply;
+              const lastDate = formatShortDate(lastAt);
+              const lastTime = formatTime(lastAt);
+              return (
+                <div
+                  key={t.id}
+                  className={`discussion-card v2 ${t.status ? `is-${t.status}` : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/forum/topics/${t.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') navigate(`/forum/topics/${t.id}`);
+                  }}
+                >
+                  <div className="discussion-left">
+                    <div className="discussion-avatar" aria-hidden="true">{initials}</div>
+                    <div className="discussion-body">
+                      <div className="discussion-title-row">
+                        <h3 className="discussion-title">{t.title}</h3>
+                        {t.status && t.status !== 'active' && (
+                          <span className={`topic-status is-${t.status}`}>{t.status}</span>
+                        )}
+                      </div>
+                      {t.lastPostPreview ? (
+                        <p className="discussion-preview">{t.lastPostPreview}</p>
+                      ) : (
+                        <p className="discussion-preview">Cliquez pour ouvrir la discussion.</p>
+                      )}
+                      <div className="discussion-meta v2">
+                        <span className="category-tag">{t.category}</span>
+                        <span className="author">Par {t.author}</span>
+                        {lastDate && (
+                          <span className="last">
+                            Dernière activité {lastDate}{lastTime ? ` · ${lastTime}` : ''}{t.lastReplyBy ? ` · ${t.lastReplyBy}` : ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="discussion-right">
+                    <div className="discussion-kpis">
+                      <span className="replies">
+                        <i className="far fa-comment" aria-hidden="true"></i>
+                        {t.replies}
+                      </span>
+                    </div>
+                    <div className="open-arrow" aria-hidden="true">
+                      <i className="fas fa-chevron-right"></i>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
+        )}
       </section>
 
       <Annonces />
