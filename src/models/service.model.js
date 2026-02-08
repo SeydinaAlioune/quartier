@@ -53,6 +53,25 @@ const serviceSchema = new mongoose.Schema({
     images: [{
         type: String
     }],
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    submittedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    reviewedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    reviewedAt: {
+        type: Date
+    },
+    reviewNote: {
+        type: String
+    },
     status: {
         type: String,
         enum: ['active', 'inactive', 'temporaire'],

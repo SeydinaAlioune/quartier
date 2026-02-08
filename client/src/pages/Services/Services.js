@@ -26,6 +26,7 @@ const Services = () => {
       params.set('page', '1');
       params.set('limit', '50');
       params.set('status', 'active');
+      params.set('approvalStatus', 'approved');
       if (search.trim()) params.set('search', search.trim());
       if (category) params.set('category', category);
       const res = await api.get(`/api/services?${params.toString()}`);

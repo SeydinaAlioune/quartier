@@ -20,7 +20,11 @@ exports.createService = async (req, res) => {
             provider,
             location,
             schedule,
-            features
+            features,
+            approvalStatus: 'approved',
+            reviewedBy: req.user?._id,
+            reviewedAt: new Date(),
+            reviewNote: 'Créé par un administrateur'
         });
 
         await service.save();
@@ -34,12 +38,49 @@ exports.createService = async (req, res) => {
     }
 };
 
+// Soumettre un service (résident) -> en attente de validation
+exports.submitService = async (req, res) => {
+    try {
+        const {
+            name,
+            description,
+            category,
+            provider,
+            location,
+            schedule,
+            features
+        } = req.body;
+
+        const service = new Service({
+            name,
+            description,
+            category,
+            provider,
+            location,
+            schedule,
+            features,
+            approvalStatus: 'pending',
+            submittedBy: req.user?._id
+        });
+
+        await service.save();
+        res.status(201).json({
+            message: 'Service soumis. En attente de validation.',
+            service
+        });
+    } catch (error) {
+        console.error('Erreur soumission service:', error);
+        res.status(500).json({ message: 'Erreur lors de la soumission du service' });
+    }
+};
+
 // Récupérer tous les services
 exports.getServices = async (req, res) => {
     try {
         const {
             category,
             status,
+            approvalStatus,
             search,
             page = 1,
             limit = 10
@@ -48,6 +89,9 @@ exports.getServices = async (req, res) => {
         const query = {};
         if (category) query.category = category;
         if (status) query.status = status;
+        // Par défaut, l'API publique ne retourne que les services approuvés.
+        if (approvalStatus && approvalStatus !== 'all') query.approvalStatus = approvalStatus;
+        if (!approvalStatus) query.approvalStatus = 'approved';
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -183,5 +227,37 @@ exports.rateService = async (req, res) => {
     } catch (error) {
         console.error('Erreur notation service:', error);
         res.status(500).json({ message: 'Erreur lors de l\'ajout de la note' });
+    }
+};
+
+// Approuver / rejeter un service
+exports.setApprovalStatus = async (req, res) => {
+    try {
+        const service = await Service.findById(req.params.id);
+
+        if (!service) {
+            return res.status(404).json({ message: 'Service non trouvé' });
+        }
+
+        // Vérification des permissions (admin seulement)
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Non autorisé' });
+        }
+
+        const next = req.body?.approvalStatus;
+        if (!['pending', 'approved', 'rejected'].includes(next)) {
+            return res.status(400).json({ message: 'approvalStatus invalide' });
+        }
+
+        service.approvalStatus = next;
+        service.reviewedBy = req.user?._id;
+        service.reviewedAt = new Date();
+        if (req.body?.reviewNote !== undefined) service.reviewNote = req.body.reviewNote;
+
+        await service.save();
+        res.json({ message: 'Statut de validation mis à jour', service });
+    } catch (error) {
+        console.error('Erreur validation service:', error);
+        res.status(500).json({ message: 'Erreur lors de la validation du service' });
     }
 };

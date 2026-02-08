@@ -9,6 +9,7 @@ const AdminServices = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [approvalFilter, setApprovalFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,7 +51,7 @@ const AdminServices = () => {
     try {
       setLoading(true);
       setError('');
-      const res = await api.get('/api/services');
+      const res = await api.get('/api/services?approvalStatus=all&limit=200');
       const list = res?.data?.services || res?.data || [];
       setServices(Array.isArray(list) ? list : []);
     } catch (e) {
@@ -126,11 +127,33 @@ const AdminServices = () => {
 
   const filtered = services
     .filter(s => (statusFilter === 'all' || s.status === statusFilter))
+    .filter(s => (approvalFilter === 'all' || s.approvalStatus === approvalFilter))
     .filter(s => (categoryFilter === 'all' || s.category === categoryFilter))
     .filter(s => {
       const q = searchQuery.trim().toLowerCase();
       return q === '' || (s.name || '').toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q) || (s.provider?.name || '').toLowerCase().includes(q);
     });
+
+  const handleApprove = async (service) => {
+    try {
+      await api.put(`/api/services/${service._id}/approval`, { approvalStatus: 'approved' });
+      await fetchServices();
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Validation impossible.';
+      alert(msg);
+    }
+  };
+
+  const handleReject = async (service) => {
+    const note = window.prompt('Motif du rejet (optionnel)', '');
+    try {
+      await api.put(`/api/services/${service._id}/approval`, { approvalStatus: 'rejected', reviewNote: note || undefined });
+      await fetchServices();
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Rejet impossible.';
+      alert(msg);
+    }
+  };
 
   const handleDeleteService = async (id) => {
     if (!window.confirm('Supprimer ce service ?')) return;
@@ -290,6 +313,12 @@ const AdminServices = () => {
                 <option value="inactive">Inactif</option>
                 <option value="temporaire">Temporaire</option>
               </select>
+              <select value={approvalFilter} onChange={(e) => setApprovalFilter(e.target.value)} className="filter-select">
+                <option value="all">Toutes les validations</option>
+                <option value="pending">En attente</option>
+                <option value="approved">Approuvé</option>
+                <option value="rejected">Rejeté</option>
+              </select>
               <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="filter-select">
                 <option value="all">Toutes les catégories</option>
                 {SERVICE_CATEGORIES.map(c => (
@@ -307,6 +336,9 @@ const AdminServices = () => {
                   <h3>{s.name}</h3>
                   <span className={`status-badge ${s.status}`}>{s.status || '—'}</span>
                 </div>
+                <div className="service-approval">
+                  <span className={`approval-badge ${s.approvalStatus || 'pending'}`}>{s.approvalStatus || 'pending'}</span>
+                </div>
                 <div className="service-info">
                   <div className="info-group">
                     <span className="label">Catégorie:</span>
@@ -322,6 +354,12 @@ const AdminServices = () => {
                   </div>
                 </div>
                 <div className="card-actions">
+                  {(s.approvalStatus || 'pending') === 'pending' && (
+                    <>
+                      <button className="btn btn-approve" onClick={() => handleApprove(s)}>Approuver</button>
+                      <button className="btn btn-reject" onClick={() => handleReject(s)}>Rejeter</button>
+                    </>
+                  )}
                   <button className="btn btn-toggle" onClick={() => handleToggleStatus(s)}>
                     {s.status === 'active' ? 'Désactiver' : 'Activer'}
                   </button>

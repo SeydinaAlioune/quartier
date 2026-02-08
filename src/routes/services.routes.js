@@ -9,9 +9,11 @@ router.get('/:id', serviceController.getService);
 
 // Routes protégées
 router.post('/:id/rate', auth, serviceController.rateService);
+router.post('/submit', auth, serviceController.submitService);
 
 // Routes admin
 router.post('/', auth, checkRole(['admin']), serviceController.createService);
+router.put('/:id/approval', auth, checkRole(['admin']), serviceController.setApprovalStatus);
 router.put('/:id', auth, checkRole(['admin']), serviceController.updateService);
 router.delete('/:id', auth, checkRole(['admin']), serviceController.deleteService);
 
