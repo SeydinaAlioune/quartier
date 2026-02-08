@@ -198,24 +198,28 @@ const Annonces = () => {
             <div>Aucune annonce pour le moment.</div>
           )}
           {!myLoading && !myError && myAds.length > 0 && (
-            <ul>
+            <div className="my-ads-list">
               {myAds.map(ad => (
-                <li key={ad.id}>
-                  <strong>{(ad.type || '').toUpperCase()}</strong> · {ad.title}
-                  {ad.description ? ` — ${ad.description}` : ''}
-                  {ad.price ? ` — ${ad.price}` : ''}
-                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 12, fontSize: 12, background: ad.status === 'approved' ? '#c6f6d5' : ad.status === 'rejected' ? '#fed7d7' : '#fefcbf', color: '#2d3748' }}>
-                    {ad.status}
-                  </span>
-                  <span style={{ marginLeft: 8, color: '#718096' }}>
-                    {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString('fr-FR') : ''}
-                  </span>
-                  <span style={{ marginLeft: 8 }}>
+                <div key={ad.id} className="my-ad-item">
+                  <div className="my-ad-main">
+                    <div className="my-ad-title">
+                      <span className="my-ad-type">{(ad.type || '').toUpperCase()}</span>
+                      <span className="my-ad-dot" aria-hidden="true">•</span>
+                      <span className="my-ad-name">{ad.title}</span>
+                    </div>
+                    <div className="my-ad-meta">
+                      {ad.status && <span className={`my-ad-status is-${ad.status}`}>{ad.status}</span>}
+                      {ad.createdAt && <span className="my-ad-date">{new Date(ad.createdAt).toLocaleDateString('fr-FR')}</span>}
+                      {ad.price && <span className="my-ad-price">{ad.price}</span>}
+                    </div>
+                    {ad.description && <div className="my-ad-desc">{ad.description}</div>}
+                  </div>
+                  <div className="my-ad-actions">
                     <button className="link-like" onClick={() => {
                       setEditAd({ id: ad.id, type: ad.type, titre: ad.title, description: ad.description || '', prix: ad.price || '', imageUrl: ad.imageUrl || '', images: Array.isArray(ad.images)?ad.images:[] });
                       setShowEditModal(true);
                     }}>Modifier</button>
-                    <button className="link-like" style={{ marginLeft: 8 }} onClick={async () => {
+                    <button className="link-like" onClick={async () => {
                       if (!window.confirm('Supprimer cette annonce ?')) return;
                       try {
                         await api.delete(`/api/forum/ads/mine/${ad.id}`);
@@ -224,10 +228,10 @@ const Annonces = () => {
                         alert('Annonce supprimée');
                       } catch (e) { alert('Suppression impossible.'); }
                     }}>Supprimer</button>
-                  </span>
-                </li>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       )}
@@ -249,6 +253,7 @@ const Annonces = () => {
                         className="ad-thumb"
                         src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
                         alt={item.titre}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         loading="lazy"
                         decoding="async"
                         width="400"
@@ -287,6 +292,7 @@ const Annonces = () => {
                         className="ad-thumb"
                         src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
                         alt={item.titre}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         loading="lazy"
                         decoding="async"
                         width="400"
@@ -324,6 +330,7 @@ const Annonces = () => {
                         className="ad-thumb"
                         src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
                         alt={item.titre}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         loading="lazy"
                         decoding="async"
                         width="400"

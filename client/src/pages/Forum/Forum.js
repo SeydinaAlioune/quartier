@@ -51,8 +51,19 @@ const Forum = () => {
       return navigate('/login');
     }
     try {
-      const payload = { title: newDiscussion.title, category: newDiscussion.categoryId };
-      await api.post('/api/forum/topics', payload);
+      const title = (newDiscussion.title || '').trim();
+      const content = (newDiscussion.content || '').trim();
+      if (!title || !newDiscussion.categoryId || !content) {
+        alert('Titre, catégorie et contenu requis.');
+        return;
+      }
+
+      const payload = { title, category: newDiscussion.categoryId };
+      const created = await api.post('/api/forum/topics', payload);
+      const topicId = created?.data?._id || created?.data?.id;
+      if (topicId) {
+        await api.post('/api/forum/posts', { topic: topicId, content });
+      }
       setShowNewDiscussion(false);
       setNewDiscussion({ title: '', categoryId: '', content: '' });
       // recharger
