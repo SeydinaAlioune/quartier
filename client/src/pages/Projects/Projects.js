@@ -343,9 +343,9 @@ const Projects = () => {
                     Avancement: {project.progress}% {project.phaseLabel ? `(${project.phaseLabel})` : ''}
                   </span>
                 </div>
-                <div style={{display:'flex', gap:'.5rem', marginTop:'.5rem'}}>
-                  <button className="details-button" onClick={() => setSelectedProject(project)} style={{flex:1}}>Voir les détails</button>
-                  <button className="donate-button" type="button" onClick={() => volunteerForProject(project.id)} style={{flex:1}}>Devenir bénévole</button>
+                <div className="project-actions">
+                  <button className="details-button" onClick={() => setSelectedProject(project)}>Voir les détails</button>
+                  <button className="donate-button" type="button" onClick={() => volunteerForProject(project.id)}>Devenir bénévole</button>
                 </div>
               </div>
             </div>
