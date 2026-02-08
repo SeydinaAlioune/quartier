@@ -4,6 +4,11 @@
   padding: 2rem;
 }
 
+.projects-cta-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .projects-header {
   position: relative;
   text-align: center;
@@ -194,6 +199,46 @@
   width: 100%;
 }
 
+.project-media {
+  position: relative;
+}
+
+.project-badges {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.project-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(15, 23, 42, 0.40);
+  color: rgba(255,255,255,0.95);
+  font-weight: 900;
+  font-size: 0.78rem;
+  backdrop-filter: blur(10px);
+}
+
+.project-pill--status {
+  background: rgba(0, 132, 61, 0.42);
+}
+
+.project-pill--planning,
+.project-pill--proposed {
+  background: rgba(234, 179, 8, 0.42);
+}
+
+.project-pill--cancelled {
+  background: rgba(239, 68, 68, 0.40);
+}
+
 .project-image {
   width: 100%;
   height: 250px;
@@ -210,10 +255,11 @@
   flex-direction: column;
 }
 
-.project-content h3 {
+.project-title {
   margin: 0 0 0.5rem 0;
   color: #333;
   font-size: 1.25rem;
+  letter-spacing: -0.02em;
 }
 
 .project-dates {
@@ -289,6 +335,78 @@
 
 .events-section {
   margin: 4rem 0;
+}
+
+.events-list {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.event-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.event-date {
+  border-radius: 16px;
+  border: 1px solid rgba(0,132,61,0.18);
+  background: rgba(0,132,61,0.06);
+  display: grid;
+  place-content: center;
+  text-align: center;
+  min-height: 92px;
+}
+
+.event-date .d {
+  font-weight: 1000;
+  font-size: 1.25rem;
+  color: #0b5d30;
+  line-height: 1.1;
+}
+
+.event-date .m {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #0b5d30;
+}
+
+.event-card {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 18px 60px rgba(15,23,42,0.06);
+  padding: 1rem;
+}
+
+.event-head {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.event-head h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.event-meta {
+  color: #64748b;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.event-desc {
+  margin: 0.7rem 0 0;
+  color: #334155;
+  line-height: 1.55;
 }
 
 .project-budget {
@@ -822,6 +940,62 @@
   margin-top: 2rem;
 }
 
+.faq-accordion {
+  max-width: 980px;
+  margin: 1.25rem auto 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.faq-acc-item {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 18px 60px rgba(15,23,42,0.05);
+  overflow: hidden;
+}
+
+.faq-acc-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+  padding: 1rem 1.05rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.faq-acc-trigger .q {
+  font-weight: 1000;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+.faq-acc-trigger .i {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-content: center;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  font-weight: 1000;
+  color: #0f172a;
+}
+
+.faq-acc-panel {
+  padding: 0 1.05rem 1rem;
+}
+
+.faq-acc-panel p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.6;
+}
+
 .faq-item {
   background: white;
   padding: 1.5rem;
@@ -905,6 +1079,18 @@
 
   .projects-project-modal__cover {
     height: 200px;
+  }
+
+  .event-row {
+    grid-template-columns: 1fr;
+  }
+
+  .event-date {
+    min-height: auto;
+    padding: 0.75rem;
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-start;
   }
   
   .action-buttons {

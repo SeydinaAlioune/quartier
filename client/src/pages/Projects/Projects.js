@@ -4,6 +4,23 @@ import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 
+const STATUS_LABELS_FR = {
+  proposed: 'en attente',
+  planning: 'planifié',
+  in_progress: 'en cours',
+  completed: 'terminé',
+  cancelled: 'annulé',
+};
+
+const CATEGORY_LABELS_FR = {
+  infrastructure: 'Infrastructure',
+  environnement: 'Environnement',
+  social: 'Social',
+  culture: 'Culture',
+  securite: 'Sécurité',
+  autre: 'Autre',
+};
+
 const Projects = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
@@ -21,6 +38,7 @@ const Projects = () => {
   const [submitToast, setSubmitToast] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
   const [supportToast, setSupportToast] = useState('');
+  const [faqOpen, setFaqOpen] = useState(null);
   const [submitForm, setSubmitForm] = useState({
     title: '',
     description: '',
@@ -29,24 +47,15 @@ const Projects = () => {
   });
   const [submitFiles, setSubmitFiles] = useState([]);
 
-  const labels = useMemo(() => {
-    const status = {
-      proposed: 'en attente',
-      planning: 'planifié',
-      in_progress: 'en cours',
-      completed: 'terminé',
-      cancelled: 'annulé',
-    };
-    const category = {
-      infrastructure: 'Infrastructure',
-      environnement: 'Environnement',
-      social: 'Social',
-      culture: 'Culture',
-      securite: 'Sécurité',
-      autre: 'Autre',
-    };
-    return { status, category };
-  }, []);
+  const formatEventDate = (d) => {
+    if (!d) return { day: '—', month: '—', time: '' };
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return { day: '—', month: '—', time: '' };
+    const day = dt.toLocaleDateString('fr-FR', { day: '2-digit' });
+    const month = dt.toLocaleDateString('fr-FR', { month: 'short' });
+    const time = dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return { day, month, time };
+  };
 
   const openSubmit = () => {
     const token = localStorage.getItem('token');
@@ -179,7 +188,7 @@ const Projects = () => {
             const map = cfgObj?.progressByStatus || { proposed: 5, planning: 15, in_progress: 50, completed: 100, cancelled: 0 };
             progress = map[p.status] != null ? Number(map[p.status]) : 0;
           }
-          const statusLabels = { in_progress: 'en cours', planning: 'planifié', completed: 'terminé', proposed: 'en attente', cancelled: 'annulé' };
+          const statusLabels = STATUS_LABELS_FR;
           return {
             id: p._id || p.id,
             raw: p,
@@ -190,6 +199,7 @@ const Projects = () => {
             progress,
             phase: p.status,
             phaseLabel: statusLabels[p.status] || p.status || '',
+            categoryLabel: CATEGORY_LABELS_FR[p.category] || p.category || '—',
             image: firstImage?.url ? toAbsolute(firstImage.url) : `${process.env.PUBLIC_URL}/pro.jpg`,
           };
         }));
@@ -197,6 +207,7 @@ const Projects = () => {
           id: e._id || e.id,
           title: e.title,
           description: e.description,
+          dateISO: e.date || null,
           date: e.date ? new Date(e.date).toLocaleString('fr-FR') : '—',
           location: e.location || '—',
         })));
@@ -300,18 +311,24 @@ const Projects = () => {
           {projects.map((project, idx) => (
             <AnimatedSection key={project.id} delay={idx % 3} animation="scale">
               <div className="project-card">
-              <img
-                className="project-image"
-                src={project.image}
-                alt=""
-                onError={(e) => {
-                  if (e.currentTarget?.dataset?.fallbackApplied) return;
-                  e.currentTarget.dataset.fallbackApplied = '1';
-                  e.currentTarget.src = `${process.env.PUBLIC_URL}/pro.jpg`;
-                }}
-              />
+              <div className="project-media">
+                <img
+                  className="project-image"
+                  src={project.image}
+                  alt=""
+                  onError={(e) => {
+                    if (e.currentTarget?.dataset?.fallbackApplied) return;
+                    e.currentTarget.dataset.fallbackApplied = '1';
+                    e.currentTarget.src = `${process.env.PUBLIC_URL}/pro.jpg`;
+                  }}
+                />
+                <div className="project-badges">
+                  <span className="project-pill project-pill--category">{project.categoryLabel}</span>
+                  <span className={`project-pill project-pill--status project-pill--${project.phase || 'unknown'}`}>{project.phaseLabel || '—'}</span>
+                </div>
+              </div>
               <div className="project-content">
-                <h3>{project.title}</h3>
+                <h3 className="project-title">{project.title}</h3>
                 <p className="project-dates">Du {project.startDate} au {project.endDate}</p>
                 <p className="project-description">{project.description}</p>
                 {project.raw?.budget?.estimated != null && (
@@ -327,7 +344,7 @@ const Projects = () => {
                 </div>
                 <div style={{display:'flex', gap:'.5rem', marginTop:'.5rem'}}>
                   <button className="details-button" onClick={() => setSelectedProject(project)} style={{flex:1}}>Voir les détails</button>
-                  <button className="donate-button" type="button" onClick={() => setSelectedProject(project)} style={{flex:1}}>Participer</button>
+                  <button className="donate-button" type="button" onClick={() => volunteerForProject(project.id)} style={{flex:1}}>Devenir bénévole</button>
                 </div>
               </div>
             </div>
@@ -343,15 +360,22 @@ const Projects = () => {
         {!loading && !error && events.length === 0 && (
           <p>Aucun événement planifié.</p>
         )}
-        <div className="timeline">
+        <div className="events-list">
           {events.map((event, idx) => (
             <AnimatedSection key={event.id} delay={idx % 4} animation="slide-right">
-              <div className="timeline-item">
-              <div className="timeline-content">
-                <h3>{event.title} — {event.location} — {event.date}</h3>
-                {event.description && <p>{event.description}</p>}
+              <div className="event-row">
+                <div className="event-date" aria-hidden="true">
+                  <span className="d">{formatEventDate(event.dateISO).day}</span>
+                  <span className="m">{formatEventDate(event.dateISO).month}</span>
+                </div>
+                <div className="event-card">
+                  <div className="event-head">
+                    <h3>{event.title}</h3>
+                    <div className="event-meta">{event.location} • {formatEventDate(event.dateISO).time}</div>
+                  </div>
+                  {event.description && <p className="event-desc">{event.description}</p>}
+                </div>
               </div>
-            </div>
             </AnimatedSection>
           ))}
         </div>
@@ -364,8 +388,8 @@ const Projects = () => {
               <div className="projects-project-modal__title">
                 <h2>{selectedProject.title}</h2>
                 <div className="projects-project-modal__badges">
-                  <span className="projects-badge projects-badge--category">{labels.category[selectedProject.raw?.category] || selectedProject.raw?.category || '—'}</span>
-                  <span className={`projects-badge projects-badge--status projects-badge--${selectedProject.raw?.status || 'unknown'}`}>{labels.status[selectedProject.raw?.status] || selectedProject.raw?.status || '—'}</span>
+                  <span className="projects-badge projects-badge--category">{CATEGORY_LABELS_FR[selectedProject.raw?.category] || selectedProject.raw?.category || '—'}</span>
+                  <span className={`projects-badge projects-badge--status projects-badge--${selectedProject.raw?.status || 'unknown'}`}>{STATUS_LABELS_FR[selectedProject.raw?.status] || selectedProject.raw?.status || '—'}</span>
                 </div>
               </div>
               <button type="button" className="projects-project-modal__close" onClick={() => setSelectedProject(null)} aria-label="Fermer">
@@ -394,10 +418,21 @@ const Projects = () => {
                   <button className="projects-cta-primary" type="button" onClick={() => volunteerForProject(selectedProject.id)}>
                     Devenir bénévole
                   </button>
-                  <button className="projects-cta-secondary" type="button" onClick={() => handleDonateForProject(selectedProject.id)}>
+                  <button
+                    className="projects-cta-secondary"
+                    type="button"
+                    onClick={() => handleDonateForProject(selectedProject.id)}
+                    disabled={!canDonateForProject(selectedProject.id)}
+                    aria-disabled={!canDonateForProject(selectedProject.id)}
+                    title={!canDonateForProject(selectedProject.id) ? "Aucune collecte active liée à ce projet" : "Faire un don"}
+                  >
                     Faire un don
                   </button>
-                  <p className="projects-project-modal__cta-note">Tu peux aider en participant sur le terrain ou soutenir financièrement si une collecte est active.</p>
+                  <p className="projects-project-modal__cta-note">
+                    Les projets et les dons sont indépendants.
+                    {' '}
+                    Le don n’est proposé ici que si une collecte est active et liée à ce projet.
+                  </p>
                 </div>
 
                 {supportToast && (
@@ -485,13 +520,26 @@ const Projects = () => {
       <section className="faq-section">
         <h2>Questions Fréquentes</h2>
         {Array.isArray(projConfig?.faq) && projConfig.faq.length > 0 ? (
-          <div className="faq-grid">
-            {projConfig.faq.map((item, idx) => (
-              <div className="faq-item" key={idx}>
-                <h3>{item.question}</h3>
-                <p>{item.answer}</p>
-              </div>
-            ))}
+          <div className="faq-accordion">
+            {projConfig.faq.map((item, idx) => {
+              const open = faqOpen === idx;
+              return (
+                <div className={`faq-acc-item ${open ? 'is-open' : ''}`} key={idx}>
+                  <button
+                    type="button"
+                    className="faq-acc-trigger"
+                    onClick={() => setFaqOpen(prev => (prev === idx ? null : idx))}
+                    aria-expanded={open}
+                  >
+                    <span className="q">{item.question}</span>
+                    <span className="i" aria-hidden="true">{open ? '—' : '+'}</span>
+                  </button>
+                  <div className="faq-acc-panel" style={{ display: open ? 'block' : 'none' }}>
+                    <p>{item.answer}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p style={{marginTop:'1rem'}}>Les questions fréquentes seront bientôt disponibles.</p>
