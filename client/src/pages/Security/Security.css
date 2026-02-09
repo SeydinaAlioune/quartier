@@ -1,7 +1,7 @@
 .security-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.25rem;
 }
 
 .security-header {
@@ -92,10 +92,15 @@
   font-weight: 900;
   cursor: pointer;
   backdrop-filter: blur(8px);
+  transition: transform 160ms ease, background 160ms ease;
 }
 
 .security-hero-btn:hover {
   background: rgba(255,255,255,0.14);
+}
+
+.security-hero-btn:active {
+  transform: translateY(1px);
 }
 
 .security-hero-link {
@@ -178,6 +183,17 @@
   padding: 0.55rem 0.85rem;
   font-weight: 900;
   cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.security-chip:active {
+  transform: translateY(1px);
+}
+
+.security-chip:focus-visible,
+.security-hero-btn:focus-visible {
+  outline: 3px solid rgba(0, 166, 81, 0.35);
+  outline-offset: 2px;
 }
 
 .security-chip.active {
