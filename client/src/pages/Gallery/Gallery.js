@@ -20,6 +20,7 @@ const Gallery = () => {
   const [viewerIndex, setViewerIndex] = useState(null); // index in filtered
   const [immersionOpen, setImmersionOpen] = useState(false);
   const [immSearchOpen, setImmSearchOpen] = useState(false);
+  const [immFilterOpen, setImmFilterOpen] = useState(false);
   const [durations, setDurations] = useState({}); // { [id]: seconds }
   const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
   const immersionRefs = useRef({});
@@ -277,6 +278,7 @@ const Gallery = () => {
   const openImmersion = () => {
     setImmersionOpen(true);
     setImmSearchOpen(typeof window !== 'undefined' ? window.innerWidth >= 900 : false);
+    setImmFilterOpen(false);
     requestAnimationFrame(() => {
       const el = immersionRefs.current?.['root'];
       if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0 });
@@ -291,6 +293,51 @@ const Gallery = () => {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [immersionOpen]);
+
+  useEffect(() => {
+    if (!immersionOpen) return;
+    const root = immersionRefs.current?.['root'];
+    if (!root) return;
+
+    let t = null;
+    let snapping = false;
+    const onScroll = () => {
+      if (snapping) return;
+      if (t) window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        try {
+          const cards = root.querySelectorAll('.immersion-card');
+          if (!cards?.length) return;
+          const rootRect = root.getBoundingClientRect();
+          const rootCenter = rootRect.top + rootRect.height / 2;
+          let best = null;
+          let bestDist = Infinity;
+          let bestTop = null;
+          cards.forEach((c) => {
+            const r = c.getBoundingClientRect();
+            const center = r.top + r.height / 2;
+            const d = Math.abs(center - rootCenter);
+            if (d < bestDist) {
+              bestDist = d;
+              best = c;
+              bestTop = c.offsetTop;
+            }
+          });
+          if (best && typeof bestTop === 'number') {
+            snapping = true;
+            root.scrollTo({ top: bestTop, behavior: 'smooth' });
+            window.setTimeout(() => { snapping = false; }, 260);
+          }
+        } catch {}
+      }, 140);
+    };
+
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      if (t) window.clearTimeout(t);
+      root.removeEventListener('scroll', onScroll);
+    };
+  }, [immersionOpen, immersionFeed.length]);
 
   useEffect(() => {
     if (!immersionOpen) return;
@@ -619,28 +666,57 @@ const Gallery = () => {
 
           <div className="immersion-controls" role="region" aria-label="Filtres immersion">
             <div className="immersion-controls__row">
-              <div className="immersion-chips">
-                {categories.filter((c) => c !== 'all').map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className={`imm-chip ${category === c ? 'active' : ''}`}
-                    onClick={() => setCategory((prev) => (prev === c ? 'all' : c))}
-                  >
-                    {categoryConfig[c].label}
-                  </button>
-                ))}
+              <div className="immersion-mini">
+                <button
+                  type="button"
+                  className="immersion-mini__btn"
+                  onClick={() => {
+                    setImmFilterOpen((v) => {
+                      const next = !v;
+                      if (next) setImmSearchOpen(false);
+                      return next;
+                    });
+                  }}
+                  aria-label={immFilterOpen ? 'Masquer les filtres' : 'Afficher les filtres'}
+                  title={immFilterOpen ? 'Masquer les filtres' : 'Filtres'}
+                >
+                  ☰
+                </button>
+                <div className="immersion-mini__label">
+                  {category !== 'all' ? categoryConfig[category].label : 'Tout'}
+                </div>
               </div>
               <button
                 type="button"
                 className="immersion-search-toggle"
-                onClick={() => setImmSearchOpen((v) => !v)}
+                onClick={() => {
+                  setImmSearchOpen((v) => {
+                    const next = !v;
+                    if (next) setImmFilterOpen(false);
+                    return next;
+                  });
+                }}
                 aria-label={immSearchOpen ? 'Masquer la recherche' : 'Afficher la recherche'}
                 title={immSearchOpen ? 'Masquer la recherche' : 'Rechercher'}
               >
                 ⌕
               </button>
             </div>
+
+            {immFilterOpen && (
+              <div className="immersion-chips" aria-label="Catégories">
+                {categories.filter((c) => c !== 'all').map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`imm-chip ${category === c ? 'active' : ''}`}
+                    onClick={() => { setCategory((prev) => (prev === c ? 'all' : c)); setImmFilterOpen(false); }}
+                  >
+                    {categoryConfig[c].label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {immSearchOpen && (
               <input
