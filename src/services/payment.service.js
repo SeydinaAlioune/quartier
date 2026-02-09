@@ -87,7 +87,12 @@ async function initPayDunyaPayment({ donationId, amount, returnUrl, req }) {
 
   const url = 'https://app.paydunya.com/api/v1/checkout-invoice/create';
   const _fetch = getFetch();
-  if (!_fetch) return null;
+  if (!_fetch) {
+    if (mode === 'live') {
+      throw new Error('PayDunya indisponible: fetch non disponible côté serveur (Render).');
+    }
+    return null;
+  }
   try {
     const payload = {
       invoice: {
@@ -117,14 +122,20 @@ async function initPayDunyaPayment({ donationId, amount, returnUrl, req }) {
       },
       body: JSON.stringify(payload)
     });
-    const data = await res.json().catch(()=>({}));
+    const data = await res.json().catch(() => ({}));
     const code = data?.response_code || data?.code;
     const paymentUrl = data?.response_body?.checkout_url || data?.checkout_url || data?.url;
     if ((code === '00' || code === 200 || res.ok) && paymentUrl) {
       return { paymentUrl };
     }
+
+    if (mode === 'live') {
+      const hint = data?.description || data?.message || data?.response_text || data?.response_message;
+      const details = hint ? ` - ${String(hint)}` : '';
+      throw new Error(`PayDunya a refusé la création de facture (code=${String(code || res.status || 'inconnu')})${details}`);
+    }
   } catch (e) {
-    // ignore
+    if (mode === 'live') throw e;
   }
   return null;
 }
@@ -198,7 +209,12 @@ async function createPaymentSession(provider, { donationId, amount, returnUrl, r
   const isLive = cfg && cfg.mode === 'live';
 
   // 1) Tenter PayDunya si configuré (sandbox/live) pour centraliser Wave/Orange
-  const paydunya = await initPayDunyaPayment({ donationId, amount, returnUrl, req });
+  let paydunya = null;
+  try {
+    paydunya = await initPayDunyaPayment({ donationId, amount, returnUrl, req });
+  } catch (e) {
+    if (isLive) throw e;
+  }
   if (paydunya && paydunya.paymentUrl) return paydunya;
 
   // En mode production, ne jamais retomber sur un mock silencieux
