@@ -333,7 +333,7 @@ const Projects = () => {
                 <p className="project-dates">Du {project.startDate} au {project.endDate}</p>
                 <p className="project-description">{project.description}</p>
                 {project.raw?.budget?.estimated != null && (
-                  <div className="project-budget">Budget estimé: {project.raw.budget.estimated.toLocaleString('fr-FR')} €</div>
+                  <div className="project-budget">Budget estimé: {project.raw.budget.estimated.toLocaleString('fr-FR')} FCFA</div>
                 )}
                 <div className="progress-container">
                   <div className="progress-bar">
@@ -469,8 +469,8 @@ const Projects = () => {
                     <div className="k">
                       <span className="t">Budget</span>
                       <span className="v">
-                        {selectedProject.raw?.budget?.estimated != null ? `${selectedProject.raw.budget.estimated.toLocaleString('fr-FR')} €` : '—'}
-                        {selectedProject.raw?.budget?.collected != null ? ` (collecté: ${selectedProject.raw.budget.collected.toLocaleString('fr-FR')} €)` : ''}
+                        {selectedProject.raw?.budget?.estimated != null ? `${selectedProject.raw.budget.estimated.toLocaleString('fr-FR')} FCFA` : '—'}
+                        {selectedProject.raw?.budget?.collected != null ? ` (collecté: ${selectedProject.raw.budget.collected.toLocaleString('fr-FR')} FCFA)` : ''}
                       </span>
                     </div>
                   </div>

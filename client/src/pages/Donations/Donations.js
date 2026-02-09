@@ -20,6 +20,11 @@ const Donations = () => {
   const [copyMsg, setCopyMsg] = useState('');
   const [toast, setToast] = useState('');
 
+  const formatXof = (n) => {
+    const v = Number(n || 0);
+    return `${v.toLocaleString('fr-FR')} FCFA`;
+  };
+
   const calculateProgress = (collected, goal) => {
     if (!goal || goal <= 0) return 0;
     const pct = (collected / goal) * 100;
@@ -209,8 +214,8 @@ const Donations = () => {
           </div>
           <div className="donations-hero-stats">
             <div className="donations-stat"><span className="v">{stats.active}</span><span className="l">collectes actives</span></div>
-            <div className="donations-stat"><span className="v">{stats.totalCollected.toLocaleString('fr-FR')}€</span><span className="l">collectés</span></div>
-            <div className="donations-stat"><span className="v">{stats.totalGoal.toLocaleString('fr-FR')}€</span><span className="l">objectif total</span></div>
+            <div className="donations-stat"><span className="v">{formatXof(stats.totalCollected)}</span><span className="l">collectés</span></div>
+            <div className="donations-stat"><span className="v">{formatXof(stats.totalGoal)}</span><span className="l">objectif total</span></div>
           </div>
         </div>
       </header>
@@ -259,8 +264,8 @@ const Donations = () => {
                 ></div>
               </div>
               <div className="campaign-stats">
-                <span>{Number(campaign.collected || 0).toLocaleString('fr-FR')}€ collectés</span>
-                <span>Objectif: {Number(campaign.goal || 0).toLocaleString('fr-FR')}€</span>
+                <span>{formatXof(campaign.collected)} collectés</span>
+                <span>Objectif: {formatXof(campaign.goal)}</span>
               </div>
               <div className="payment-methods">
                 <button className="payment-btn wave" onClick={() => openDonate(campaign, 'wave')}>Wave</button>
@@ -295,8 +300,8 @@ const Donations = () => {
                 </span>
               </div>
               <div className="campaign-stats">
-                <span>Montant collecté: {campaign.collected}€</span>
-                <span>Objectif initial: {campaign.goal}€</span>
+                <span>Montant collecté: {formatXof(campaign.collected)}</span>
+                <span>Objectif initial: {formatXof(campaign.goal)}</span>
               </div>
               <button className="view-details">Voir les détails</button>
             </Card>
@@ -341,7 +346,7 @@ const Donations = () => {
 
             <form className="donations-form" onSubmit={submitDonation}>
               <label className="donations-field">
-                <span>Montant (€)</span>
+                <span>Montant (FCFA)</span>
                 <input type="number" min="1" step="1" required value={donateData.amount} onChange={(e)=>setDonateData({...donateData, amount:e.target.value})} />
               </label>
               <label className="donations-field">
