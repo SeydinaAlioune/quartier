@@ -354,7 +354,6 @@ const Donations = () => {
                 <span>Montant collecté: {formatXof(campaign.collected)}</span>
                 <span>Objectif initial: {formatXof(campaign.goal)}</span>
               </div>
-              <button className="view-details">Voir les détails</button>
             </Card>
           ))}
         </div>
