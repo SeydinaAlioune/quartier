@@ -49,6 +49,18 @@ const Gallery = () => {
     return () => clearTimeout(t);
   }, [type]);
 
+  const filtered = items.filter(m => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const name = (m.title || m.name || '').toLowerCase();
+    const desc = (m.description || '').toLowerCase();
+    return name.includes(q) || desc.includes(q);
+  });
+
+  const viewerItem = (typeof viewerIndex === 'number' && viewerIndex >= 0 && viewerIndex < filtered.length)
+    ? filtered[viewerIndex]
+    : null;
+
   // Fermer la lightbox avec ESC
   useEffect(() => {
     const onKey = (e) => {
@@ -78,18 +90,6 @@ const Gallery = () => {
       document.body.style.overflow = prev;
     };
   }, [viewerIndex]);
-
-  const filtered = items.filter(m => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    const name = (m.title || m.name || '').toLowerCase();
-    const desc = (m.description || '').toLowerCase();
-    return name.includes(q) || desc.includes(q);
-  });
-
-  const viewerItem = (typeof viewerIndex === 'number' && viewerIndex >= 0 && viewerIndex < filtered.length)
-    ? filtered[viewerIndex]
-    : null;
 
   return (
     <>
