@@ -191,7 +191,7 @@ const Annonces = () => {
       {/* Mes annonces (si connecté) */}
       {localStorage.getItem('token') && (
         <div className="annonce-category" style={{ marginBottom: '1.5rem' }}>
-          <h3><i className="fas fa-user"></i> Mes annonces</h3>
+          <h3><i className="fas fa-user" aria-hidden="true"></i> Mes annonces</h3>
           {myLoading && <div>Chargement...</div>}
           {!myLoading && myError && <div className="forum-error">{myError}</div>}
           {!myLoading && !myError && myAds.length === 0 && (
@@ -237,7 +237,7 @@ const Annonces = () => {
       )}
       <div className="annonces-grid">
         <div className="annonce-category">
-          <h3><i className="fas fa-tag"></i> Vends</h3>
+          <h3><i className="fas fa-tag" aria-hidden="true"></i> Vends</h3>
           {loading && <div>Chargement...</div>}
           {!loading && error && <div className="forum-error">{error}</div>}
           {!loading && !error && (
@@ -277,7 +277,7 @@ const Annonces = () => {
         </div>
 
         <div className="annonce-category">
-          <h3><i className="fas fa-search"></i> Recherche</h3>
+          <h3><i className="fas fa-search" aria-hidden="true"></i> Recherche</h3>
           {loading && <div>Chargement...</div>}
           {!loading && !error && (
             annonces.recherche.length === 0 ? (
@@ -315,7 +315,7 @@ const Annonces = () => {
         </div>
 
         <div className="annonce-category">
-          <h3><i className="fas fa-hands-helping"></i> Services</h3>
+          <h3><i className="fas fa-hands-helping" aria-hidden="true"></i> Services</h3>
           {loading && <div>Chargement...</div>}
           {!loading && !error && (
             annonces.services.length === 0 ? (
@@ -353,7 +353,7 @@ const Annonces = () => {
         </div>
       </div>
       <button className="new-annonce-btn" onClick={() => setShowModal(true)}>
-        <i className="fas fa-plus"></i> Publier une annonce
+        <i className="fas fa-plus" aria-hidden="true"></i> Publier une annonce
       </button>
 
       {showModal && (
@@ -409,8 +409,8 @@ const Annonces = () => {
                   <div className="ad-thumbs">
                     {newAnnonce.images.map((u,idx)=> (
                       <div className="ad-thumb-mini" key={idx}>
-                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Image ${idx+1}`} />
-                        <button type="button" className="remove-img" onClick={()=>removeNewImageAt(idx)}>×</button>
+                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Illustration ${idx + 1}`} />
+                        <button type="button" className="remove-img" onClick={()=>removeNewImageAt(idx)} aria-label={`Supprimer l’illustration ${idx + 1}`}>×</button>
                       </div>
                     ))}
                   </div>
@@ -485,8 +485,8 @@ const Annonces = () => {
                   <div className="ad-thumbs">
                     {editAd.images.map((u,idx)=> (
                       <div className="ad-thumb-mini" key={idx}>
-                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Image ${idx+1}`} />
-                        <button type="button" className="remove-img" onClick={()=>removeEditImageAt(idx)}>×</button>
+                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Illustration ${idx + 1}`} />
+                        <button type="button" className="remove-img" onClick={()=>removeEditImageAt(idx)} aria-label={`Supprimer l’illustration ${idx + 1}`}>×</button>
                       </div>
                     ))}
                   </div>
