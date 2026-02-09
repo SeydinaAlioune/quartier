@@ -3,7 +3,14 @@ import api from '../../services/api';
 import './Gallery.css';
 
 const Gallery = () => {
-  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+  const API_BASE = (() => {
+    const raw = (api.defaults.baseURL || process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
+    if (raw) return raw;
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return 'https://quartier.onrender.com';
+    }
+    return 'http://localhost:5000';
+  })();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
