@@ -16,6 +16,7 @@ const Gallery = () => {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [type, setType] = useState('all'); // image | video | all
+  const [category, setCategory] = useState('all'); // event | project | history | general | all
   const [viewerIndex, setViewerIndex] = useState(null); // index in filtered
   const [durations, setDurations] = useState({}); // { [id]: seconds }
   const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
@@ -159,12 +160,47 @@ const Gallery = () => {
 
   useEffect(() => { fetchMedia(); /* initial */ }, []);
 
+  const categoryConfig = {
+    all: {
+      label: 'Tout',
+      headline: 'Toute la vie du quartier, en images',
+      body: "Des moments du quotidien aux grands projets, cette galerie rassemble ce que la communauté choisit de partager et de transmettre.",
+    },
+    history: {
+      label: 'Histoire',
+      headline: 'Mémoire & héritage',
+      body: "Ici, on conserve les traces: lieux, visages, instants clés. Une mémoire vivante du quartier, à revisiter et à enrichir.",
+    },
+    project: {
+      label: 'Projets',
+      headline: 'Ce qu’on construit ensemble',
+      body: "Chantiers, initiatives et réalisations. Des preuves, des étapes, des résultats: le quartier qui avance, concrètement.",
+    },
+    event: {
+      label: 'Événements',
+      headline: 'Temps forts & rencontres',
+      body: "Célébrations, actions collectives, moments de partage. L’énergie du quartier, capturée sur le vif.",
+    },
+    general: {
+      label: 'Vie du quartier',
+      headline: 'Le quotidien qui nous rassemble',
+      body: "Portraits, scènes de rue, instants simples. La beauté du vrai, racontée par celles et ceux qui y vivent.",
+    },
+  };
+
+  const categories = ['all', 'history', 'project', 'event', 'general'];
+
   const filteredByType = items.filter((m) => {
     if (type === 'all') return true;
     return m.type === type;
   });
 
-  const filtered = filteredByType.filter(m => {
+  const filteredByCategory = filteredByType.filter((m) => {
+    if (category === 'all') return true;
+    return (m.category || 'general') === category;
+  });
+
+  const filtered = filteredByCategory.filter(m => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     const name = (m.title || m.name || '').toLowerCase();
@@ -175,6 +211,17 @@ const Gallery = () => {
   const totalCount = items.length;
   const photoCount = items.filter((m) => m.type === 'image').length;
   const videoCount = items.filter((m) => m.type === 'video').length;
+
+  const catCounts = {
+    all: totalCount,
+    history: items.filter((m) => (m.category || 'general') === 'history').length,
+    project: items.filter((m) => (m.category || 'general') === 'project').length,
+    event: items.filter((m) => (m.category || 'general') === 'event').length,
+    general: items.filter((m) => (m.category || 'general') === 'general').length,
+  };
+
+  const featuredItem = filtered[0] || null;
+  const catText = categoryConfig[category] || categoryConfig.all;
 
   const viewerItem = (typeof viewerIndex === 'number' && viewerIndex >= 0 && viewerIndex < filtered.length)
     ? filtered[viewerIndex]
@@ -259,6 +306,34 @@ const Gallery = () => {
           </div>
         </div>
 
+        <div className="gallery-collections" role="region" aria-label="Collections">
+          <div className="collections-head">
+            <div className="collections-title">Collections</div>
+            <div className="collections-sub">Choisis une lecture: mémoire, projets, événements, vie du quartier.</div>
+          </div>
+          <div className="collections-row">
+            {categories.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`collection-card ${category === c ? 'active' : ''}`}
+                onClick={() => setCategory(c)}
+              >
+                <div className="collection-card__top">
+                  <div className="collection-card__label">{categoryConfig[c].label}</div>
+                  <div className="collection-card__count">{catCounts[c]}</div>
+                </div>
+                <div className="collection-card__body">{categoryConfig[c].headline}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="gallery-narrative" role="region" aria-label="Texte narratif">
+          <div className="gallery-narrative__title">{catText.headline}</div>
+          <div className="gallery-narrative__body">{catText.body}</div>
+        </div>
+
         <div className="gallery-toolbar" role="region" aria-label="Recherche et filtres">
           <div className="gallery-search-wrap">
             <span className="gallery-search-icon" aria-hidden>⌕</span>
@@ -294,6 +369,50 @@ const Gallery = () => {
             </button>
           </div>
         </div>
+
+        {featuredItem && !loading && !error && (
+          <div className="gallery-featured" role="region" aria-label="À la une">
+            <div className="featured-head">
+              <div className="featured-kicker">À la une</div>
+              <div className="featured-title">{featuredItem.title || featuredItem.name || '—'}</div>
+              <div className="featured-sub">
+                {(featuredItem.category && categoryConfig[featuredItem.category]?.label) ? categoryConfig[featuredItem.category].label : 'Média'}
+                {featuredItem.type ? ` · ${featuredItem.type === 'video' ? 'Vidéo' : 'Photo'}` : ''}
+              </div>
+            </div>
+
+            <div className="featured-card">
+              <button
+                type="button"
+                className="featured-media"
+                onClick={() => setViewerIndex(0)}
+                aria-label="Ouvrir le média à la une"
+              >
+                {featuredItem.type === 'image' ? (
+                  <img loading="lazy" src={buildMediaUrl(featuredItem.url)} alt={featuredItem.title || featuredItem.name || 'media'} />
+                ) : (
+                  <VideoThumb
+                    id={featuredItem._id}
+                    url={featuredItem.url}
+                    thumbnail={featuredItem.thumbnail}
+                    title={featuredItem.title || featuredItem.name || ''}
+                  />
+                )}
+                <div className="featured-overlay" aria-hidden>
+                  <div className="featured-overlay__cta">Voir en grand</div>
+                </div>
+              </button>
+
+              <div className="featured-meta">
+                {featuredItem.description ? (
+                  <div className="featured-desc">{featuredItem.description}</div>
+                ) : (
+                  <div className="featured-desc">Ajoute une description lors de l’upload pour raconter ce moment.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       {loading && (
         <div className="gallery-masonry">
