@@ -30,6 +30,11 @@ const AdminNews = () => {
   const [mediaTypeFilter, setMediaTypeFilter] = useState('all'); // all|image|video|document (doc not used yet)
   const [mediaSearch, setMediaSearch] = useState('');
   const [viewerMedia, setViewerMedia] = useState(null); // {type, url, title}
+  const [pendingUploadFile, setPendingUploadFile] = useState(null);
+  const [uploadForm, setUploadForm] = useState({ title: '', description: '', category: 'general' });
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadNotice, setUploadNotice] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsError, setCommentsError] = useState('');
   const [commentsList, setCommentsList] = useState([]);
@@ -155,18 +160,51 @@ const AdminNews = () => {
   const handleFileSelected = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    setPendingUploadFile(file);
+    setUploadForm((prev) => ({
+      ...prev,
+      title: prev.title || file.name,
+    }));
+    setUploadNotice('');
+    setUploadProgress(0);
+    e.target.value = '';
+  };
+
+  const submitPendingUpload = async () => {
+    if (!pendingUploadFile) return;
     try {
+      setUploading(true);
+      setUploadNotice('');
+      setUploadProgress(0);
+
       const form = new FormData();
-      form.append('media', file);
-      form.append('title', file.name);
-      await api.post('/api/media', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      form.append('media', pendingUploadFile);
+      form.append('title', uploadForm.title || pendingUploadFile.name);
+      form.append('description', uploadForm.description || '');
+      form.append('category', uploadForm.category || 'general');
+
+      await api.post('/api/media', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (evt) => {
+          const total = evt?.total;
+          const loaded = evt?.loaded;
+          if (typeof total === 'number' && total > 0 && typeof loaded === 'number') {
+            const pct = Math.max(0, Math.min(100, Math.round((loaded / total) * 100)));
+            setUploadProgress(pct);
+          }
+        }
+      });
+
+      setUploadNotice('Import terminé. Le média apparaît dans la bibliothèque (statut en attente si modération).');
+      setPendingUploadFile(null);
+      setUploadForm({ title: '', description: '', category: 'general' });
+      setUploadProgress(100);
       await fetchMedia();
-      alert('Média importé');
     } catch (err) {
       const msg = err?.response?.data?.message || "Échec de l'import.";
-      alert(msg);
+      setUploadNotice(msg);
     } finally {
-      e.target.value = '';
+      setUploading(false);
     }
   };
 
@@ -364,6 +402,68 @@ const AdminNews = () => {
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*,video/*" onChange={handleFileSelected} />
         </div>
       </div>
+
+      {(pendingUploadFile || uploading || uploadNotice) && (
+        <div className="media-upload-panel" role="region" aria-label="Importer un média">
+          <div className="media-upload-panel__row">
+            <div className="media-upload-file">
+              <div className="media-upload-file__label">Fichier</div>
+              <div className="media-upload-file__name">{pendingUploadFile ? pendingUploadFile.name : '—'}</div>
+              {pendingUploadFile && (
+                <button type="button" className="media-upload-cancel" onClick={() => { if (!uploading) { setPendingUploadFile(null); setUploadNotice(''); setUploadProgress(0); } }} disabled={uploading}>
+                  Annuler
+                </button>
+              )}
+            </div>
+
+            <div className="media-upload-fields">
+              <input
+                className="media-upload-input"
+                type="text"
+                placeholder="Titre (ex: Tournoi interquartiers)"
+                value={uploadForm.title}
+                onChange={(e) => setUploadForm((p) => ({ ...p, title: e.target.value }))}
+                disabled={uploading}
+              />
+              <textarea
+                className="media-upload-textarea"
+                placeholder="Description (1-2 phrases pour raconter le moment)"
+                value={uploadForm.description}
+                onChange={(e) => setUploadForm((p) => ({ ...p, description: e.target.value }))}
+                disabled={uploading}
+              />
+              <select
+                className="media-upload-select"
+                value={uploadForm.category}
+                onChange={(e) => setUploadForm((p) => ({ ...p, category: e.target.value }))}
+                disabled={uploading}
+              >
+                <option value="general">Vie du quartier</option>
+                <option value="event">Événements</option>
+                <option value="project">Projets</option>
+                <option value="history">Histoire</option>
+              </select>
+              <button
+                type="button"
+                className="media-upload-submit"
+                onClick={submitPendingUpload}
+                disabled={uploading || !pendingUploadFile}
+              >
+                {uploading ? `Import… ${uploadProgress}%` : 'Importer maintenant'}
+              </button>
+            </div>
+          </div>
+
+          {uploading && (
+            <div className="media-upload-progress" aria-label="Progression">
+              <div className="media-upload-progress__bar" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          )}
+
+          {uploadNotice && <div className="media-upload-notice">{uploadNotice}</div>}
+        </div>
+      )}
+
       <div className="media-filters">
         <select className="media-type-filter" value={mediaTypeFilter} onChange={(e) => setMediaTypeFilter(e.target.value)}>
           <option value="all">Tous les types</option>
