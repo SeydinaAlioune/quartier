@@ -493,14 +493,14 @@
 
 .immersion-meta {
   position: absolute;
-  top: 126px;
-  left: 14px;
-  right: 14px;
+  right: 12px;
+  bottom: 92px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 8px;
   z-index: 1;
+  max-width: calc(100vw - 24px);
 }
 
 .immersion-badges {
@@ -510,12 +510,14 @@
 }
 
 .imm-badge {
-  padding: 7px 10px;
+  padding: 6px 9px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.14);
   font-weight: 950;
+  font-size: 12px;
   backdrop-filter: blur(10px);
+  opacity: 0.92;
 }
 
 .imm-badge--soft {
@@ -524,11 +526,13 @@
 
 .immersion-progress {
   font-weight: 950;
-  padding: 7px 10px;
+  padding: 6px 9px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.20);
-  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.14);
   backdrop-filter: blur(10px);
+  font-size: 12px;
+  opacity: 0.92;
 }
 
 .immersion-story {
@@ -567,10 +571,15 @@
     box-shadow: 0 50px 180px rgba(0,0,0,0.70);
   }
 
-  .immersion-meta,
   .immersion-story {
     left: calc(50% - min(760px, 100vw) / 2 + 18px);
     right: calc(50% - min(760px, 100vw) / 2 + 18px);
+  }
+
+  .immersion-meta {
+    right: calc(50% - min(760px, 100vw) / 2 + 18px);
+    left: auto;
+    bottom: 104px;
   }
 }
 
@@ -608,10 +617,15 @@
     box-shadow: 0 40px 140px rgba(0,0,0,0.55);
   }
 
-  .immersion-meta,
   .immersion-story {
     left: calc(50% - min(520px, 100vw) / 2 + 14px);
     right: calc(50% - min(520px, 100vw) / 2 + 14px);
+  }
+
+  .immersion-meta {
+    right: calc(50% - min(520px, 100vw) / 2 + 14px);
+    left: auto;
+    bottom: 98px;
   }
 }
 
