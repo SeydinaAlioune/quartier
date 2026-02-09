@@ -90,6 +90,15 @@
   font-weight: 900;
   cursor: pointer;
   backdrop-filter: blur(8px);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.donations-hero-btn:hover {
+  background: rgba(255,255,255,0.14);
+}
+
+.donations-hero-btn:active {
+  transform: translateY(1px);
 }
 
 .donations-hero-link {
@@ -101,6 +110,17 @@
   padding: 0.35rem 0;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+.donations-hero-link:focus-visible,
+.donations-hero-btn:focus-visible,
+.donations-quick button:focus-visible,
+.donations-quick a:focus-visible,
+.campaign-card button:focus-visible,
+.campaign-card a:focus-visible,
+.donations-quick-amounts button:focus-visible {
+  outline: 3px solid rgba(0, 166, 81, 0.35);
+  outline-offset: 2px;
 }
 
 .donations-hero-stats {
@@ -285,6 +305,10 @@
 
 .campaign-card:hover {
   transform: translateY(-5px);
+}
+
+.campaign-card:active {
+  transform: translateY(-2px);
 }
 
 .campaign-media {

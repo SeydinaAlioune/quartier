@@ -1,7 +1,7 @@
 .services-page {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.25rem;
 }
 
 .service-section-head {
@@ -54,6 +54,10 @@
 .services-cta:hover {
   background: rgba(0,132,61,0.14);
   transform: translateY(-1px);
+}
+
+.services-cta:active {
+  transform: translateY(1px);
 }
 
 .services-header {
@@ -133,6 +137,10 @@
   transform: translateY(-1px);
 }
 
+.services-hero-btn:active {
+  transform: translateY(1px);
+}
+
 
 .services-hero-link {
   appearance: none;
@@ -148,6 +156,15 @@
 
 .services-hero-link:hover {
   color: #fff;
+}
+
+.services-cta:focus-visible,
+.services-hero-btn:focus-visible,
+.services-hero-link:focus-visible,
+.services-empty-cta:focus-visible,
+.services-modal-close:focus-visible {
+  outline: 3px solid rgba(0, 166, 81, 0.35);
+  outline-offset: 2px;
 }
 
 .services-header h1 {
