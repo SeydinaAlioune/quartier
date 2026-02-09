@@ -119,7 +119,7 @@ async function initWavePayment({ donationId, amount, returnUrl, req }) {
     try {
       const payload = {
         amount,
-        currency: process.env.PAYMENT_CURRENCY || 'EUR',
+        currency: process.env.PAYMENT_CURRENCY || 'XOF',
         reference: String(donationId),
         callback_url: absoluteBase(req) + '/api/donations/webhook/wave',
         return_url: returnUrl || absoluteBase(req)
@@ -150,7 +150,7 @@ async function initOrangePayment({ donationId, amount, returnUrl, req }) {
     try {
       const payload = {
         amount,
-        currency: process.env.PAYMENT_CURRENCY || 'EUR',
+        currency: process.env.PAYMENT_CURRENCY || 'XOF',
         reference: String(donationId),
         callback_url: absoluteBase(req) + '/api/donations/webhook/orange',
         return_url: returnUrl || absoluteBase(req)
@@ -174,9 +174,17 @@ async function initOrangePayment({ donationId, amount, returnUrl, req }) {
 }
 
 async function createPaymentSession(provider, { donationId, amount, returnUrl, req }) {
+  const cfg = await loadPaymentConfig();
+  const isLive = cfg && cfg.mode === 'live';
+
   // 1) Tenter PayDunya si configuré (sandbox/live) pour centraliser Wave/Orange
   const paydunya = await initPayDunyaPayment({ donationId, amount, returnUrl, req });
   if (paydunya && paydunya.paymentUrl) return paydunya;
+
+  // En mode production, ne jamais retomber sur un mock silencieux
+  if (isLive) {
+    throw new Error('Paiement non configuré: veuillez renseigner les clés PayDunya (mode production) et PUBLIC_BASE_URL.');
+  }
 
   // 2) Sinon fallback vers intégration directe Wave/Orange
   if (provider === 'wave') {
