@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import api from '../../services/api';
 import './Gallery.css';
 
@@ -18,8 +18,10 @@ const Gallery = () => {
   const [type, setType] = useState('all'); // image | video | all
   const [category, setCategory] = useState('all'); // event | project | history | general | all
   const [viewerIndex, setViewerIndex] = useState(null); // index in filtered
+  const [immersionOpen, setImmersionOpen] = useState(false);
   const [durations, setDurations] = useState({}); // { [id]: seconds }
   const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
+  const immersionRefs = useRef({});
 
   const fetchMedia = async () => {
     try {
@@ -160,6 +162,26 @@ const Gallery = () => {
 
   useEffect(() => { fetchMedia(); /* initial */ }, []);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setImmersionOpen(false);
+      }
+    };
+    if (!immersionOpen) return;
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [immersionOpen]);
+
+  useEffect(() => {
+    if (!immersionOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [immersionOpen]);
+
   const categoryConfig = {
     all: {
       label: 'Tout',
@@ -223,6 +245,69 @@ const Gallery = () => {
   const featuredItem = filtered[0] || null;
   const catText = categoryConfig[category] || categoryConfig.all;
 
+  const buildMixedFeed = (list) => {
+    const buckets = {
+      history: [],
+      project: [],
+      event: [],
+      general: [],
+    };
+    list.forEach((m) => {
+      const c = (m.category || 'general');
+      (buckets[c] || buckets.general).push(m);
+    });
+    const order = ['history', 'project', 'event', 'general'];
+    const out = [];
+    while (order.some((k) => buckets[k].length)) {
+      order.forEach((k) => {
+        const it = buckets[k].shift();
+        if (it) out.push(it);
+      });
+    }
+    return out;
+  };
+
+  const immersionBaseList = (type !== 'all' || category !== 'all' || search.trim()) ? filtered : items;
+  const immersionFeed = useMemo(() => {
+    if (category !== 'all') return immersionBaseList;
+    return buildMixedFeed(immersionBaseList);
+  }, [category, immersionBaseList]);
+
+  const openImmersion = () => {
+    setImmersionOpen(true);
+    requestAnimationFrame(() => {
+      const el = immersionRefs.current?.['root'];
+      if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0 });
+    });
+  };
+
+  useEffect(() => {
+    if (!immersionOpen) return;
+    const root = immersionRefs.current?.['root'];
+    if (!root) return;
+
+    const targets = Object.values(immersionRefs.current).filter(Boolean).filter((n) => n !== root);
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const node = entry.target;
+          const video = node?.querySelector?.('video');
+          if (!video) return;
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } else {
+            try { video.pause(); } catch {}
+          }
+        });
+      },
+      { root, threshold: [0.15, 0.35, 0.6, 0.85] }
+    );
+
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, [immersionOpen, immersionFeed.length]);
+
   const viewerItem = (typeof viewerIndex === 'number' && viewerIndex >= 0 && viewerIndex < filtered.length)
     ? filtered[viewerIndex]
     : null;
@@ -280,6 +365,9 @@ const Gallery = () => {
                   onClick={() => document.getElementById('galleryGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 >
                   Explorer
+                </button>
+                <button type="button" className="hero-btn" onClick={openImmersion}>
+                  Immersion
                 </button>
                 <a className="hero-btn hero-btn--ghost" href="/espace-membres">Partager</a>
               </div>
@@ -510,6 +598,80 @@ const Gallery = () => {
         </div>
       )}
       </div>
+
+      {immersionOpen && (
+        <div className="immersion-overlay" role="dialog" aria-label="Mode immersion" aria-modal="true">
+          <div className="immersion-topbar">
+            <div className="immersion-brand">Galerie · Immersion</div>
+            <button type="button" className="immersion-close" onClick={() => setImmersionOpen(false)} aria-label="Quitter">✕</button>
+          </div>
+
+          <div className="immersion-controls" role="region" aria-label="Filtres immersion">
+            <div className="immersion-chips">
+              {categories.filter((c) => c !== 'all').map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`imm-chip ${category === c ? 'active' : ''}`}
+                  onClick={() => setCategory((prev) => (prev === c ? 'all' : c))}
+                >
+                  {categoryConfig[c].label}
+                </button>
+              ))}
+            </div>
+            <input
+              className="immersion-search"
+              type="text"
+              placeholder="Rechercher dans l'immersion"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="immersion-feed" ref={(n) => { immersionRefs.current['root'] = n; }}>
+            {immersionFeed.map((m, idx) => (
+              <section
+                key={m._id}
+                className="immersion-card"
+                ref={(n) => { immersionRefs.current[m._id] = n; }}
+                aria-label={m.title || m.name || 'media'}
+              >
+                <div className="immersion-media" onClick={() => {
+                  const inFiltered = filtered.findIndex((x) => x._id === m._id);
+                  if (inFiltered >= 0) setViewerIndex(inFiltered);
+                }}>
+                  {m.type === 'image' ? (
+                    <img src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} loading="lazy" />
+                  ) : (
+                    <video
+                      src={buildMediaUrl(m.url)}
+                      poster={m.thumbnail ? buildMediaUrl(m.thumbnail) : undefined}
+                      muted
+                      playsInline
+                      loop
+                      preload="metadata"
+                      crossOrigin="anonymous"
+                    />
+                  )}
+                </div>
+
+                <div className="immersion-meta" aria-hidden>
+                  <div className="immersion-badges">
+                    <span className="imm-badge">{categoryConfig[(m.category || 'general')]?.label || 'Média'}</span>
+                    <span className="imm-badge imm-badge--soft">{m.type === 'video' ? 'VIDÉO' : 'PHOTO'}</span>
+                  </div>
+                  <div className="immersion-progress">{idx + 1}/{immersionFeed.length}</div>
+                </div>
+
+                <div className="immersion-story">
+                  <div className="immersion-title">{m.title || m.name || '—'}</div>
+                  <div className="immersion-text">{m.description || "Ajoute une description lors de l’upload pour raconter ce moment."}</div>
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 };
