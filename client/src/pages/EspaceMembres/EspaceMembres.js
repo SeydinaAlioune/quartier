@@ -1,14 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import './EspaceMembres.css';
 
 const EspaceMembres = () => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const token = (() => {
+    try {
+      return localStorage.getItem('token') || '';
+    } catch (e) {
+      return '';
+    }
+  })();
+
+  const isAuthed = Boolean(token);
 
   useEffect(() => {
     // Pré-remplir depuis le user connecté si disponible
@@ -17,6 +35,51 @@ const EspaceMembres = () => {
       setForm(prev => ({ ...prev, name: user.name || prev.name, email: user.email || prev.email }));
     }
   }, []);
+
+  const logout = () => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch (e) {
+      // ignore
+    }
+    navigate('/', { state: { flash: 'Vous êtes déconnecté' } });
+  };
+
+  const openDelete = () => {
+    setDeleteError('');
+    setDeletePassword('');
+    setDeleteConfirm('');
+    setDeleteOpen(true);
+  };
+
+  const doDelete = async () => {
+    setDeleteError('');
+    if (deleteConfirm.trim().toUpperCase() !== 'SUPPRIMER') {
+      setDeleteError('Tapez SUPPRIMER pour confirmer');
+      return;
+    }
+    if (!deletePassword) {
+      setDeleteError('Mot de passe requis');
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      await api.delete('/api/users/me', { data: { password: deletePassword } });
+      try {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      } catch (e) {
+        // ignore
+      }
+      navigate('/', { state: { flash: 'Compte supprimé' } });
+    } catch (err) {
+      setDeleteError(err?.response?.data?.message || 'Impossible de supprimer le compte');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -127,6 +190,53 @@ const EspaceMembres = () => {
         </div>
         <button className="contact-button" onClick={() => setShowModal(true)}>Envoyer un message</button>
       </div>
+
+      {isAuthed && (
+        <div className="account-section">
+          <h2>Compte</h2>
+          <p>Gérez votre session et vos données personnelles.</p>
+          <div className="account-actions">
+            <button type="button" className="account-btn" onClick={() => setAccountOpen(v => !v)}>
+              {accountOpen ? 'Masquer' : 'Options de compte'}
+            </button>
+          </div>
+
+          {accountOpen && (
+            <div className="account-panel">
+              <button type="button" className="account-btn secondary" onClick={logout}>Se déconnecter</button>
+              <button type="button" className="account-btn danger" onClick={openDelete}>Supprimer mon compte</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {deleteOpen && (
+        <div className="modal-overlay" role="dialog" aria-label="Supprimer mon compte" onClick={() => setDeleteOpen(false)}>
+          <div className="modal danger-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Supprimer votre compte ?</h3>
+            <p className="danger-text">Cette action est irréversible. Vos informations seront supprimées et votre compte sera désactivé.</p>
+
+            <div className="form-row">
+              <label>Confirmer (tapez SUPPRIMER)</label>
+              <input type="text" value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="SUPPRIMER" />
+            </div>
+
+            <div className="form-row">
+              <label>Mot de passe</label>
+              <input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
+            </div>
+
+            {deleteError && <div className="form-error">{deleteError}</div>}
+
+            <div className="modal-actions">
+              <button type="button" className="btn-secondary" onClick={() => setDeleteOpen(false)}>Annuler</button>
+              <button type="button" className="btn-primary danger" disabled={deleteLoading} onClick={doDelete}>
+                {deleteLoading ? 'Suppression...' : 'Supprimer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">

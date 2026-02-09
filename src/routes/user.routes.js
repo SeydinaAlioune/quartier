@@ -9,4 +9,7 @@ router.use(auth); // Protéger toutes les routes utilisateur
 router.get('/profile', userController.getProfile);
 router.put('/profile', userController.updateProfile);
 
+// Compte
+router.delete('/me', userController.deleteMe);
+
 module.exports = router;

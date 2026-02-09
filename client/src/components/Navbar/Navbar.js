@@ -17,6 +17,23 @@ const Navbar = () => {
 
   const isHome = location.pathname === '/';
 
+  const isAuthed = (() => {
+    try {
+      return Boolean(localStorage.getItem('token'));
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  const currentUserName = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || 'null');
+      return (u && u.name) ? String(u.name) : '';
+    } catch (e) {
+      return '';
+    }
+  })();
+
   useEffect(() => {
     const computeHeroVisible = () => {
       if (!isHome) {
@@ -104,6 +121,17 @@ const Navbar = () => {
   }, [previewOpen]);
 
   const closeMenu = () => setOpen(false);
+
+  const logout = () => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch (e) {
+      // ignore
+    }
+    setOpen(false);
+    navigate('/', { state: { flash: 'Vous êtes déconnecté' } });
+  };
   const onSubmit = (e) => {
     e.preventDefault();
     const q = (query || '').trim();
@@ -249,6 +277,16 @@ const Navbar = () => {
 
           <div className="mobile-sep" />
           <NavLink to="/espace-membres" className={({ isActive }) => `mobile-cta${isActive ? ' is-active' : ''}`} onClick={closeMenu}>Espace Membres</NavLink>
+
+          {isAuthed && (
+            <div className="mobile-section" aria-label="Compte">
+              <div className="mobile-section__title">Compte</div>
+              <div className="mobile-account">
+                <div className="mobile-account__name">{currentUserName || 'Connecté'}</div>
+                <button type="button" className="mobile-logout" onClick={logout}>Se déconnecter</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )}

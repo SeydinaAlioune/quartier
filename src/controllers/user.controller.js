@@ -64,6 +64,44 @@ exports.register = async (req, res) => {
     }
 };
 
+// Suppression du compte (soft-delete + anonymisation)
+exports.deleteMe = async (req, res) => {
+    try {
+        const password = String(req.body?.password || '');
+        if (!password) {
+            return res.status(400).json({ message: 'Mot de passe requis' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        const ok = await bcrypt.compare(password, user.password);
+        if (!ok) {
+            return res.status(401).json({ message: 'Mot de passe incorrect' });
+        }
+
+        const now = new Date();
+        user.status = 'inactive';
+        user.deletedAt = now;
+        user.name = 'Utilisateur supprimé';
+        user.email = `deleted+${String(user._id)}@example.invalid`;
+        user.passwordResetTokenHash = null;
+        user.passwordResetExpiresAt = null;
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), salt);
+
+        await user.save();
+
+        return res.json({ message: 'Compte supprimé' });
+    } catch (error) {
+        console.error('Erreur suppression compte:', error);
+        return res.status(500).json({ message: 'Erreur lors de la suppression du compte' });
+    }
+};
+
 // Mot de passe oublié (envoie un lien de reset)
 exports.forgotPassword = async (req, res) => {
     try {
@@ -174,6 +212,10 @@ exports.login = async (req, res) => {
 
         if (!user) {
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+        }
+
+        if (user.status !== 'active') {
+            return res.status(403).json({ message: 'Compte non activé ou supprimé' });
         }
 
         // Vérifier le mot de passe
