@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
@@ -11,6 +11,7 @@ const Navbar = () => {
   const [heroVisible, setHeroVisible] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState('mobile');
+  const mobileSearchRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -66,6 +67,29 @@ const Navbar = () => {
     setOpen(false);
     setMoreOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+
+    const t = window.setTimeout(() => {
+      if (mobileSearchRef.current && typeof mobileSearchRef.current.focus === 'function') {
+        mobileSearchRef.current.focus();
+      }
+    }, 40);
+
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+      window.clearTimeout(t);
+    };
+  }, [open]);
 
   const isDev = process.env.NODE_ENV !== 'production';
   const isInPreviewFrame = new URLSearchParams(location.search || '').get('preview') === '1';
@@ -167,12 +191,28 @@ const Navbar = () => {
           <NavLink to="/espace-membres" className={({ isActive }) => `navbar-link${isActive ? ' is-active' : ''}`}>Espace Membres</NavLink>
         </div>
       </div>
+    </nav>
 
-      {/* Mobile menu */}
-      {open && (
-        <div className="mobile-menu" role="dialog" aria-label="Menu">
+    {open && (
+      <div
+        className="mobile-menu-overlay"
+        role="dialog"
+        aria-label="Menu"
+        aria-modal="true"
+        onClick={closeMenu}
+      >
+        <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-drawer__top">
+            <div className="mobile-drawer__brand">
+              <div className="mobile-drawer__brand-name">QuartierConnect</div>
+              <div className="mobile-drawer__brand-sub">Cité Gendarmerie</div>
+            </div>
+            <button type="button" className="mobile-drawer__close" onClick={closeMenu} aria-label="Fermer">✕</button>
+          </div>
+
           <form className="mobile-search" onSubmit={onSubmit} role="search" aria-label="Recherche mobile">
             <input
+              ref={mobileSearchRef}
               type="text"
               placeholder="Rechercher..."
               value={query}
@@ -180,19 +220,37 @@ const Navbar = () => {
               aria-label="Rechercher"
             />
           </form>
-          <Link to="/actualites" className="mobile-link" onClick={closeMenu}>Actualités</Link>
-          <Link to="/forum" className="mobile-link" onClick={closeMenu}>Forum</Link>
-          <Link to="/services" className="mobile-link" onClick={closeMenu}>Services</Link>
-          <Link to="/annuaire" className="mobile-link" onClick={closeMenu}>Annuaire</Link>
-          <Link to="/securite" className="mobile-link" onClick={closeMenu}>Sécurité</Link>
-          <Link to="/projets" className="mobile-link" onClick={closeMenu}>Projets</Link>
-          <Link to="/dons" className="mobile-link" onClick={closeMenu}>Dons</Link>
-          <Link to="/galerie" className="mobile-link" onClick={closeMenu}>Galerie</Link>
+
+          <div className="mobile-quick" aria-label="Raccourcis">
+            <Link to="/actualites" className="mobile-chip" onClick={closeMenu}>Actualités</Link>
+            <Link to="/forum" className="mobile-chip" onClick={closeMenu}>Forum</Link>
+            <Link to="/galerie" className="mobile-chip" onClick={closeMenu}>Galerie</Link>
+          </div>
+
+          <div className="mobile-section" aria-label="Vie du quartier">
+            <div className="mobile-section__title">Vie du quartier</div>
+            <Link to="/annuaire" className="mobile-link" onClick={closeMenu}>Annuaire</Link>
+            <Link to="/securite" className="mobile-link" onClick={closeMenu}>Sécurité</Link>
+            <Link to="/services" className="mobile-link" onClick={closeMenu}>Services</Link>
+          </div>
+
+          <div className="mobile-section" aria-label="Initiatives">
+            <div className="mobile-section__title">Initiatives</div>
+            <Link to="/projets" className="mobile-link" onClick={closeMenu}>Projets</Link>
+            <Link to="/dons" className="mobile-link" onClick={closeMenu}>Dons</Link>
+          </div>
+
+          <div className="mobile-section" aria-label="Médias">
+            <div className="mobile-section__title">Médias</div>
+            <Link to="/galerie" className="mobile-link" onClick={closeMenu}>Galerie</Link>
+          </div>
+
           <div className="mobile-sep" />
-          <Link to="/espace-membres" className="mobile-link strong" onClick={closeMenu}>Espace Membres</Link>
+          <Link to="/espace-membres" className="mobile-cta" onClick={closeMenu}>Espace Membres</Link>
         </div>
-      )}
-    </nav>
+      </div>
+    )}
+
     {isDev && !isInPreviewFrame && previewOpen && (
       <div className="dev-preview-overlay" role="dialog" aria-label="Preview responsive" onClick={() => setPreviewOpen(false)}>
         <div className="dev-preview-panel" onClick={(e) => e.stopPropagation()}>
