@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import './Directory.css';
 import api from '../../services/api';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
+import useAuth from '../../hooks/useAuth';
 
 const Directory = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   // Données dynamiques pour les commerçants (annuaire) depuis l'API
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -56,9 +58,8 @@ const Directory = () => {
   });
 
   const openSubmit = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/annuaire' } });
       return;
     }
     setSubmitError('');

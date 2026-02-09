@@ -3,9 +3,11 @@ import './Security.css';
 import ReportIncident from './ReportIncident';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
 
 const Security = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   // Données dynamiques
   const [alerts, setAlerts] = useState([]);
   const [incidents, setIncidents] = useState([]);
@@ -26,8 +28,7 @@ const Security = () => {
   };
 
   const handleSubmitIncident = async (data) => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
+    if (!isAuthenticated) return navigate('/login', { state: { from: '/securite' } });
     try {
       // Basic validations (client-side)
       const typeStr = (data.type || '').trim();
@@ -81,8 +82,7 @@ const Security = () => {
   };
 
   const openReport = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
+    if (!isAuthenticated) return navigate('/login', { state: { from: '/securite' } });
     setShowReportForm(true);
   };
 

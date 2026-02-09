@@ -4,9 +4,11 @@ import Annonces from './Annonces';
 import BoiteIdees from './BoiteIdees';
 import './Forum.css';
 import api from '../../services/api';
+import useAuth from '../../hooks/useAuth';
 
 const Forum = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   // Données dynamiques depuis l'API du forum
   const [topics, setTopics] = useState([]); // {id,title,category,author,replies,created,lastReply}
   const [categories, setCategories] = useState([{ id: 'all', name: 'Toutes les catégories' }]);
@@ -20,7 +22,7 @@ const Forum = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewDiscussion, setShowNewDiscussion] = useState(false);
   const [newDiscussion, setNewDiscussion] = useState({ title: '', categoryId: '', content: '' });
-  const isLoggedIn = useMemo(() => !!localStorage.getItem('token'), []);
+  const isLoggedIn = isAuthenticated;
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');

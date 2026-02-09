@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import useAuth from '../../hooks/useAuth';
 import './Auth.css';
 
 const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setSession } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +27,7 @@ const Register = () => {
     setLoading(true);
     try {
       const res = await api.post('/api/auth/register', { name, email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setSession({ token: res.data.token, user: res.data.user });
       const finalName = (res.data?.user?.name || name || '').trim();
       const msg = finalName ? `Compte créé. Bienvenue, ${finalName}` : 'Compte créé. Bienvenue';
       const dest = from || '/';

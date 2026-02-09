@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import useAuth from '../../hooks/useAuth';
 import './Auth.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setSession } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,8 +31,7 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await api.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      setSession({ token: res.data.token, user: res.data.user });
       const name = (res.data?.user?.name || '').trim();
       const msg = name ? `Bienvenue, ${name}` : 'Connexion réussie';
 

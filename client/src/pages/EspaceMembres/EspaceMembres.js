@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import useAuth from '../../hooks/useAuth';
 import './EspaceMembres.css';
 
 const EspaceMembres = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout: authLogout } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -18,31 +20,17 @@ const EspaceMembres = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
-  const token = (() => {
-    try {
-      return localStorage.getItem('token') || '';
-    } catch (e) {
-      return '';
-    }
-  })();
-
-  const isAuthed = Boolean(token);
+  const isAuthed = isAuthenticated;
 
   useEffect(() => {
     // Pré-remplir depuis le user connecté si disponible
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (user) {
       setForm(prev => ({ ...prev, name: user.name || prev.name, email: user.email || prev.email }));
     }
-  }, []);
+  }, [user]);
 
   const logout = () => {
-    try {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } catch (e) {
-      // ignore
-    }
+    authLogout();
     navigate('/', { state: { flash: 'Vous êtes déconnecté' } });
   };
 
@@ -67,12 +55,7 @@ const EspaceMembres = () => {
     setDeleteLoading(true);
     try {
       await api.delete('/api/users/me', { data: { password: deletePassword } });
-      try {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      } catch (e) {
-        // ignore
-      }
+      authLogout();
       navigate('/', { state: { flash: 'Compte supprimé' } });
     } catch (err) {
       setDeleteError(err?.response?.data?.message || 'Impossible de supprimer le compte');

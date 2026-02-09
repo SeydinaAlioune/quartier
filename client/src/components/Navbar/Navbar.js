@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import useAuth from '../../hooks/useAuth';
 import './Navbar.css';
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -14,25 +15,12 @@ const Navbar = () => {
   const mobileSearchRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, user, logout: authLogout } = useAuth();
 
   const isHome = location.pathname === '/';
 
-  const isAuthed = (() => {
-    try {
-      return Boolean(localStorage.getItem('token'));
-    } catch (e) {
-      return false;
-    }
-  })();
-
-  const currentUserName = (() => {
-    try {
-      const u = JSON.parse(localStorage.getItem('user') || 'null');
-      return (u && u.name) ? String(u.name) : '';
-    } catch (e) {
-      return '';
-    }
-  })();
+  const isAuthed = isAuthenticated;
+  const currentUserName = (user && user.name) ? String(user.name) : '';
 
   useEffect(() => {
     const computeHeroVisible = () => {
@@ -123,12 +111,7 @@ const Navbar = () => {
   const closeMenu = () => setOpen(false);
 
   const logout = () => {
-    try {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } catch (e) {
-      // ignore
-    }
+    authLogout();
     setOpen(false);
     navigate('/', { state: { flash: 'Vous êtes déconnecté' } });
   };

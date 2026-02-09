@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
 import './AdminSecurity.css';
 import api from '../../../services/api';
+import loadLeaflet from '../../../utils/loadLeaflet';
 
 const AdminSecurity = () => {
   const [activeTab, setActiveTab] = useState('alertes');
@@ -92,18 +93,31 @@ const AdminSecurity = () => {
 
   // Initialize Leaflet map when modal opens
   useEffect(() => {
-    if (showMap && mapCoords && mapContainerRef.current && window.L) {
+    if (!showMap || !mapCoords || !mapContainerRef.current) return;
+
+    let map;
+    const run = async () => {
+      const L = await loadLeaflet();
+      if (!L) return;
+
       // Clear previous map instance if any
       if (mapContainerRef.current._leaflet_id) {
         try { mapContainerRef.current._leaflet_id = null; } catch {}
       }
-      const map = window.L.map(mapContainerRef.current).setView([mapCoords.lat, mapCoords.lng], 15);
-      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+      map = L.map(mapContainerRef.current).setView([mapCoords.lat, mapCoords.lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
-      window.L.marker([mapCoords.lat, mapCoords.lng]).addTo(map);
-    }
+      L.marker([mapCoords.lat, mapCoords.lng]).addTo(map);
+    };
+
+    run();
+
+    return () => {
+      try { map && map.remove(); } catch {}
+    };
   }, [showMap, mapCoords]);
 
   const openMapForIncident = (incident) => {
