@@ -916,73 +916,66 @@
   padding: 0 2rem;
 }
 
-.gallery-item {
+.home .gallery-item {
   position: relative;
   height: 100%;
   opacity: 0;
-  transition: opacity 1.2s cubic-bezier(0.65, 0, 0.35, 1),
-              transform 1.2s cubic-bezier(0.65, 0, 0.35, 1);
-  transform: translateX(100%);
+  transform: translateX(-100%) scale(0.8);
+  transition: all 0.8s ease;
   border-radius: 12px;
   overflow: hidden;
-  background: #f0f0f0;
   will-change: transform, opacity;
 }
 
-.gallery-item.active {
+.home .gallery-item.active {
   opacity: 1;
   transform: translateX(0) scale(1);
 }
 
-.gallery-item:not(.active) {
+.home .gallery-item:not(.active) {
   opacity: 0;
   transform: translateX(-100%);
 }
 
-.gallery-item:hover {
+.home .gallery-item:hover {
   transform: translateX(0) scale(1.03);
 }
 
-.gallery-item img {
+.home .gallery-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 12px;
   transition: transform 0.6s ease;
 }
 
-.gallery-item:hover img {
+.home .gallery-item:hover img {
   transform: scale(1.05);
 }
 
-.gallery-item p {
+.home .gallery-item p {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  margin: 0;
-  padding: 1.5rem;
+  padding: 0.75rem;
+  color: #fff;
   background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  color: white;
-  font-size: 1.2rem;
-  font-weight: bold;
+  margin: 0;
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-in-out 0.3s,
-              transform 0.6s ease-in-out 0.3s,
-              filter 0.4s ease;
-  filter: blur(4px);
+  transform: translateY(100%);
+  transition: all 0.5s ease;
+  filter: blur(3px);
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
 }
 
-.gallery-item.active p {
+.home .gallery-item.active p {
   opacity: 1;
   transform: translateY(0);
   filter: blur(0);
 }
 
-.gallery-item:hover p {
+.home .gallery-item:hover p {
   background: linear-gradient(transparent, rgba(0,0,0,0.9));
 }
 
@@ -993,37 +986,28 @@
     gap: 1rem;
   }
   
-  .gallery-item {
+  .home .gallery-item {
     height: 300px;
   }
   
-  .gallery-item p {
+  .home .gallery-item p {
     font-size: 1rem;
     padding: 1rem;
   }
-  
-  
-  .hero h1 {
-    font-size: 2rem;
-  }
-  
-  .hero p {
-    font-size: 1rem;
-  }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1199px) {
   .gallery {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .gallery-item {
+  .home .gallery-item {
     height: 400px;
   }
 }
 
 @media (min-width: 1200px) {
-  .gallery-item {
+  .home .gallery-item {
     height: 500px;
   }
 }
