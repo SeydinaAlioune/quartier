@@ -210,8 +210,8 @@ const Donations = () => {
       <header
         className="donations-hero"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${process.env.PUBLIC_URL}/pro.jpg)`,
-          backgroundPosition: 'center 35%'
+          backgroundImage: `linear-gradient(rgba(8, 14, 24, 0.62), rgba(8, 14, 24, 0.52)), url(${process.env.PUBLIC_URL}/communautaire.jpg)`,
+          backgroundPosition: 'center'
         }}
       >
         <div className="donations-hero-inner">
