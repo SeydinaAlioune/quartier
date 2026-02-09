@@ -112,7 +112,12 @@ exports.initiatePayment = async (req, res) => {
     } catch (error) {
         console.error('Erreur initiatePayment:', error);
         const msg = String(error?.message || '');
-        if (msg.toLowerCase().includes('paiement non configuré')) {
+        const lower = msg.toLowerCase();
+        if (lower.includes('paiement non configuré')) {
+            return res.status(400).json({ message: msg });
+        }
+        // Erreurs PayDunya (ou prestataire) : renvoyer le message pour debug côté UI
+        if (lower.includes('paydunya')) {
             return res.status(400).json({ message: msg });
         }
         res.status(500).json({ message: 'Erreur lors de l\'initialisation du paiement' });
