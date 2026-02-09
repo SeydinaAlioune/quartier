@@ -69,12 +69,13 @@ const Gallery = () => {
     return `${mm}:${ss}`;
   };
 
-  const VideoThumb = ({ id, url, title }) => {
+  const VideoThumb = ({ id, url, title, thumbnail }) => {
     const mediaUrl = buildMediaUrl(url);
+    const thumbUrl = buildMediaUrl(thumbnail);
 
     useEffect(() => {
       if (!id || !mediaUrl) return;
-      if (videoThumbs[id] && durations[id]) return;
+      if (durations[id] && (thumbUrl || videoThumbs[id])) return;
 
       let cancelled = false;
       const v = document.createElement('video');
@@ -98,6 +99,7 @@ const Gallery = () => {
 
       const onSeeked = () => {
         if (cancelled) return;
+        if (thumbUrl) return;
         try {
           const canvas = document.createElement('canvas');
           const w = v.videoWidth || 640;
@@ -133,10 +135,10 @@ const Gallery = () => {
         v.removeEventListener('seeked', onSeeked);
         v.removeEventListener('loadeddata', onSeeked);
       };
-    }, [id, mediaUrl]);
+    }, [id, mediaUrl, thumbUrl]);
 
     const dur = formatDuration(durations[id]);
-    const thumb = videoThumbs[id];
+    const thumb = thumbUrl || videoThumbs[id];
 
     return (
       <>
@@ -282,7 +284,7 @@ const Gallery = () => {
                   </div>
                 </>
               ) : (
-                <VideoThumb id={m._id} url={m.url} title={m.title || m.name || ''} />
+                <VideoThumb id={m._id} url={m.url} thumbnail={m.thumbnail} title={m.title || m.name || ''} />
               )}
               <div className="thumb-overlay">
                 <div className="thumb-title">{m.title || m.name || '—'}</div>

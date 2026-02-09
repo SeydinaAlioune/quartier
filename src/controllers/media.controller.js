@@ -1,6 +1,42 @@
 const Media = require('../models/media.model');
 const { deleteFile } = require('../middleware/upload.middleware');
 const path = require('path');
+const fs = require('fs');
+let ffmpeg;
+let ffmpegPath;
+try {
+    ffmpeg = require('fluent-ffmpeg');
+    ffmpegPath = require('ffmpeg-static');
+    if (ffmpegPath) {
+        ffmpeg.setFfmpegPath(ffmpegPath);
+    }
+} catch (e) {
+    ffmpeg = null;
+    ffmpegPath = null;
+}
+
+const generateVideoThumbnail = async (inputAbsolutePath, outputAbsolutePath) => {
+    if (!ffmpeg || !ffmpegPath) return false;
+    return new Promise((resolve) => {
+        try {
+            const outDir = path.dirname(outputAbsolutePath);
+            if (!fs.existsSync(outDir)) {
+                fs.mkdirSync(outDir, { recursive: true });
+            }
+            ffmpeg(inputAbsolutePath)
+                .on('end', () => resolve(true))
+                .on('error', () => resolve(false))
+                .screenshots({
+                    timestamps: ['10%'],
+                    filename: path.basename(outputAbsolutePath),
+                    folder: outDir,
+                    size: '640x?'
+                });
+        } catch (err) {
+            resolve(false);
+        }
+    });
+};
 
 // Ajouter un média
 exports.uploadMedia = async (req, res) => {
@@ -15,11 +51,23 @@ exports.uploadMedia = async (req, res) => {
         const safeTitle = (req.body.title && String(req.body.title).trim()) || originalName;
         const safeCategory = req.body.category || 'project';
 
+        let thumbnailUrl = undefined;
+        if (fileType === 'video') {
+            const uploadedAbs = path.resolve(req.file.path);
+            const thumbFilename = `thumb-${path.parse(req.file.filename).name}.jpg`;
+            const thumbAbs = path.resolve(path.join(path.dirname(req.file.path), thumbFilename));
+            const ok = await generateVideoThumbnail(uploadedAbs, thumbAbs);
+            if (ok) {
+                thumbnailUrl = `/uploads/${thumbFilename}`;
+            }
+        }
+
         const media = new Media({
             title: safeTitle,
             description: req.body.description,
             type: fileType,
             url: fileUrl,
+            thumbnail: thumbnailUrl,
             category: safeCategory,
             tags: req.body.tags ? JSON.parse(req.body.tags) : [],
             metadata: req.body.metadata ? JSON.parse(req.body.metadata) : {},
@@ -156,6 +204,12 @@ exports.deleteMedia = async (req, res) => {
         const relativeUrl = (media.url || '').replace(/^[\/\\]+/, '');
         const filePath = path.join('public', relativeUrl);
         await deleteFile(filePath);
+
+        if (media.thumbnail) {
+            const relThumb = (media.thumbnail || '').replace(/^[\/\\]+/, '');
+            const thumbPath = path.join('public', relThumb);
+            await deleteFile(thumbPath);
+        }
 
         // Mongoose 7: remove() is deprecated on documents
         await media.deleteOne();
