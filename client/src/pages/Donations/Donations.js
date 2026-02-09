@@ -155,6 +155,16 @@ const Donations = () => {
       setToast('Merci ! Ton don a été enregistré.');
       setDonateOpen(false);
     } catch (err) {
+      const status = err?.response?.status;
+      const serverMsg = err?.response?.data?.message;
+      if (status === 401) {
+        setToast('Session expirée. Reconnecte-toi puis réessaie.');
+        return;
+      }
+      if (typeof serverMsg === 'string' && serverMsg.trim()) {
+        setToast(serverMsg);
+        return;
+      }
       setToast("Échec du don. Réessaie plus tard.");
     }
   };
