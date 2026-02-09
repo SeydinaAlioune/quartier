@@ -3,8 +3,14 @@ import './Donations.css';
 import api from '../../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Modal, Badge, Card, SectionHead } from '../../components/UI';
+import useSeo from '../../hooks/useSeo';
 
 const Donations = () => {
+  useSeo({
+    title: 'Dons',
+    description: 'Soutenez les projets et initiatives du quartier. Participez à une collecte en cours en toute simplicité.',
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
   const [currentCampaigns, setCurrentCampaigns] = useState([]);

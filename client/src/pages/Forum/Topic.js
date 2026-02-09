@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import './Forum.css';
+import useSeo from '../../hooks/useSeo';
 
 const Topic = () => {
   const { id } = useParams();
@@ -13,7 +14,13 @@ const Topic = () => {
   const [sending, setSending] = useState(false);
   const isLoggedIn = useMemo(() => !!localStorage.getItem('token'), []);
 
-  const load = async () => {
+  useSeo({
+    title: topic?.title ? String(topic.title) : 'Discussion',
+    description: topic?.content ? String(topic.content) : 'Discussion du forum QuartierConnect.',
+    canonical: typeof window !== 'undefined' ? `${window.location.origin}/forum/topics/${encodeURIComponent(id)}` : undefined,
+  });
+
+  const load = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -28,9 +35,9 @@ const Topic = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+  useEffect(() => { load(); }, [load]);
 
   const handleReply = async (e) => {
     e.preventDefault();

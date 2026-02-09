@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
+import useSeo from '../../hooks/useSeo';
 import './Auth.css';
 
 const ResetPassword = () => {
+  useSeo({
+    title: 'Réinitialiser le mot de passe',
+    description: 'Choisissez un nouveau mot de passe sécurisé pour votre compte QuartierConnect.',
+  });
+
   const [params] = useSearchParams();
   const navigate = useNavigate();
 

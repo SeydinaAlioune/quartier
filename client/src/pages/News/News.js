@@ -5,8 +5,14 @@ import { fr } from 'date-fns/locale';
 import api from '../../services/api';
 import { Link } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
+import useSeo from '../../hooks/useSeo';
 
 const News = () => {
+  useSeo({
+    title: 'Actualités',
+    description: 'Annonces et dernières actualités du quartier : informations pratiques, événements et vie communautaire.',
+  });
+
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
   const [announcements, setAnnouncements] = useState([]);
   const [latestArticles, setLatestArticles] = useState([]);

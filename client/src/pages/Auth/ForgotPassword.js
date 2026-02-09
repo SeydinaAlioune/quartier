@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../../services/api';
+import useSeo from '../../hooks/useSeo';
 import './Auth.css';
 
 const ForgotPassword = () => {
+  useSeo({
+    title: 'Mot de passe oublié',
+    description: 'Recevez un lien de réinitialisation pour retrouver l’accès à votre compte QuartierConnect.',
+  });
+
   const location = useLocation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);

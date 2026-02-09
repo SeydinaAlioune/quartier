@@ -2,9 +2,15 @@ import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import useAuth from '../../hooks/useAuth';
+import useSeo from '../../hooks/useSeo';
 import './Auth.css';
 
 const Register = () => {
+  useSeo({
+    title: 'Créer un compte',
+    description: 'Créez votre compte QuartierConnect pour rejoindre la communauté et participer à la vie du quartier.',
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
   const { setSession } = useAuth();

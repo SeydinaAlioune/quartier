@@ -5,8 +5,14 @@ import BoiteIdees from './BoiteIdees';
 import './Forum.css';
 import api from '../../services/api';
 import useAuth from '../../hooks/useAuth';
+import useSeo from '../../hooks/useSeo';
 
 const Forum = () => {
+  useSeo({
+    title: 'Forum',
+    description: 'Discussions, annonces et idées pour améliorer la vie du quartier. Rejoignez la communauté et échangez.',
+  });
+
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   // Données dynamiques depuis l'API du forum

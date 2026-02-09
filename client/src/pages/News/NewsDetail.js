@@ -3,6 +3,7 @@ import { useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import api from '../../services/api';
+import useSeo from '../../hooks/useSeo';
 import './News.css';
 
 const NewsDetail = () => {
@@ -14,6 +15,13 @@ const NewsDetail = () => {
   const [related, setRelated] = useState([]);
   const [shareStatus, setShareStatus] = useState('');
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+
+  useSeo({
+    title: article?.title ? String(article.title) : 'Actualité',
+    description: article?.description ? String(article.description) : "Article QuartierConnect",
+    image: article?.image,
+    canonical: typeof window !== 'undefined' ? `${window.location.origin}/actualites/${encodeURIComponent(id)}` : undefined,
+  });
   const extractFirstImageFromContent = (content) => {
     if (!content) return null;
     try {

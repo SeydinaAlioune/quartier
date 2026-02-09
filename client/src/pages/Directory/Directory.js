@@ -4,8 +4,14 @@ import './Directory.css';
 import api from '../../services/api';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 import useAuth from '../../hooks/useAuth';
+import useSeo from '../../hooks/useSeo';
 
 const Directory = () => {
+  useSeo({
+    title: 'Annuaire',
+    description: 'Annuaire des commerces et services de proximité : trouvez rapidement un contact utile dans le quartier.',
+  });
+
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   // Données dynamiques pour les commerçants (annuaire) depuis l'API

@@ -1,8 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import api from '../../services/api';
 import './Gallery.css';
+import useSeo from '../../hooks/useSeo';
 
 const Gallery = () => {
+  useSeo({
+    title: 'Galerie',
+    description: 'Galerie photo & vidéo du quartier : moments, projets, histoire et événements. Découvrez la vie du quartier en images.',
+  });
+
   const API_BASE = (() => {
     const raw = (api.defaults.baseURL || process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
     if (raw) return raw;

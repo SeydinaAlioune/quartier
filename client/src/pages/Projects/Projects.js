@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 import { Modal, SectionHead } from '../../components/UI';
+import useSeo from '../../hooks/useSeo';
 
 const STATUS_LABELS_FR = {
   proposed: 'en attente',
@@ -23,6 +24,11 @@ const CATEGORY_LABELS_FR = {
 };
 
 const Projects = () => {
+  useSeo({
+    title: 'Projets',
+    description: 'Projets du quartier : initiatives, avancement, événements et participation citoyenne. Découvrez ce qui se construit ensemble.',
+  });
+
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [events, setEvents] = useState([]);

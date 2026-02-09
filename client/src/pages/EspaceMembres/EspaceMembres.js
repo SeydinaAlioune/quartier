@@ -2,9 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import useAuth from '../../hooks/useAuth';
+import useSeo from '../../hooks/useSeo';
 import './EspaceMembres.css';
 
 const EspaceMembres = () => {
+  useSeo({
+    title: 'Espace Membres',
+    description: 'Rejoignez la communauté QuartierConnect : forum, notifications, services, participation citoyenne et échanges entre voisins.',
+  });
+
   const navigate = useNavigate();
   const { isAuthenticated, user, logout: authLogout } = useAuth();
   const [showModal, setShowModal] = useState(false);

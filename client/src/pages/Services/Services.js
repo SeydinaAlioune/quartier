@@ -3,8 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import './Services.css';
 import api from '../../services/api';
 import SERVICE_CATEGORIES from '../../constants/serviceCategories';
+import useSeo from '../../hooks/useSeo';
 
 const Services = () => {
+  useSeo({
+    title: 'Services',
+    description: 'Guide pratique : démarches, contacts utiles, horaires et services de proximité pour la vie du quartier.',
+  });
+
   const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);

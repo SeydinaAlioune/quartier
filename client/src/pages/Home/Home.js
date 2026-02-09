@@ -3,9 +3,15 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ImageSlider from '../../components/ImageSlider/ImageSlider';
 import api from '../../services/api';
+import useSeo from '../../hooks/useSeo';
 import './Home.css';
 
 const Home = () => {
+  useSeo({
+    title: 'Accueil',
+    description: "QuartierConnect — infos, projets, services, annuaire, sécurité et échanges pour la vie du quartier.",
+  });
+
   const [scrollY, setScrollY] = useState(0);
   const [howVideoOpen, setHowVideoOpen] = useState(false);
 

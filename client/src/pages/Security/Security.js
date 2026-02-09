@@ -4,8 +4,14 @@ import ReportIncident from './ReportIncident';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
+import useSeo from '../../hooks/useSeo';
 
 const Security = () => {
+  useSeo({
+    title: 'Sécurité',
+    description: 'Alertes, incidents et conseils pour la sécurité du quartier. Consultez les informations et signalez un incident.',
+  });
+
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   // Données dynamiques
