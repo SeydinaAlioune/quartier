@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const flash = useMemo(() => {
     const v = location.state && location.state.flash;
@@ -24,12 +25,20 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
       const res = await api.post('/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate(from || '/espace-membres');
+      const name = (res.data?.user?.name || '').trim();
+      const msg = name ? `Bienvenue, ${name}` : 'Connexion réussie';
+
+      const dest = from || '/';
+      setSuccess(msg);
+      window.setTimeout(() => {
+        navigate(dest, { state: { flash: msg } });
+      }, 700);
     } catch (err) {
       setError(err?.response?.data?.message || "Échec de la connexion");
     } finally {
@@ -77,6 +86,7 @@ const Login = () => {
             </div>
 
             {flash && <div className="auth-alert is-success">{flash}</div>}
+            {success && <div className="auth-alert is-success">{success}</div>}
             {error && <div className="auth-alert is-error">{error}</div>}
 
             <button type="submit" className="auth-button" disabled={loading}>

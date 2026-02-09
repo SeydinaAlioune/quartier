@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
@@ -43,13 +43,44 @@ function AppLayout() {
     || location.pathname === '/forgot-password'
     || location.pathname === '/reset-password';
 
+  const [toast, setToast] = useState('');
+
+  const flashFromState = useMemo(() => {
+    const v = location.state && location.state.flash;
+    return typeof v === 'string' ? v : '';
+  }, [location.state]);
+
   useEffect(() => {
     if (isAdminRoute) return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [isAdminRoute, location.pathname]);
 
+  useEffect(() => {
+    if (isAdminRoute || isAuthRoute) return;
+    const p = location.pathname || '/';
+    if (p === '/') return;
+    try {
+      localStorage.setItem('qc_last_path', p);
+    } catch (e) {
+      // ignore
+    }
+  }, [isAdminRoute, isAuthRoute, location.pathname]);
+
+  useEffect(() => {
+    if (!flashFromState) return;
+    setToast(flashFromState);
+    const t = window.setTimeout(() => setToast(''), 3200);
+    return () => window.clearTimeout(t);
+  }, [flashFromState]);
+
   return (
     <div className="App">
+      {toast && (
+        <div className="app-toast" role="status" aria-live="polite">
+          <div className="app-toast__msg">{toast}</div>
+          <button type="button" className="app-toast__close" onClick={() => setToast('')} aria-label="Fermer">✕</button>
+        </div>
+      )}
       {!isAdminRoute && <Navbar />}
       <main className={`main-content ${isAdminRoute ? 'main-content--admin' : ''} ${isHomeRoute ? 'main-content--home' : ''}`}>
         <Routes>

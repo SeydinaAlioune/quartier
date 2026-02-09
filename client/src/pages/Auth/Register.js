@@ -11,6 +11,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const from = useMemo(() => {
     const v = location.state && location.state.from;
@@ -20,12 +21,19 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
       const res = await api.post('/api/auth/register', { name, email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate(from || '/espace-membres');
+      const finalName = (res.data?.user?.name || name || '').trim();
+      const msg = finalName ? `Compte créé. Bienvenue, ${finalName}` : 'Compte créé. Bienvenue';
+      const dest = from || '/';
+      setSuccess(msg);
+      window.setTimeout(() => {
+        navigate(dest, { state: { flash: msg } });
+      }, 750);
     } catch (err) {
       setError(err?.response?.data?.message || "Échec de l'inscription");
     } finally {
@@ -71,6 +79,7 @@ const Register = () => {
               <input className="auth-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
 
+            {success && <div className="auth-alert is-success">{success}</div>}
             {error && <div className="auth-alert is-error">{error}</div>}
 
             <button type="submit" className="auth-button" disabled={loading}>

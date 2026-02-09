@@ -5,6 +5,49 @@
   overflow-x: hidden;
 }
 
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 2600;
+  width: min(560px, calc(100% - 24px));
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 24px 90px rgba(0,0,0,0.22);
+  color: rgba(15, 23, 42, 0.92);
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  animation: appToastIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.app-toast__msg {
+  min-width: 0;
+}
+
+.app-toast__close {
+  width: 36px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  color: rgba(15, 23, 42, 0.75);
+  font-weight: 900;
+}
+
+@keyframes appToastIn {
+  from { transform: translateX(-50%) translateY(10px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
 .main-content {
   flex: 1;
   padding: 12px;
