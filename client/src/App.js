@@ -29,6 +29,8 @@ import AdminMessages from './pages/Admin/Messages/AdminMessages';
 import './App.css';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
 import NewsDetail from './pages/News/NewsDetail';
 import Gallery from './pages/Gallery/Gallery';
 
@@ -36,6 +38,10 @@ function AppLayout() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isHomeRoute = location.pathname === '/';
+  const isAuthRoute = location.pathname === '/login'
+    || location.pathname === '/register'
+    || location.pathname === '/forgot-password'
+    || location.pathname === '/reset-password';
 
   useEffect(() => {
     if (isAdminRoute) return;
@@ -74,10 +80,12 @@ function AppLayout() {
           <Route path="/dons" element={<Donations />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Home />} />
         </Routes>
       </main>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isAuthRoute && <Footer />}
     </div>
   );
 }

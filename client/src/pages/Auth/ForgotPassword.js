@@ -1,20 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import './Auth.css';
 
-const Login = () => {
-  const navigate = useNavigate();
+const ForgotPassword = () => {
   const location = useLocation();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const flash = useMemo(() => {
-    const v = location.state && location.state.flash;
-    return typeof v === 'string' ? v : '';
-  }, [location.state]);
+  const [success, setSuccess] = useState('');
 
   const from = useMemo(() => {
     const v = location.state && location.state.from;
@@ -24,14 +18,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
-      const res = await api.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate(from || '/espace-membres');
+      const res = await api.post('/api/auth/forgot-password', { email });
+      setSuccess(res?.data?.message || 'Si un compte existe, vous recevrez un lien de réinitialisation.');
     } catch (err) {
-      setError(err?.response?.data?.message || "Échec de la connexion");
+      setError(err?.response?.data?.message || "Impossible d'envoyer la demande. Réessayez.");
     } finally {
       setLoading(false);
     }
@@ -47,8 +40,8 @@ const Login = () => {
           </div>
         </div>
         <div className="auth-card__body">
-          <h1 className="auth-title">Connexion</h1>
-          <p className="auth-subtitle">Heureux de vous revoir.</p>
+          <h1 className="auth-title">Mot de passe oublié</h1>
+          <p className="auth-subtitle">On t'envoie un lien sécurisé valable 30 minutes.</p>
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
@@ -65,32 +58,21 @@ const Login = () => {
               />
             </div>
 
-            <div className="auth-field">
-              <label>Mot de passe</label>
-              <input
-                className="auth-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            {flash && <div className="auth-alert is-success">{flash}</div>}
             {error && <div className="auth-alert is-error">{error}</div>}
+            {success && <div className="auth-alert is-success">{success}</div>}
 
             <button type="submit" className="auth-button" disabled={loading}>
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? 'Envoi...' : 'Envoyer le lien'}
             </button>
 
             <div className="auth-row">
-              <Link className="auth-link" to="/forgot-password">Mot de passe oublié ?</Link>
-              <Link className="auth-link" to="/register" state={{ from: from || '/' }}>Créer un compte</Link>
+              <Link className="auth-link" to="/login" state={{ from: from || '/' }}>Retour à la connexion</Link>
+              <Link className="auth-link" to="/register">Créer un compte</Link>
             </div>
           </form>
 
           <div className="auth-footnote">
-            Pas de compte ? <Link className="auth-link" to="/register" state={{ from: from || '/' }}>Créer un compte</Link>
+            Si tu ne reçois rien, vérifie tes spams ou réessaie dans quelques minutes.
           </div>
         </div>
       </div>
@@ -98,4 +80,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ForgotPassword;

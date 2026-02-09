@@ -59,7 +59,7 @@ const EspaceMembres = () => {
           </div>
           <h2>Déjà Membre ?</h2>
           <p>Connectez-vous pour accéder à votre espace personnel</p>
-          <Link to="/login" className="action-button green">Se Connecter</Link>
+          <Link to="/login" state={{ from: '/espace-membres' }} className="action-button green">Se Connecter</Link>
         </div>
 
         {/* Option Inscription */}
@@ -69,7 +69,7 @@ const EspaceMembres = () => {
           </div>
           <h2>Nouveau sur QuartierConnect ?</h2>
           <p>Créez votre compte en quelques minutes pour rejoindre notre communauté</p>
-          <Link to="/register" className="action-button orange">Créer un Compte</Link>
+          <Link to="/register" state={{ from: '/espace-membres' }} className="action-button orange">Créer un Compte</Link>
         </div>
       </div>
 

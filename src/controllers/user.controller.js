@@ -1,6 +1,19 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { Resend } = require('resend');
+
+const getResendClient = () => {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) return null;
+    return new Resend(key);
+};
+
+const buildFrontendUrl = () => {
+    const base = (process.env.FRONTEND_URL || '').trim().replace(/\/$/, '');
+    return base;
+};
 
 // Inscription
 exports.register = async (req, res) => {
@@ -51,16 +64,113 @@ exports.register = async (req, res) => {
     }
 };
 
+// Mot de passe oublié (envoie un lien de reset)
+exports.forgotPassword = async (req, res) => {
+    try {
+        const email = String(req.body?.email || '').trim().toLowerCase();
+        if (!email) {
+            return res.status(400).json({ message: "Email requis" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
+        }
+
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+        user.passwordResetTokenHash = tokenHash;
+        user.passwordResetExpiresAt = expiresAt;
+        await user.save();
+
+        const frontendUrl = buildFrontendUrl();
+        if (!frontendUrl) {
+            return res.status(500).json({ message: "FRONTEND_URL n'est pas configurée" });
+        }
+
+        const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
+        const resend = getResendClient();
+        if (!resend) {
+            return res.status(500).json({ message: "RESEND_API_KEY n'est pas configurée" });
+        }
+
+        const fromEmail = (process.env.FROM_EMAIL || 'onboarding@resend.dev').trim();
+
+        await resend.emails.send({
+            from: fromEmail,
+            to: email,
+            subject: 'Réinitialisation du mot de passe — QuartierConnect',
+            text: `Bonjour,\n\nPour réinitialiser votre mot de passe, cliquez sur ce lien (valide 30 minutes) :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.\n`,
+            html: `
+                <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.5; color:#0f172a;">
+                  <h2 style="margin:0 0 12px;">Réinitialisation du mot de passe</h2>
+                  <p style="margin:0 0 16px;">Vous avez demandé à réinitialiser votre mot de passe QuartierConnect.</p>
+                  <p style="margin:0 0 16px;">
+                    <a href="${resetUrl}" style="display:inline-block; padding:12px 16px; border-radius:12px; background:#00a651; color:#fff; text-decoration:none; font-weight:800;">
+                      Réinitialiser mon mot de passe
+                    </a>
+                  </p>
+                  <p style="margin:0 0 8px; color:rgba(15,23,42,.75);">Ce lien expire dans 30 minutes.</p>
+                  <p style="margin:0; color:rgba(15,23,42,.75);">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+                </div>
+            `
+        });
+
+        return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
+    } catch (error) {
+        console.error('Erreur forgot password:', error);
+        return res.status(500).json({ message: 'Erreur lors de la demande de réinitialisation' });
+    }
+};
+
+// Réinitialiser le mot de passe via token
+exports.resetPassword = async (req, res) => {
+    try {
+        const token = String(req.body?.token || '').trim();
+        const password = String(req.body?.password || '');
+
+        if (!token || !password) {
+            return res.status(400).json({ message: 'Token et mot de passe requis' });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({ message: 'Le mot de passe doit contenir au moins 8 caractères' });
+        }
+
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        const user = await User.findOne({
+            passwordResetTokenHash: tokenHash,
+            passwordResetExpiresAt: { $gt: new Date() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Lien invalide ou expiré' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        user.password = hashedPassword;
+        user.passwordResetTokenHash = null;
+        user.passwordResetExpiresAt = null;
+        await user.save();
+
+        return res.json({ message: 'Mot de passe mis à jour' });
+    } catch (error) {
+        console.error('Erreur reset password:', error);
+        return res.status(500).json({ message: 'Erreur lors de la réinitialisation du mot de passe' });
+    }
+};
+
 // Connexion
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        console.log('Tentative de connexion pour:', email);
-
         // Vérifier si l'utilisateur existe
         const user = await User.findOne({ email });
-        console.log('Utilisateur trouvé:', user ? 'oui' : 'non');
 
         if (!user) {
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
@@ -68,7 +178,6 @@ exports.login = async (req, res) => {
 
         // Vérifier le mot de passe
         const isValidPassword = await bcrypt.compare(password, user.password);
-        console.log('Mot de passe valide:', isValidPassword ? 'oui' : 'non');
 
         if (!isValidPassword) {
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
