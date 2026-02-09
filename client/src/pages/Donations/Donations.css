@@ -739,6 +739,83 @@
     grid-template-columns: 1fr;
   }
 
+  .donations-hero-inner {
+    padding: 1rem;
+  }
+
+  .donations-hero-inner h1 {
+    font-size: 1.55rem;
+    line-height: 1.15;
+  }
+
+  .donations-hero-lead {
+    font-size: 0.95rem;
+    max-width: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .donations-hero-actions {
+    margin-top: 0.9rem;
+    gap: 0.65rem;
+  }
+
+  .donations-hero-btn {
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+  }
+
+  .donations-hero-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
+    justify-content: stretch;
+  }
+
+  .donations-stat {
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    border-radius: 14px;
+  }
+
+  .donations-stat .v {
+    font-size: 0.98rem;
+  }
+
+  .donations-stat .l {
+    font-size: 0.78rem;
+  }
+
+  .donations-hero-trust {
+    margin-top: 0.7rem;
+  }
+
+  .donations-hero-trust .trust-pill:nth-child(n+3) {
+    display: none;
+  }
+
+  .donations-quick {
+    padding: 0.85rem;
+  }
+
+  .donations-quick-featured {
+    padding: 0.65rem;
+  }
+
+  .donations-quick-amounts {
+    margin-top: 0.65rem;
+  }
+
+  .donations-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .donations-quick-note {
+    display: none;
+  }
+
   .donations-trust-inner {
     grid-template-columns: 1fr;
   }
