@@ -26,6 +26,7 @@ const Gallery = () => {
   const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
   const immersionRefs = useRef({});
   const immHideTRef = useRef(null);
+  const immWheelLockRef = useRef(false);
 
   const fetchMedia = async () => {
     try {
@@ -367,6 +368,52 @@ const Gallery = () => {
     return () => {
       if (t) window.clearTimeout(t);
       root.removeEventListener('scroll', onScroll);
+    };
+  }, [immersionOpen, immersionFeed.length]);
+
+  useEffect(() => {
+    if (!immersionOpen) return;
+    const root = immersionRefs.current?.['root'];
+    if (!root) return;
+
+    const onWheel = (e) => {
+      if (!immersionOpen) return;
+      if (!immersionFeed.length) return;
+      immShowUi();
+
+      // Force one-item navigation per wheel gesture (desktop / trackpad)
+      e.preventDefault();
+      if (immWheelLockRef.current) return;
+
+      const dir = (e.deltaY || 0) > 0 ? 1 : -1;
+      const cards = Array.from(root.querySelectorAll('.immersion-card'));
+      if (!cards.length) return;
+
+      const currentTop = root.scrollTop;
+      let currentIndex = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < cards.length; i += 1) {
+        const d = Math.abs(cards[i].offsetTop - currentTop);
+        if (d < bestDist) {
+          bestDist = d;
+          currentIndex = i;
+        }
+      }
+
+      const nextIndex = Math.max(0, Math.min(cards.length - 1, currentIndex + dir));
+      const target = cards[nextIndex];
+      if (!target) return;
+
+      immWheelLockRef.current = true;
+      root.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+      window.setTimeout(() => {
+        immWheelLockRef.current = false;
+      }, 420);
+    };
+
+    root.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      root.removeEventListener('wheel', onWheel);
     };
   }, [immersionOpen, immersionFeed.length]);
 
@@ -778,7 +825,7 @@ const Gallery = () => {
             {immersionFeed.map((m, idx) => (
               <section
                 key={m._id}
-                className="immersion-card"
+                className={`immersion-card ${m.type === 'video' ? 'is-video' : 'is-image'}`}
                 ref={(n) => { immersionRefs.current[m._id] = n; }}
                 aria-label={m.title || m.name || 'media'}
               >

@@ -436,6 +436,7 @@
 .immersion-card {
   height: 100vh;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   position: relative;
   display: grid;
   place-items: center;
@@ -472,14 +473,23 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transform: scale(1.02);
-  transition: transform 700ms cubic-bezier(.2,.8,.2,1), filter 700ms cubic-bezier(.2,.8,.2,1);
-  filter: saturate(1.02) contrast(1.06);
+  transform: none;
+  transition: none;
+  filter: none;
 }
 
 .immersion-card:hover .immersion-media img,
 .immersion-card:hover .immersion-media video {
-  transform: scale(1.06);
+  transform: none;
+}
+
+.immersion-card.is-image .immersion-media {
+  background: #000;
+}
+
+.immersion-card.is-image .immersion-media img {
+  object-fit: contain;
+  image-rendering: auto;
 }
 
 .immersion-media::after {
