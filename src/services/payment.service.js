@@ -4,6 +4,23 @@
 const os = require('os');
 const PaymentConfig = require('../models/paymentConfig.model');
 
+let _fetchImpl = null;
+function getFetch() {
+  if (_fetchImpl) return _fetchImpl;
+  if (typeof fetch === 'function') {
+    _fetchImpl = fetch;
+    return _fetchImpl;
+  }
+  try {
+    // node-fetch v2 (CommonJS)
+    // eslint-disable-next-line global-require
+    _fetchImpl = require('node-fetch');
+    return _fetchImpl;
+  } catch {
+    return null;
+  }
+}
+
 function getLanIP() {
   try {
     const ifaces = os.networkInterfaces();
@@ -69,7 +86,8 @@ async function initPayDunyaPayment({ donationId, amount, returnUrl, req }) {
   if (!publicKey || !privateKey || !token || !masterKey) return null;
 
   const url = 'https://app.paydunya.com/api/v1/checkout-invoice/create';
-  if (typeof fetch !== 'function') return null;
+  const _fetch = getFetch();
+  if (!_fetch) return null;
   try {
     const payload = {
       invoice: {
@@ -88,7 +106,7 @@ async function initPayDunyaPayment({ donationId, amount, returnUrl, req }) {
         website_url: cfg.websiteUrl || absoluteBase(req)
       }
     };
-    const res = await fetch(url, {
+    const res = await _fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -115,7 +133,8 @@ async function initPayDunyaPayment({ donationId, amount, returnUrl, req }) {
 async function initWavePayment({ donationId, amount, returnUrl, req }) {
   const url = process.env.WAVE_CHECKOUT_URL;
   const key = process.env.WAVE_API_KEY;
-  if (url && key && typeof fetch === 'function') {
+  const _fetch = getFetch();
+  if (url && key && _fetch) {
     try {
       const payload = {
         amount,
@@ -124,7 +143,7 @@ async function initWavePayment({ donationId, amount, returnUrl, req }) {
         callback_url: absoluteBase(req) + '/api/donations/webhook/wave',
         return_url: returnUrl || absoluteBase(req)
       };
-      const res = await fetch(url, {
+      const res = await _fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${key}`,
@@ -146,7 +165,8 @@ async function initWavePayment({ donationId, amount, returnUrl, req }) {
 async function initOrangePayment({ donationId, amount, returnUrl, req }) {
   const url = process.env.ORANGE_CHECKOUT_URL;
   const key = process.env.ORANGE_API_KEY;
-  if (url && key && typeof fetch === 'function') {
+  const _fetch = getFetch();
+  if (url && key && _fetch) {
     try {
       const payload = {
         amount,
@@ -155,7 +175,7 @@ async function initOrangePayment({ donationId, amount, returnUrl, req }) {
         callback_url: absoluteBase(req) + '/api/donations/webhook/orange',
         return_url: returnUrl || absoluteBase(req)
       };
-      const res = await fetch(url, {
+      const res = await _fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${key}`,
