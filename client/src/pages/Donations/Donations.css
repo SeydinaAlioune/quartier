@@ -377,17 +377,31 @@
   text-align: center;
   margin: 1.75rem 0;
   padding: 1.25rem;
-  background-color: rgba(15, 23, 42, 0.03);
-  border-radius: 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.80));
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.06);
+}
+
+.create-campaign h2 {
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.create-campaign p {
+  margin: 0.6rem auto 0;
+  max-width: 70ch;
+  color: #475569;
 }
 
 .create-btn {
-  background-color: #4CAF50;
+  background: linear-gradient(180deg, rgba(0,166,81,1) 0%, rgba(0,132,61,1) 100%);
   color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 4px;
-  font-size: 1.1rem;
+  border: 1px solid rgba(0, 132, 61, 0.40);
+  padding: 0.9rem 1.25rem;
+  border-radius: 14px;
+  font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
 }
@@ -395,18 +409,36 @@
 .donations-footer {
   text-align: center;
   margin-top: 1.75rem;
-  padding: 1.25rem;
-  background-color: rgba(15, 23, 42, 0.03);
-  border-radius: 8px;
+  padding: 1.35rem;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background:
+    radial-gradient(900px 420px at 20% 35%, rgba(0, 166, 81, 0.12) 0%, rgba(0, 166, 81, 0) 55%),
+    radial-gradient(760px 360px at 80% 25%, rgba(0, 178, 255, 0.10) 0%, rgba(0, 178, 255, 0) 55%),
+    #ffffff;
+  box-shadow: 0 22px 80px rgba(15, 23, 42, 0.06);
+}
+
+.donations-footer h2 {
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.donations-footer p {
+  margin: 0.65rem auto 0;
+  max-width: 75ch;
+  color: #475569;
+  line-height: 1.55;
 }
 
 .donate-now-btn {
-  background-color: #4CAF50;
+  background: linear-gradient(180deg, rgba(0,166,81,1) 0%, rgba(0,132,61,1) 100%);
   color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 4px;
-  font-size: 1.1rem;
+  border: 1px solid rgba(0, 132, 61, 0.40);
+  padding: 0.9rem 1.25rem;
+  border-radius: 14px;
+  font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
 }

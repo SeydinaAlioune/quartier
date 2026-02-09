@@ -20,6 +20,15 @@ const Donations = () => {
   const [copyMsg, setCopyMsg] = useState('');
   const [toast, setToast] = useState('');
 
+  const isAdmin = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || 'null');
+      return u && u.role === 'admin';
+    } catch {
+      return false;
+    }
+  })();
+
   const formatXof = (n) => {
     const v = Number(n || 0);
     return `${v.toLocaleString('fr-FR')} FCFA`;
@@ -351,11 +360,13 @@ const Donations = () => {
         </div>
       </section>
 
-      <section className="create-campaign">
-        <h2>Créer une Nouvelle Collecte</h2>
-        <p>Réservé aux administrateurs et responsables d'associations reconnues</p>
-        <button className="create-btn" onClick={handleCreateCampaign}>Créer une collecte</button>
-      </section>
+      {isAdmin && (
+        <section className="create-campaign">
+          <h2>Créer une Nouvelle Collecte</h2>
+          <p>Réservé aux administrateurs et responsables d'associations reconnues</p>
+          <button className="create-btn" onClick={handleCreateCampaign}>Créer une collecte</button>
+        </section>
+      )}
 
       <section className="donations-footer">
         <h2>Ensemble, nous pouvons faire la différence</h2>
