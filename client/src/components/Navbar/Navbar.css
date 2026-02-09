@@ -409,6 +409,19 @@
   gap: 12px;
 }
 
+.mobile-drawer__brand {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background:
+    radial-gradient(900px 260px at 15% 20%, rgba(0, 166, 81, 0.16) 0%, rgba(0, 166, 81, 0) 55%),
+    radial-gradient(700px 240px at 70% 35%, rgba(2, 178, 255, 0.10) 0%, rgba(2, 178, 255, 0) 55%),
+    rgba(255,255,255,0.86);
+  box-shadow: 0 18px 70px rgba(15, 23, 42, 0.08);
+}
+
 .mobile-drawer__brand-name {
   font-weight: 950;
   letter-spacing: -0.02em;
@@ -422,6 +435,13 @@
   color: rgba(15, 23, 42, 0.62);
 }
 
+.mobile-drawer__brand-tag {
+  margin-top: 6px;
+  font-weight: 850;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.72);
+}
+
 .mobile-drawer__close {
   width: 40px;
   height: 38px;
@@ -432,6 +452,12 @@
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.mobile-drawer__close:active {
+  transform: scale(0.98);
+  background: rgba(15, 23, 42, 0.07);
 }
 
 .mobile-search input {
@@ -467,6 +493,17 @@
   display: inline-flex;
   align-items: center;
   font-weight: 900;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.mobile-chip:active {
+  transform: scale(0.99);
+}
+
+.mobile-chip.is-active {
+  background: rgba(0, 166, 81, 0.12);
+  border-color: rgba(0, 166, 81, 0.35);
+  color: rgba(0, 102, 46, 0.95);
 }
 
 .mobile-section {
@@ -494,10 +531,38 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.mobile-link__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-icon {
+  width: 20px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.mobile-link__chev {
+  color: rgba(15, 23, 42, 0.38);
+  font-size: 18px;
 }
 
 .mobile-link:active {
   background: rgba(15, 23, 42, 0.06);
+  transform: translateY(0.5px);
+}
+
+.mobile-link.is-active {
+  background: rgba(0, 166, 81, 0.10);
+  color: rgba(0, 102, 46, 0.95);
+}
+
+.mobile-link.is-active .mobile-link__chev {
+  color: rgba(0, 102, 46, 0.55);
 }
 
 .mobile-sep {

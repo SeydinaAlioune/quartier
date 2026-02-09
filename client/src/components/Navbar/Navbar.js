@@ -203,9 +203,10 @@ const Navbar = () => {
       >
         <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
           <div className="mobile-drawer__top">
-            <div className="mobile-drawer__brand">
+            <div className="mobile-drawer__brand" role="presentation">
               <div className="mobile-drawer__brand-name">QuartierConnect</div>
               <div className="mobile-drawer__brand-sub">Cité Gendarmerie</div>
+              <div className="mobile-drawer__brand-tag">Actualités, entraide, projets</div>
             </div>
             <button type="button" className="mobile-drawer__close" onClick={closeMenu} aria-label="Fermer">✕</button>
           </div>
@@ -222,31 +223,32 @@ const Navbar = () => {
           </form>
 
           <div className="mobile-quick" aria-label="Raccourcis">
-            <Link to="/actualites" className="mobile-chip" onClick={closeMenu}>Actualités</Link>
-            <Link to="/forum" className="mobile-chip" onClick={closeMenu}>Forum</Link>
-            <Link to="/galerie" className="mobile-chip" onClick={closeMenu}>Galerie</Link>
+            <NavLink to="/" className={({ isActive }) => `mobile-chip${isActive ? ' is-active' : ''}`} onClick={closeMenu}>Accueil</NavLink>
+            <NavLink to="/actualites" className={({ isActive }) => `mobile-chip${isActive ? ' is-active' : ''}`} onClick={closeMenu}>Actualités</NavLink>
+            <NavLink to="/forum" className={({ isActive }) => `mobile-chip${isActive ? ' is-active' : ''}`} onClick={closeMenu}>Forum</NavLink>
+            <NavLink to="/galerie" className={({ isActive }) => `mobile-chip${isActive ? ' is-active' : ''}`} onClick={closeMenu}>Galerie</NavLink>
           </div>
 
           <div className="mobile-section" aria-label="Vie du quartier">
             <div className="mobile-section__title">Vie du quartier</div>
-            <Link to="/annuaire" className="mobile-link" onClick={closeMenu}>Annuaire</Link>
-            <Link to="/securite" className="mobile-link" onClick={closeMenu}>Sécurité</Link>
-            <Link to="/services" className="mobile-link" onClick={closeMenu}>Services</Link>
+            <NavLink to="/annuaire" className={({ isActive }) => `mobile-link${isActive ? ' is-active' : ''}`} onClick={closeMenu}><span className="mobile-link__label"><span className="mobile-icon" aria-hidden>📒</span>Annuaire</span><span className="mobile-link__chev" aria-hidden>›</span></NavLink>
+            <NavLink to="/securite" className={({ isActive }) => `mobile-link${isActive ? ' is-active' : ''}`} onClick={closeMenu}><span className="mobile-link__label"><span className="mobile-icon" aria-hidden>🛡</span>Sécurité</span><span className="mobile-link__chev" aria-hidden>›</span></NavLink>
+            <NavLink to="/services" className={({ isActive }) => `mobile-link${isActive ? ' is-active' : ''}`} onClick={closeMenu}><span className="mobile-link__label"><span className="mobile-icon" aria-hidden>🧰</span>Services</span><span className="mobile-link__chev" aria-hidden>›</span></NavLink>
           </div>
 
           <div className="mobile-section" aria-label="Initiatives">
             <div className="mobile-section__title">Initiatives</div>
-            <Link to="/projets" className="mobile-link" onClick={closeMenu}>Projets</Link>
-            <Link to="/dons" className="mobile-link" onClick={closeMenu}>Dons</Link>
+            <NavLink to="/projets" className={({ isActive }) => `mobile-link${isActive ? ' is-active' : ''}`} onClick={closeMenu}><span className="mobile-link__label"><span className="mobile-icon" aria-hidden>🧩</span>Projets</span><span className="mobile-link__chev" aria-hidden>›</span></NavLink>
+            <NavLink to="/dons" className={({ isActive }) => `mobile-link${isActive ? ' is-active' : ''}`} onClick={closeMenu}><span className="mobile-link__label"><span className="mobile-icon" aria-hidden>❤️</span>Dons</span><span className="mobile-link__chev" aria-hidden>›</span></NavLink>
           </div>
 
           <div className="mobile-section" aria-label="Médias">
             <div className="mobile-section__title">Médias</div>
-            <Link to="/galerie" className="mobile-link" onClick={closeMenu}>Galerie</Link>
+            <NavLink to="/galerie" className={({ isActive }) => `mobile-link${isActive ? ' is-active' : ''}`} onClick={closeMenu}><span className="mobile-link__label"><span className="mobile-icon" aria-hidden>🖼</span>Galerie</span><span className="mobile-link__chev" aria-hidden>›</span></NavLink>
           </div>
 
           <div className="mobile-sep" />
-          <Link to="/espace-membres" className="mobile-cta" onClick={closeMenu}>Espace Membres</Link>
+          <NavLink to="/espace-membres" className={({ isActive }) => `mobile-cta${isActive ? ' is-active' : ''}`} onClick={closeMenu}>Espace Membres</NavLink>
         </div>
       </div>
     )}
