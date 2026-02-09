@@ -129,7 +129,7 @@ const Navbar = () => {
     <nav className={`navbar ${isHome && heroVisible ? 'navbar--hero' : 'navbar--solid'}`}>
       <div className="navbar-content">
         <Link to="/" className="navbar-brand" onClick={closeMenu}>
-          <span className="brand-text">QuartierConnect</span>
+          <span className="brand-text">{isHome ? 'Accueil' : 'QuartierConnect'}</span>
           <span className="brand-badge" aria-label="Quartier">Cité Gendarmerie</span>
         </Link>
 
