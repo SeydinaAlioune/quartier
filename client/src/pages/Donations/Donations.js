@@ -205,6 +205,19 @@ const Donations = () => {
     other: 'Autre',
   };
 
+  const WaveIcon = ({ className }) => (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M2 15.5C4.5 15.5 5.5 8.5 8 8.5C10.5 8.5 11 20 13.5 20C16 20 16.5 4 19 4C21.5 4 22 15.5 22 15.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+
+  const OrangeIcon = ({ className }) => (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 2.5c4.8 3.1 7.6 7 7.6 10.8 0 4.3-3.4 8-7.6 8s-7.6-3.7-7.6-8C4.4 9.5 7.2 5.6 12 2.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+      <path d="M12 21.3V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+
   return (
     <div className="donations-container">
       <header
@@ -229,6 +242,23 @@ const Donations = () => {
           </div>
         </div>
       </header>
+
+      <section className="donations-trust" aria-label="Transparence">
+        <div className="donations-trust-inner">
+          <div className="donations-trust-item">
+            <div className="k">Paiement sécurisé</div>
+            <div className="v">Wave et Orange Money via PayDunya (dès validation KYC).</div>
+          </div>
+          <div className="donations-trust-item">
+            <div className="k">Suivi & preuve</div>
+            <div className="v">Historique accessible depuis votre compte, statut du don mis à jour automatiquement.</div>
+          </div>
+          <div className="donations-trust-item">
+            <div className="k">Besoin d'aide ?</div>
+            <div className="v">En cas de problème de paiement, contactez l'administrateur via la page Contact.</div>
+          </div>
+        </div>
+      </section>
 
       {toast && (
         <div className="donations-toast" role="status">{toast}</div>
@@ -278,8 +308,14 @@ const Donations = () => {
                 <span>Objectif: {formatXof(campaign.goal)}</span>
               </div>
               <div className="payment-methods">
-                <button className="payment-btn wave" onClick={() => openDonate(campaign, 'wave')}>Wave</button>
-                <button className="payment-btn orange" onClick={() => openDonate(campaign, 'orange')}>Orange Money</button>
+                <button className="pay-cta pay-cta--wave" type="button" onClick={() => openDonate(campaign, 'wave')}>
+                  <WaveIcon className="pay-cta__icon" />
+                  <span>Wave</span>
+                </button>
+                <button className="pay-cta pay-cta--orange" type="button" onClick={() => openDonate(campaign, 'orange')}>
+                  <OrangeIcon className="pay-cta__icon" />
+                  <span>Orange Money</span>
+                </button>
               </div>
               {!localStorage.getItem('token') && (
                 <div className="donations-auth-hint">
@@ -355,6 +391,21 @@ const Donations = () => {
             </div>
 
             <form className="donations-form" onSubmit={submitDonation}>
+              <div className="donations-field donations-field--full">
+                <span>Montants rapides</span>
+                <div className="donations-amount-presets" role="group" aria-label="Montants rapides">
+                  {[1000, 2000, 5000, 10000].map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`donations-preset${String(donateData.amount) === String(v) ? ' is-active' : ''}`}
+                      onClick={() => setDonateData({ ...donateData, amount: String(v) })}
+                    >
+                      {v.toLocaleString('fr-FR')} FCFA
+                    </button>
+                  ))}
+                </div>
+              </div>
               <label className="donations-field">
                 <span>Montant (FCFA)</span>
                 <input type="number" min="1" step="1" required value={donateData.amount} onChange={(e)=>setDonateData({...donateData, amount:e.target.value})} />

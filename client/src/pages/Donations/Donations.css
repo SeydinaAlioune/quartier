@@ -124,6 +124,41 @@
   color: #0f172a;
 }
 
+.donations-trust {
+  max-width: 1200px;
+  margin: 0 auto 1rem;
+}
+
+.donations-trust-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.donations-trust-item {
+  padding: 0.85rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fff;
+}
+
+.donations-trust-item .k {
+  font-weight: 1000;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.donations-trust-item .v {
+  margin-top: 0.35rem;
+  color: #475569;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
 .campaigns-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 360px));
@@ -252,6 +287,43 @@
   display: flex;
   gap: 0.5rem;
   margin-top: 1rem;
+}
+
+.pay-cta {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 1000;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.pay-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.10);
+}
+
+.pay-cta__icon {
+  opacity: 0.95;
+}
+
+.pay-cta--wave {
+  border-color: rgba(0, 178, 255, 0.35);
+  background: linear-gradient(180deg, rgba(0, 178, 255, 0.18), rgba(0, 178, 255, 0.06));
+  color: #045c7f;
+}
+
+.pay-cta--orange {
+  border-color: rgba(255, 107, 0, 0.35);
+  background: linear-gradient(180deg, rgba(255, 107, 0, 0.18), rgba(255, 107, 0, 0.06));
+  color: #8a3d00;
 }
 
 .donations-auth-hint {
@@ -421,6 +493,29 @@
   color: #334155;
 }
 
+.donations-amount-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.donations-preset {
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background: rgba(15, 23, 42, 0.02);
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.donations-preset.is-active {
+  border-color: rgba(0, 132, 61, 0.35);
+  background: rgba(0, 166, 81, 0.10);
+  color: #006630;
+}
+
 .donations-field input,
 .donations-field select,
 .donations-field textarea {
@@ -512,6 +607,10 @@
 }
 
 @media (max-width: 768px) {
+  .donations-trust-inner {
+    grid-template-columns: 1fr;
+  }
+
   .campaigns-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
