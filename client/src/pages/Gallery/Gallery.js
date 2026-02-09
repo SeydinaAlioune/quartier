@@ -21,9 +21,11 @@ const Gallery = () => {
   const [immersionOpen, setImmersionOpen] = useState(false);
   const [immSearchOpen, setImmSearchOpen] = useState(false);
   const [immFilterOpen, setImmFilterOpen] = useState(false);
+  const [immUiVisible, setImmUiVisible] = useState(true);
   const [durations, setDurations] = useState({}); // { [id]: seconds }
   const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
   const immersionRefs = useRef({});
+  const immHideTRef = useRef(null);
 
   const fetchMedia = async () => {
     try {
@@ -279,9 +281,28 @@ const Gallery = () => {
     setImmersionOpen(true);
     setImmSearchOpen(typeof window !== 'undefined' ? window.innerWidth >= 900 : false);
     setImmFilterOpen(false);
+    setImmUiVisible(true);
     requestAnimationFrame(() => {
       const el = immersionRefs.current?.['root'];
       if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0 });
+    });
+  };
+
+  const immShowUi = () => {
+    setImmUiVisible(true);
+    if (immHideTRef.current) window.clearTimeout(immHideTRef.current);
+    immHideTRef.current = window.setTimeout(() => {
+      setImmUiVisible(false);
+      setImmFilterOpen(false);
+      if (typeof window !== 'undefined' && window.innerWidth < 900) setImmSearchOpen(false);
+    }, 2200);
+  };
+
+  const immToggleUi = () => {
+    setImmUiVisible((v) => {
+      const next = !v;
+      if (next) immShowUi();
+      return next;
     });
   };
 
@@ -296,12 +317,22 @@ const Gallery = () => {
 
   useEffect(() => {
     if (!immersionOpen) return;
+    immShowUi();
+    return () => {
+      if (immHideTRef.current) window.clearTimeout(immHideTRef.current);
+      immHideTRef.current = null;
+    };
+  }, [immersionOpen]);
+
+  useEffect(() => {
+    if (!immersionOpen) return;
     const root = immersionRefs.current?.['root'];
     if (!root) return;
 
     let t = null;
     let snapping = false;
     const onScroll = () => {
+      immShowUi();
       if (snapping) return;
       if (t) window.clearTimeout(t);
       t = window.setTimeout(() => {
@@ -658,7 +689,12 @@ const Gallery = () => {
       </div>
 
       {immersionOpen && (
-        <div className="immersion-overlay" role="dialog" aria-label="Mode immersion" aria-modal="true">
+        <div
+          className={`immersion-overlay ${immUiVisible ? '' : 'immersion-ui-hidden'}`}
+          role="dialog"
+          aria-label="Mode immersion"
+          aria-modal="true"
+        >
           <div className="immersion-top-progress" aria-hidden>
             <div className="immersion-top-progress__bar" />
           </div>
@@ -674,14 +710,13 @@ const Gallery = () => {
                   type="button"
                   className="immersion-mini__btn"
                   onClick={() => {
+                    immShowUi();
                     setImmFilterOpen((v) => {
                       const next = !v;
                       if (next) setImmSearchOpen(false);
                       return next;
                     });
                   }}
-                  aria-label={immFilterOpen ? 'Masquer les filtres' : 'Afficher les filtres'}
-                  title={immFilterOpen ? 'Masquer les filtres' : 'Filtres'}
                 >
                   ☰
                 </button>
@@ -689,18 +724,18 @@ const Gallery = () => {
                   {category !== 'all' ? categoryConfig[category].label : 'Tout'}
                 </div>
               </div>
+
               <button
                 type="button"
                 className="immersion-search-toggle"
                 onClick={() => {
+                  immShowUi();
                   setImmSearchOpen((v) => {
                     const next = !v;
                     if (next) setImmFilterOpen(false);
                     return next;
                   });
                 }}
-                aria-label={immSearchOpen ? 'Masquer la recherche' : 'Afficher la recherche'}
-                title={immSearchOpen ? 'Masquer la recherche' : 'Rechercher'}
               >
                 ⌕
               </button>
@@ -713,7 +748,11 @@ const Gallery = () => {
                     key={c}
                     type="button"
                     className={`imm-chip ${category === c ? 'active' : ''}`}
-                    onClick={() => { setCategory((prev) => (prev === c ? 'all' : c)); setImmFilterOpen(false); }}
+                    onClick={() => {
+                      immShowUi();
+                      setCategory((prev) => (prev === c ? 'all' : c));
+                      setImmFilterOpen(false);
+                    }}
                   >
                     {categoryConfig[c].label}
                   </button>
@@ -727,7 +766,10 @@ const Gallery = () => {
                 type="text"
                 placeholder="Rechercher dans l'immersion"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  immShowUi();
+                  setSearch(e.target.value);
+                }}
               />
             )}
           </div>
@@ -745,22 +787,29 @@ const Gallery = () => {
                   style={{ '--imm-progress': `${Math.round(((idx + 1) / Math.max(1, immersionFeed.length)) * 100)}%` }}
                   aria-hidden
                 />
-                <div className="immersion-media" onClick={() => {
-                  const inFiltered = filtered.findIndex((x) => x._id === m._id);
-                  if (inFiltered >= 0) setViewerIndex(inFiltered);
-                }}>
-                  {m.type === 'image' ? (
-                    <img src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} loading="lazy" />
-                  ) : (
+
+                <div
+                  className="immersion-media"
+                  onClick={() => {
+                    immToggleUi();
+                  }}
+                  onDoubleClick={() => {
+                    const inFiltered = filtered.findIndex((x) => x._id === m._id);
+                    if (inFiltered >= 0) setViewerIndex(inFiltered);
+                  }}
+                >
+                  {m.type === 'video' ? (
                     <video
                       src={buildMediaUrl(m.url)}
-                      poster={m.thumbnail ? buildMediaUrl(m.thumbnail) : undefined}
+                      controls={false}
                       muted
                       playsInline
                       loop
                       preload="metadata"
                       crossOrigin="anonymous"
                     />
+                  ) : (
+                    <img loading="lazy" src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} />
                   )}
                 </div>
 

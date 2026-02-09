@@ -232,6 +232,27 @@
   color: rgba(255,255,255,0.92);
 }
 
+.immersion-overlay.immersion-ui-hidden .immersion-topbar,
+.immersion-overlay.immersion-ui-hidden .immersion-controls {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+.immersion-overlay .immersion-topbar,
+.immersion-overlay .immersion-controls {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.immersion-overlay.immersion-ui-hidden .immersion-meta {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.immersion-overlay .immersion-meta {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
 .immersion-top-progress {
   position: absolute;
   top: 0;
