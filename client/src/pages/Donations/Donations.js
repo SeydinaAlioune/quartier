@@ -206,6 +206,23 @@ const Donations = () => {
     return { active, totalCollected, totalGoal };
   })();
 
+  const featuredCampaign = (() => {
+    if (!currentCampaigns.length) return null;
+    const byUrgency = (c) => {
+      const goal = Number(c.goal) || 0;
+      const collected = Number(c.collected) || 0;
+      const remaining = Math.max(0, goal - collected);
+      const hasEnd = c.endDate instanceof Date;
+      const daysLeft = hasEnd ? Math.max(0, (c.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 9999;
+      const categoryBoost = c.category === 'emergency' ? -1000 : 0;
+      return (daysLeft * 10) + (remaining > 0 ? 1 : 5000) + categoryBoost;
+    };
+    const candidates = [...currentCampaigns].sort((a, b) => byUrgency(a) - byUrgency(b));
+    return candidates[0] || null;
+  })();
+
+  const [quickAmount, setQuickAmount] = useState(5000);
+
   const labels = {
     telethon: 'Téléthon',
     project: 'Projet',
@@ -233,17 +250,95 @@ const Donations = () => {
         className="donations-hero"
       >
         <div className="donations-hero-inner">
-          <p className="donations-hero-kicker">Solidarité</p>
-          <h1>Téléthon & Collectes</h1>
-          <p className="donations-hero-lead">Aide les personnes et les causes du quartier. Les dons sont indépendants des projets, mais certaines collectes peuvent être liées à un projet.</p>
-          <div className="donations-hero-actions">
-            <button type="button" className="donations-hero-btn" onClick={handleDonateNow}>Faire un don</button>
-            <button type="button" className="donations-hero-link" onClick={() => document.getElementById('donations-active')?.scrollIntoView({ behavior: 'smooth' })}>Voir les collectes</button>
-          </div>
-          <div className="donations-hero-stats">
-            <div className="donations-stat"><span className="v">{stats.active}</span><span className="l">collectes actives</span></div>
-            <div className="donations-stat"><span className="v">{formatXof(stats.totalCollected)}</span><span className="l">collectés</span></div>
-            <div className="donations-stat"><span className="v">{formatXof(stats.totalGoal)}</span><span className="l">objectif total</span></div>
+          <div className="donations-hero-grid">
+            <div className="donations-hero-left">
+              <p className="donations-hero-kicker">Solidarité</p>
+              <h1>Un don, une action réelle dans le quartier</h1>
+              <p className="donations-hero-lead">Chaque contribution finance des actions visibles: urgences, projets, entraide. Donne en quelques secondes et suis l'impact.</p>
+              <div className="donations-hero-actions">
+                <button type="button" className="donations-hero-btn" onClick={handleDonateNow}>Faire un don</button>
+                <button type="button" className="donations-hero-link" onClick={() => document.getElementById('donations-active')?.scrollIntoView({ behavior: 'smooth' })}>Voir les collectes</button>
+              </div>
+              <div className="donations-hero-stats">
+                <div className="donations-stat"><span className="v">{stats.active}</span><span className="l">collectes actives</span></div>
+                <div className="donations-stat"><span className="v">{formatXof(stats.totalCollected)}</span><span className="l">collectés</span></div>
+                <div className="donations-stat"><span className="v">{formatXof(stats.totalGoal)}</span><span className="l">objectif total</span></div>
+              </div>
+              <div className="donations-hero-trust" aria-label="Confiance">
+                <span className="trust-pill">Paiement sécurisé</span>
+                <span className="trust-pill">Suivi automatique</span>
+                <span className="trust-pill">Historique</span>
+                <span className="trust-pill">Support</span>
+              </div>
+            </div>
+
+            <aside className="donations-hero-right" aria-label="Don rapide">
+              <div className="donations-quick">
+                <div className="donations-quick-head">
+                  <div className="t">Don rapide</div>
+                  <div className="s">{featuredCampaign ? `Collecte à soutenir: ${featuredCampaign.title}` : 'Choisis une collecte ci-dessous'}</div>
+                </div>
+                {featuredCampaign && (
+                  <div className="donations-quick-featured">
+                    <div className="line">
+                      <span className="k">Objectif</span>
+                      <span className="v">{formatXof(featuredCampaign.goal)}</span>
+                    </div>
+                    <div className="line">
+                      <span className="k">Déjà collectés</span>
+                      <span className="v">{formatXof(featuredCampaign.collected)}</span>
+                    </div>
+                    <div className="line">
+                      <span className="k">Reste</span>
+                      <span className="v">{formatXof(Math.max(0, (Number(featuredCampaign.goal) || 0) - (Number(featuredCampaign.collected) || 0)))}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="donations-quick-amounts" role="group" aria-label="Montants rapides">
+                  {[1000, 2000, 5000, 10000].map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`donations-preset${quickAmount === v ? ' is-active' : ''}`}
+                      onClick={() => setQuickAmount(v)}
+                    >
+                      {v.toLocaleString('fr-FR')} FCFA
+                    </button>
+                  ))}
+                </div>
+
+                <div className="donations-quick-actions">
+                  <button
+                    type="button"
+                    className="pay-cta pay-cta--wave"
+                    disabled={!featuredCampaign}
+                    onClick={() => {
+                      if (!featuredCampaign) return;
+                      setDonateData((d) => ({ ...d, amount: String(quickAmount), paymentMethod: 'wave' }));
+                      openDonate(featuredCampaign, 'wave');
+                    }}
+                  >
+                    <WaveIcon className="pay-cta__icon" />
+                    <span>Wave</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="pay-cta pay-cta--orange"
+                    disabled={!featuredCampaign}
+                    onClick={() => {
+                      if (!featuredCampaign) return;
+                      setDonateData((d) => ({ ...d, amount: String(quickAmount), paymentMethod: 'orange' }));
+                      openDonate(featuredCampaign, 'orange');
+                    }}
+                  >
+                    <OrangeIcon className="pay-cta__icon" />
+                    <span>Orange</span>
+                  </button>
+                </div>
+                <div className="donations-quick-note">En cliquant, tu confirmes le montant et tu finalises dans la fenêtre de paiement.</div>
+              </div>
+            </aside>
           </div>
         </div>
       </header>
