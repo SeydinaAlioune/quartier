@@ -222,10 +222,6 @@ const Donations = () => {
     <div className="donations-container">
       <header
         className="donations-hero"
-        style={{
-          backgroundImage: `linear-gradient(rgba(8, 14, 24, 0.62), rgba(8, 14, 24, 0.52)), url(${process.env.PUBLIC_URL}/communautaire.jpg)`,
-          backgroundPosition: 'center'
-        }}
       >
         <div className="donations-hero-inner">
           <p className="donations-hero-kicker">Solidarité</p>

@@ -10,8 +10,10 @@
   padding: 4.25rem 1rem 2.25rem;
   margin-bottom: 1rem;
   border-radius: 18px;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background:
+    radial-gradient(900px 420px at 20% 25%, rgba(0, 166, 81, 0.18) 0%, rgba(0, 166, 81, 0) 60%),
+    radial-gradient(760px 360px at 80% 15%, rgba(0, 178, 255, 0.16) 0%, rgba(0, 178, 255, 0) 55%),
+    linear-gradient(135deg, #0b1220 0%, #0f2741 45%, #0b2b1f 100%);
   min-height: 320px;
   display: flex;
   align-items: center;
