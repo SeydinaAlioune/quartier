@@ -665,7 +665,9 @@ const Gallery = () => {
 
                 <div className="immersion-story">
                   <div className="immersion-title">{m.title || m.name || '—'}</div>
-                  <div className="immersion-text">{m.description || "Ajoute une description lors de l’upload pour raconter ce moment."}</div>
+                  {m.description ? (
+                    <div className="immersion-text">{m.description}</div>
+                  ) : null}
                 </div>
               </section>
             ))}
