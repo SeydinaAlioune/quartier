@@ -19,6 +19,7 @@ const Gallery = () => {
   const [category, setCategory] = useState('all'); // event | project | history | general | all
   const [viewerIndex, setViewerIndex] = useState(null); // index in filtered
   const [immersionOpen, setImmersionOpen] = useState(false);
+  const [immSearchOpen, setImmSearchOpen] = useState(false);
   const [durations, setDurations] = useState({}); // { [id]: seconds }
   const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
   const immersionRefs = useRef({});
@@ -275,11 +276,21 @@ const Gallery = () => {
 
   const openImmersion = () => {
     setImmersionOpen(true);
+    setImmSearchOpen(typeof window !== 'undefined' ? window.innerWidth >= 900 : false);
     requestAnimationFrame(() => {
       const el = immersionRefs.current?.['root'];
       if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0 });
     });
   };
+
+  useEffect(() => {
+    if (!immersionOpen) return;
+    const onResize = () => {
+      setImmSearchOpen(window.innerWidth >= 900);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [immersionOpen]);
 
   useEffect(() => {
     if (!immersionOpen) return;
@@ -607,25 +618,39 @@ const Gallery = () => {
           </div>
 
           <div className="immersion-controls" role="region" aria-label="Filtres immersion">
-            <div className="immersion-chips">
-              {categories.filter((c) => c !== 'all').map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`imm-chip ${category === c ? 'active' : ''}`}
-                  onClick={() => setCategory((prev) => (prev === c ? 'all' : c))}
-                >
-                  {categoryConfig[c].label}
-                </button>
-              ))}
+            <div className="immersion-controls__row">
+              <div className="immersion-chips">
+                {categories.filter((c) => c !== 'all').map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`imm-chip ${category === c ? 'active' : ''}`}
+                    onClick={() => setCategory((prev) => (prev === c ? 'all' : c))}
+                  >
+                    {categoryConfig[c].label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="immersion-search-toggle"
+                onClick={() => setImmSearchOpen((v) => !v)}
+                aria-label={immSearchOpen ? 'Masquer la recherche' : 'Afficher la recherche'}
+                title={immSearchOpen ? 'Masquer la recherche' : 'Rechercher'}
+              >
+                ⌕
+              </button>
             </div>
-            <input
-              className="immersion-search"
-              type="text"
-              placeholder="Rechercher dans l'immersion"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+
+            {immSearchOpen && (
+              <input
+                className="immersion-search"
+                type="text"
+                placeholder="Rechercher dans l'immersion"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            )}
           </div>
 
           <div className="immersion-feed" ref={(n) => { immersionRefs.current['root'] = n; }}>
