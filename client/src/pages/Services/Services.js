@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Services.css';
 import api from '../../services/api';
@@ -41,7 +41,6 @@ const Services = () => {
   });
 
   const categories = SERVICE_CATEGORIES;
-  const SHOW_STATIC_CITY_SECTIONS = false; // Désactivé: sections désormais dynamiques via /api/city
 
   const scrollToDeclared = () => {
     const el = document.getElementById('services-declares');
@@ -118,7 +117,7 @@ const Services = () => {
     }
   };
 
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -138,13 +137,13 @@ const Services = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, search]);
 
-  useEffect(() => { fetchServices(); /* on mount */ }, []);
+  useEffect(() => { fetchServices(); /* on mount */ }, [fetchServices]);
   useEffect(() => {
     const t = setTimeout(() => fetchServices(), 300);
     return () => clearTimeout(t);
-  }, [search, category]);
+  }, [category, fetchServices, search]);
 
   // Charger les contacts utiles (admin) pour alimenter la section "Numéros d'Urgence"
   useEffect(() => {

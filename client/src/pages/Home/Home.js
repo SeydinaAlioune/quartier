@@ -57,25 +57,6 @@ const Home = () => {
     transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
   };
 
-  const cardsWrap = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.12
-      }
-    }
-  };
-
-  const cardItem = {
-    hidden: { opacity: 0, y: 18, scale: 0.98 },
-    show: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
-    }
-  };
-
   const proofItems = [
     { label: 'Actualités', value: counts.posts != null ? String(counts.posts) : '—' },
     { label: 'Projets', value: counts.projects != null ? String(counts.projects) : '—' },

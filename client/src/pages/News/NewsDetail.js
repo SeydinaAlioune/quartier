@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -52,7 +52,7 @@ const NewsDetail = () => {
     return `${minutes} min`;
   };
 
-  const normalizePost = (p) => {
+  const normalizePost = useCallback((p) => {
     const fallbackFromContent = extractFirstImageFromContent(p.content);
     const raw = p.coverUrl || fallbackFromContent;
     const image = raw ? (String(raw).startsWith('http') ? raw : `${API_BASE}${raw}`) : '/images/setsetal.jpg';
@@ -64,7 +64,7 @@ const NewsDetail = () => {
       image,
       author: p.author?.name || 'Anonyme',
     };
-  };
+  }, [API_BASE]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -100,7 +100,7 @@ const NewsDetail = () => {
     }
 
     return () => { mounted = false; };
-  }, [API_BASE, id, location.state]);
+  }, [id, location.state, normalizePost]);
 
   useEffect(() => {
     let mounted = true;
@@ -118,7 +118,7 @@ const NewsDetail = () => {
     };
     fetchRelated();
     return () => { mounted = false; };
-  }, [API_BASE, id]);
+  }, [id, normalizePost]);
 
   if (loading) {
     return (

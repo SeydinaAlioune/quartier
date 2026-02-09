@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './Security.css';
 import ReportIncident from './ReportIncident';
 import api from '../../services/api';
@@ -161,23 +161,23 @@ const Security = () => {
     return { activeAlerts, last24h, recentLabel };
   }, [alerts, incidents]);
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     try {
       const res = await api.get('/api/security/alerts');
       setAlerts(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       // noop
     }
-  };
+  }, []);
 
-  const fetchIncidents = async () => {
+  const fetchIncidents = useCallback(async () => {
     try {
       const res = await api.get('/api/security/incidents');
       setIncidents(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       // noop
     }
-  };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -224,7 +224,7 @@ const Security = () => {
       try { const data = JSON.parse(ev.data); mounted && setIncidents(prev => prev.filter(i => i._id !== data._id)); } catch {}
     });
     return () => { mounted = false; alertsSrc.close(); incidentsSrc.close(); };
-  }, []);
+  }, [fetchAlerts, fetchIncidents]);
 
   return (
     <div className="security-container">
