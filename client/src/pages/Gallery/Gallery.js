@@ -28,7 +28,6 @@ const Gallery = () => {
       params.set('status', 'approved');
       params.set('page', '1');
       params.set('limit', '100');
-      if (type !== 'all') params.set('type', type);
       // Pas de recherche backend pour l'instant, on filtrera côté client sur title/description
       const res = await api.get(`/api/media?${params.toString()}`);
       const payload = res?.data;
@@ -159,18 +158,23 @@ const Gallery = () => {
   };
 
   useEffect(() => { fetchMedia(); /* initial */ }, []);
-  useEffect(() => {
-    const t = setTimeout(() => fetchMedia(), 250);
-    return () => clearTimeout(t);
-  }, [type]);
 
-  const filtered = items.filter(m => {
+  const filteredByType = items.filter((m) => {
+    if (type === 'all') return true;
+    return m.type === type;
+  });
+
+  const filtered = filteredByType.filter(m => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     const name = (m.title || m.name || '').toLowerCase();
     const desc = (m.description || '').toLowerCase();
     return name.includes(q) || desc.includes(q);
   });
+
+  const totalCount = items.length;
+  const photoCount = items.filter((m) => m.type === 'image').length;
+  const videoCount = items.filter((m) => m.type === 'video').length;
 
   const viewerItem = (typeof viewerIndex === 'number' && viewerIndex >= 0 && viewerIndex < filtered.length)
     ? filtered[viewerIndex]
@@ -209,13 +213,49 @@ const Gallery = () => {
   return (
     <>
       <div className="gallery-shell">
-        <div className="gallery-top">
-          <div>
-            <h1 className="gallery-title">Galerie</h1>
-            <p className="gallery-subtitle">Photos & vidéos du quartier (contenus approuvés)</p>
-          </div>
-          <div className="gallery-count" aria-label="Compteur">
-            {filtered.length} média{filtered.length > 1 ? 's' : ''}
+        <div className="gallery-hero" role="region" aria-label="Présentation">
+          <div className="gallery-hero__inner">
+            <div className="gallery-hero__copy">
+              <div className="gallery-kicker">QuartierConnect</div>
+              <h1 className="gallery-title">Galerie</h1>
+              <p className="gallery-subtitle">Photos & vidéos du quartier (contenus approuvés)</p>
+
+              <div className="gallery-hero__pills" aria-hidden>
+                <span className="hero-pill">Médias validés</span>
+                <span className="hero-pill">Qualité HD</span>
+                <span className="hero-pill">Communauté</span>
+              </div>
+
+              <div className="gallery-hero__actions">
+                <button
+                  type="button"
+                  className="hero-btn hero-btn--primary"
+                  onClick={() => document.getElementById('galleryGrid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                  Explorer
+                </button>
+                <a className="hero-btn hero-btn--ghost" href="/espace-membres">Partager</a>
+              </div>
+            </div>
+
+            <div className="gallery-hero__stats" aria-label="Statistiques">
+              <div className="hero-stat">
+                <div className="hero-stat__value">{totalCount}</div>
+                <div className="hero-stat__label">Médias</div>
+              </div>
+              <div className="hero-stat">
+                <div className="hero-stat__value">{photoCount}</div>
+                <div className="hero-stat__label">Photos</div>
+              </div>
+              <div className="hero-stat">
+                <div className="hero-stat__value">{videoCount}</div>
+                <div className="hero-stat__label">Vidéos</div>
+              </div>
+              <div className="hero-stat hero-stat--soft">
+                <div className="hero-stat__value">{filtered.length}</div>
+                <div className="hero-stat__label">Résultats</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -272,7 +312,7 @@ const Gallery = () => {
       {!loading && !error && filtered.length === 0 && <p>Aucun média.</p>}
 
       {!loading && (
-      <div className="gallery-masonry" aria-label="Liste des médias">
+      <div id="galleryGrid" className="gallery-masonry" aria-label="Liste des médias">
         {filtered.map((m, idx) => (
           <div key={m._id} className="gallery-item">
             <button className="media-thumb media-thumb--button" onClick={() => setViewerIndex(idx)} aria-label="Voir en grand">
