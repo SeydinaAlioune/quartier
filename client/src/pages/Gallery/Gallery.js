@@ -659,6 +659,9 @@ const Gallery = () => {
 
       {immersionOpen && (
         <div className="immersion-overlay" role="dialog" aria-label="Mode immersion" aria-modal="true">
+          <div className="immersion-top-progress" aria-hidden>
+            <div className="immersion-top-progress__bar" />
+          </div>
           <div className="immersion-topbar">
             <div className="immersion-brand">Galerie · Immersion</div>
             <button type="button" className="immersion-close" onClick={() => setImmersionOpen(false)} aria-label="Quitter">✕</button>
@@ -737,6 +740,11 @@ const Gallery = () => {
                 ref={(n) => { immersionRefs.current[m._id] = n; }}
                 aria-label={m.title || m.name || 'media'}
               >
+                <div
+                  className="immersion-card-progress"
+                  style={{ '--imm-progress': `${Math.round(((idx + 1) / Math.max(1, immersionFeed.length)) * 100)}%` }}
+                  aria-hidden
+                />
                 <div className="immersion-media" onClick={() => {
                   const inFiltered = filtered.findIndex((x) => x._id === m._id);
                   if (inFiltered >= 0) setViewerIndex(inFiltered);
