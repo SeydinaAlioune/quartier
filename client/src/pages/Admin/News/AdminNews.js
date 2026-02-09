@@ -390,7 +390,7 @@ const AdminNews = () => {
   // Commentaires: non branché pour l'instant (placeholder vide)
   const comments = [];
 
-  const MediaLibrary = () => (
+  const renderMediaLibrary = () => (
     <div className="media-library">
       <div className="media-header">
         <h3>Bibliothèque de médias</h3>
@@ -843,7 +843,7 @@ const AdminNews = () => {
             </div>
           </div>
 
-          {showMediaLibrary && <MediaLibrary />}
+          {showMediaLibrary && renderMediaLibrary()}
           {showComments && <CommentsSection />}
           {showAnnouncements && <AnnouncementsSection />}
           <MediaPicker />
