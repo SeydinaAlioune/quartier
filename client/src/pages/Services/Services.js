@@ -35,6 +35,7 @@ const Services = () => {
   const modalRef = useRef(null);
   const dragStartYRef = useRef(0);
   const dragActiveRef = useRef(false);
+  const restoreFocusRef = useRef(null);
   const [submitForm, setSubmitForm] = useState({
     name: '',
     description: '',
@@ -72,6 +73,33 @@ const Services = () => {
     setModalDragY(0);
     setIsDraggingModal(false);
   };
+
+  useEffect(() => {
+    if (!showSubmitModal) return undefined;
+    restoreFocusRef.current = document.activeElement;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeSubmit();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    const t = window.setTimeout(() => {
+      const root = modalRef.current;
+      if (!root) return;
+      const input = root.querySelector('input, select, textarea, button');
+      if (input && typeof input.focus === 'function') input.focus();
+    }, 0);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.clearTimeout(t);
+      const el = restoreFocusRef.current;
+      if (el && typeof el.focus === 'function') {
+        try {
+          el.focus();
+        } catch {
+        }
+      }
+    };
+  }, [showSubmitModal]);
 
   useEffect(() => {
     if (!toast.open) return;
@@ -434,7 +462,7 @@ const Services = () => {
     </div>
 
     {showSubmitModal && (
-      <div className="services-modal-overlay" onMouseDown={() => closeSubmit()}>
+      <div className="services-modal-overlay" role="dialog" aria-modal="true" aria-label="Proposer un service" onMouseDown={() => closeSubmit()}>
         <div
           ref={modalRef}
           className={`services-modal ${isDraggingModal ? 'dragging' : ''}`}
@@ -473,7 +501,7 @@ const Services = () => {
         >
           <div className="services-modal-head">
             <h3>Proposer un service</h3>
-            <button type="button" className="services-modal-close" onClick={() => closeSubmit()}>✕</button>
+            <button type="button" className="services-modal-close" onClick={() => closeSubmit()} aria-label="Fermer">✕</button>
           </div>
 
           <p className="services-modal-sub">Votre proposition sera vérifiée par un administrateur avant publication.</p>

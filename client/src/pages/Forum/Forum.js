@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Annonces from './Annonces';
 import BoiteIdees from './BoiteIdees';
@@ -29,6 +29,36 @@ const Forum = () => {
   const [showNewDiscussion, setShowNewDiscussion] = useState(false);
   const [newDiscussion, setNewDiscussion] = useState({ title: '', categoryId: '', content: '' });
   const isLoggedIn = isAuthenticated;
+
+  const newDiscussionModalRef = useRef(null);
+  const restoreFocusRef = useRef(null);
+
+  useEffect(() => {
+    if (!showNewDiscussion) return undefined;
+    restoreFocusRef.current = document.activeElement;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowNewDiscussion(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    const t = window.setTimeout(() => {
+      const root = newDiscussionModalRef.current;
+      if (!root) return;
+      const input = root.querySelector('input, select, textarea, button');
+      if (input && typeof input.focus === 'function') input.focus();
+    }, 0);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.clearTimeout(t);
+      const el = restoreFocusRef.current;
+      if (el && typeof el.focus === 'function') {
+        try {
+          el.focus();
+        } catch {
+        }
+      }
+    };
+  }, [showNewDiscussion]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -373,8 +403,8 @@ const Forum = () => {
       </button>
 
       {showNewDiscussion && (
-        <div className="modal-overlay" onClick={() => setShowNewDiscussion(false)}>
-          <div className="new-discussion-modal premium" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Nouvelle discussion" onMouseDown={() => setShowNewDiscussion(false)}>
+          <div ref={newDiscussionModalRef} className="new-discussion-modal premium" onMouseDown={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-head-left">
                 <div className="modal-icon" aria-hidden="true"><i className="far fa-comment-dots"></i></div>
