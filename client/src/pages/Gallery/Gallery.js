@@ -180,10 +180,10 @@ const Gallery = () => {
                 <img loading="lazy" src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} />
               ) : (
                 <>
-                  <video preload="metadata" muted playsInline crossOrigin="anonymous">
-                    <source src={buildMediaUrl(m.url)} type={inferMime(m.url)} />
-                  </video>
-                  <div className="play-badge" aria-hidden>▶</div>
+                  <div className="video-thumb" aria-hidden>
+                    <div className="video-thumb__icon">▶</div>
+                    <div className="video-thumb__label">Vidéo</div>
+                  </div>
                 </>
               )}
               <div className="thumb-overlay">
