@@ -38,6 +38,11 @@ const generateVideoThumbnail = async (inputAbsolutePath, outputAbsolutePath) => 
     });
 };
 
+const mediaUrlToAbsolutePath = (mediaUrl = '') => {
+    const relative = String(mediaUrl || '').replace(/^[\/\\]+/, '');
+    return path.resolve(path.join('public', relative));
+};
+
 // Ajouter un média
 exports.uploadMedia = async (req, res) => {
     try {
@@ -240,5 +245,62 @@ exports.moderateMedia = async (req, res) => {
     } catch (error) {
         console.error('Erreur modération média:', error);
         res.status(500).json({ message: 'Erreur lors de la modération du média' });
+    }
+};
+
+// Admin: régénérer les thumbnails manquants (vidéos)
+exports.rebuildThumbnails = async (req, res) => {
+    try {
+        if (!ffmpeg || !ffmpegPath) {
+            return res.status(400).json({ message: "FFmpeg n'est pas disponible sur le serveur" });
+        }
+
+        const limit = Math.max(1, Math.min(200, Number(req.body?.limit || 50)));
+
+        const candidates = await Media.find({
+            type: 'video',
+            $or: [{ thumbnail: { $exists: false } }, { thumbnail: null }, { thumbnail: '' }]
+        }).sort('-createdAt').limit(limit);
+
+        let processed = 0;
+        let generated = 0;
+        let failed = 0;
+        const failures = [];
+
+        for (const m of candidates) {
+            processed += 1;
+            try {
+                const videoAbs = mediaUrlToAbsolutePath(m.url);
+                const thumbFilename = `thumb-${m._id}.jpg`;
+                const thumbAbs = path.resolve(path.join('public', 'uploads', thumbFilename));
+
+                const ok = await generateVideoThumbnail(videoAbs, thumbAbs);
+                if (!ok) {
+                    failed += 1;
+                    failures.push({ id: String(m._id), reason: 'ffmpeg_failed' });
+                    continue;
+                }
+
+                m.thumbnail = `/uploads/${thumbFilename}`;
+                await m.save();
+                generated += 1;
+            } catch (err) {
+                failed += 1;
+                failures.push({ id: String(m._id), reason: 'exception' });
+            }
+        }
+
+        return res.json({
+            message: 'Rebuild thumbnails terminé',
+            limit,
+            found: candidates.length,
+            processed,
+            generated,
+            failed,
+            failures
+        });
+    } catch (error) {
+        console.error('Erreur rebuild thumbnails:', error);
+        res.status(500).json({ message: 'Erreur lors du rebuild thumbnails' });
     }
 };

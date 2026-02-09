@@ -17,6 +17,7 @@ router.put('/:id', mediaController.updateMedia);
 router.delete('/:id', mediaController.deleteMedia);
 
 // Routes admin
+router.post('/rebuild-thumbnails', checkRole(['admin']), mediaController.rebuildThumbnails);
 router.put('/:id/moderate', checkRole(['admin', 'moderator']), mediaController.moderateMedia);
 
 module.exports = router;
