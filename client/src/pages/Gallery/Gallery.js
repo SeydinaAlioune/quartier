@@ -9,7 +9,7 @@ const Gallery = () => {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [type, setType] = useState('all'); // image | video | all
-  const [viewerItem, setViewerItem] = useState(null); // {type,url,title}
+  const [viewerIndex, setViewerIndex] = useState(null); // index in filtered
 
   const fetchMedia = async () => {
     try {
@@ -52,11 +52,32 @@ const Gallery = () => {
   // Fermer la lightbox avec ESC
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') setViewerItem(null);
+      if (e.key === 'Escape') setViewerIndex(null);
+      if (viewerIndex === null) return;
+      if (e.key === 'ArrowRight') setViewerIndex((i) => {
+        if (typeof i !== 'number') return i;
+        return Math.min(filtered.length - 1, i + 1);
+      });
+      if (e.key === 'ArrowLeft') setViewerIndex((i) => {
+        if (typeof i !== 'number') return i;
+        return Math.max(0, i - 1);
+      });
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [viewerIndex, filtered.length]);
+
+  useEffect(() => {
+    if (viewerIndex === null) {
+      document.body.style.overflow = '';
+      return;
+    }
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [viewerIndex]);
 
   const filtered = items.filter(m => {
     const q = search.trim().toLowerCase();
@@ -66,55 +87,61 @@ const Gallery = () => {
     return name.includes(q) || desc.includes(q);
   });
 
+  const viewerItem = (typeof viewerIndex === 'number' && viewerIndex >= 0 && viewerIndex < filtered.length)
+    ? filtered[viewerIndex]
+    : null;
+
   return (
     <>
-      <header
-        className="gallery-header"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${process.env.PUBLIC_URL}/gal.jpg)`,
-          backgroundPosition: 'center 35%'
-        }}
-      >
-        <h1>Galerie</h1>
-      </header>
-      <p className="page-intro">Découvrez les photos et vidéos du quartier (contenus approuvés)</p>
-      <div className="gallery-page">
-
-      <div className="gallery-controls">
-        <input
-          className="gallery-search"
-          type="text"
-          placeholder="Rechercher un média..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="type-pills">
-          <button
-            type="button"
-            className={`pill ${type === 'all' ? 'active' : ''}`}
-            onClick={() => setType('all')}
-          >
-            Tous
-          </button>
-          <button
-            type="button"
-            className={`pill ${type === 'image' ? 'active' : ''}`}
-            onClick={() => setType('image')}
-          >
-            Images
-          </button>
-          <button
-            type="button"
-            className={`pill ${type === 'video' ? 'active' : ''}`}
-            onClick={() => setType('video')}
-          >
-            Vidéos
-          </button>
+      <div className="gallery-shell">
+        <div className="gallery-top">
+          <div>
+            <h1 className="gallery-title">Galerie</h1>
+            <p className="gallery-subtitle">Photos & vidéos du quartier (contenus approuvés)</p>
+          </div>
+          <div className="gallery-count" aria-label="Compteur">
+            {filtered.length} média{filtered.length > 1 ? 's' : ''}
+          </div>
         </div>
-      </div>
+
+        <div className="gallery-toolbar" role="region" aria-label="Recherche et filtres">
+          <div className="gallery-search-wrap">
+            <span className="gallery-search-icon" aria-hidden>⌕</span>
+            <input
+              className="gallery-search"
+              type="text"
+              placeholder="Rechercher (titre ou description)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="type-pills" aria-label="Filtre">
+            <button
+              type="button"
+              className={`pill ${type === 'all' ? 'active' : ''}`}
+              onClick={() => setType('all')}
+            >
+              Tous
+            </button>
+            <button
+              type="button"
+              className={`pill ${type === 'image' ? 'active' : ''}`}
+              onClick={() => setType('image')}
+            >
+              Images
+            </button>
+            <button
+              type="button"
+              className={`pill ${type === 'video' ? 'active' : ''}`}
+              onClick={() => setType('video')}
+            >
+              Vidéos
+            </button>
+          </div>
+        </div>
 
       {loading && (
-        <div className="gallery-grid">
+        <div className="gallery-masonry">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="gallery-item skeleton">
               <div className="media-thumb"></div>
@@ -130,10 +157,10 @@ const Gallery = () => {
       {!loading && !error && filtered.length === 0 && <p>Aucun média.</p>}
 
       {!loading && (
-      <div className="gallery-grid masonry">
-        {filtered.map((m) => (
+      <div className="gallery-masonry" aria-label="Liste des médias">
+        {filtered.map((m, idx) => (
           <div key={m._id} className="gallery-item">
-            <button className="media-thumb media-thumb--button" onClick={() => setViewerItem(m)} aria-label="Voir en grand">
+            <button className="media-thumb media-thumb--button" onClick={() => setViewerIndex(idx)} aria-label="Voir en grand">
               {m.type === 'image' ? (
                 <img loading="lazy" src={`${API_BASE}${m.url}`} alt={m.title || m.name || 'media'} />
               ) : (
@@ -158,9 +185,27 @@ const Gallery = () => {
       )}
 
       {viewerItem && (
-        <div className="lightbox-overlay" onClick={() => setViewerItem(null)}>
+        <div className="lightbox-overlay" onClick={() => setViewerIndex(null)}>
           <div className="lightbox-content" style={{ maxWidth: 'min(95vw, 1200px)' }} onClick={(e) => e.stopPropagation()}>
-            <button className="lightbox-close" onClick={() => setViewerItem(null)} aria-label="Fermer">✕</button>
+            <button className="lightbox-close" onClick={() => setViewerIndex(null)} aria-label="Fermer">✕</button>
+            <button
+              className="lightbox-nav lightbox-nav--prev"
+              type="button"
+              onClick={() => setViewerIndex((i) => (typeof i === 'number' ? Math.max(0, i - 1) : i))}
+              aria-label="Précédent"
+              disabled={viewerIndex === 0}
+            >
+              ‹
+            </button>
+            <button
+              className="lightbox-nav lightbox-nav--next"
+              type="button"
+              onClick={() => setViewerIndex((i) => (typeof i === 'number' ? Math.min(filtered.length - 1, i + 1) : i))}
+              aria-label="Suivant"
+              disabled={viewerIndex === filtered.length - 1}
+            >
+              ›
+            </button>
             {viewerItem.type === 'image' ? (
               <img src={`${API_BASE}${viewerItem.url}`} alt={viewerItem.title || viewerItem.name || 'media'} />
             ) : (
@@ -172,7 +217,7 @@ const Gallery = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
     </>
   );
 };
