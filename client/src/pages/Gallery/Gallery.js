@@ -43,6 +43,14 @@ const Gallery = () => {
     return undefined;
   };
 
+  const buildMediaUrl = (url = '') => {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const withSlash = raw.startsWith('/') ? raw : `/${raw}`;
+    return `${API_BASE}${withSlash}`;
+  };
+
   useEffect(() => { fetchMedia(); /* initial */ }, []);
   useEffect(() => {
     const t = setTimeout(() => fetchMedia(), 250);
@@ -162,11 +170,11 @@ const Gallery = () => {
           <div key={m._id} className="gallery-item">
             <button className="media-thumb media-thumb--button" onClick={() => setViewerIndex(idx)} aria-label="Voir en grand">
               {m.type === 'image' ? (
-                <img loading="lazy" src={`${API_BASE}${m.url}`} alt={m.title || m.name || 'media'} />
+                <img loading="lazy" src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} />
               ) : (
                 <>
                   <video preload="metadata" muted playsInline crossOrigin="anonymous">
-                    <source src={`${API_BASE}${m.url}`} type={inferMime(m.url)} />
+                    <source src={buildMediaUrl(m.url)} type={inferMime(m.url)} />
                   </video>
                   <div className="play-badge" aria-hidden>▶</div>
                 </>
@@ -207,10 +215,10 @@ const Gallery = () => {
               ›
             </button>
             {viewerItem.type === 'image' ? (
-              <img src={`${API_BASE}${viewerItem.url}`} alt={viewerItem.title || viewerItem.name || 'media'} />
+              <img src={buildMediaUrl(viewerItem.url)} alt={viewerItem.title || viewerItem.name || 'media'} />
             ) : (
               <video controls preload="metadata" crossOrigin="anonymous">
-                <source src={`${API_BASE}${viewerItem.url}`} type={inferMime(viewerItem.url)} />
+                <source src={buildMediaUrl(viewerItem.url)} type={inferMime(viewerItem.url)} />
               </video>
             )}
             <div className="lightbox-caption">{viewerItem.title || viewerItem.name || ''}</div>
