@@ -17,6 +17,8 @@ const Gallery = () => {
   const [search, setSearch] = useState('');
   const [type, setType] = useState('all'); // image | video | all
   const [viewerIndex, setViewerIndex] = useState(null); // index in filtered
+  const [durations, setDurations] = useState({}); // { [id]: seconds }
+  const [videoThumbs, setVideoThumbs] = useState({}); // { [id]: dataUrl }
 
   const fetchMedia = async () => {
     try {
@@ -56,6 +58,102 @@ const Gallery = () => {
     if (/^https?:\/\//i.test(raw)) return raw;
     const withSlash = raw.startsWith('/') ? raw : `/${raw}`;
     return `${API_BASE}${withSlash}`;
+  };
+
+  const formatDuration = (seconds) => {
+    const s = Number(seconds);
+    if (!Number.isFinite(s) || s <= 0) return '';
+    const total = Math.floor(s);
+    const mm = Math.floor(total / 60);
+    const ss = String(total % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+  };
+
+  const VideoThumb = ({ id, url, title }) => {
+    const mediaUrl = buildMediaUrl(url);
+
+    useEffect(() => {
+      if (!id || !mediaUrl) return;
+      if (videoThumbs[id] && durations[id]) return;
+
+      let cancelled = false;
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.muted = true;
+      v.playsInline = true;
+      v.crossOrigin = 'anonymous';
+      v.src = mediaUrl;
+
+      const onMeta = () => {
+        if (cancelled) return;
+        const d = v.duration;
+        if (Number.isFinite(d) && d > 0) {
+          setDurations((prev) => (prev[id] ? prev : { ...prev, [id]: d }));
+        }
+        try {
+          v.currentTime = Math.min(0.25, Math.max(0.01, d ? d * 0.01 : 0.1));
+        } catch {
+        }
+      };
+
+      const onSeeked = () => {
+        if (cancelled) return;
+        try {
+          const canvas = document.createElement('canvas');
+          const w = v.videoWidth || 640;
+          const h = v.videoHeight || 360;
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          ctx.drawImage(v, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          if (dataUrl && dataUrl.startsWith('data:image')) {
+            setVideoThumbs((prev) => (prev[id] ? prev : { ...prev, [id]: dataUrl }));
+          }
+        } catch {
+        }
+      };
+
+      v.addEventListener('loadedmetadata', onMeta);
+      v.addEventListener('seeked', onSeeked);
+      v.addEventListener('loadeddata', onSeeked);
+
+      v.load();
+
+      return () => {
+        cancelled = true;
+        try {
+          v.pause();
+          v.removeAttribute('src');
+          v.load();
+        } catch {
+        }
+        v.removeEventListener('loadedmetadata', onMeta);
+        v.removeEventListener('seeked', onSeeked);
+        v.removeEventListener('loadeddata', onSeeked);
+      };
+    }, [id, mediaUrl]);
+
+    const dur = formatDuration(durations[id]);
+    const thumb = videoThumbs[id];
+
+    return (
+      <>
+        {thumb ? (
+          <img loading="lazy" src={thumb} alt={title || 'vidéo'} />
+        ) : (
+          <div className="video-thumb" aria-hidden>
+            <div className="video-thumb__icon">▶</div>
+            <div className="video-thumb__label">Vidéo</div>
+          </div>
+        )}
+        <div className="media-badges" aria-hidden>
+          <span className="media-badge">VIDÉO</span>
+          {dur && <span className="media-badge media-badge--soft">{dur}</span>}
+        </div>
+      </>
+    );
   };
 
   useEffect(() => { fetchMedia(); /* initial */ }, []);
@@ -177,14 +275,14 @@ const Gallery = () => {
           <div key={m._id} className="gallery-item">
             <button className="media-thumb media-thumb--button" onClick={() => setViewerIndex(idx)} aria-label="Voir en grand">
               {m.type === 'image' ? (
-                <img loading="lazy" src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} />
-              ) : (
                 <>
-                  <div className="video-thumb" aria-hidden>
-                    <div className="video-thumb__icon">▶</div>
-                    <div className="video-thumb__label">Vidéo</div>
+                  <img loading="lazy" src={buildMediaUrl(m.url)} alt={m.title || m.name || 'media'} />
+                  <div className="media-badges" aria-hidden>
+                    <span className="media-badge">PHOTO</span>
                   </div>
                 </>
+              ) : (
+                <VideoThumb id={m._id} url={m.url} title={m.title || m.name || ''} />
               )}
               <div className="thumb-overlay">
                 <div className="thumb-title">{m.title || m.name || '—'}</div>
@@ -202,7 +300,25 @@ const Gallery = () => {
       {viewerItem && (
         <div className="lightbox-overlay" onClick={() => setViewerIndex(null)}>
           <div className="lightbox-content" style={{ maxWidth: 'min(95vw, 1200px)' }} onClick={(e) => e.stopPropagation()}>
-            <button className="lightbox-close" onClick={() => setViewerIndex(null)} aria-label="Fermer">✕</button>
+            <div className="lightbox-header">
+              <div className="lightbox-header__left">
+                <div className="lightbox-header__title">{viewerItem.title || viewerItem.name || ''}</div>
+                <div className="lightbox-header__meta">
+                  {typeof viewerIndex === 'number' ? (viewerIndex + 1) : 1}/{filtered.length}
+                </div>
+              </div>
+              <div className="lightbox-header__right">
+                <a
+                  className="lightbox-download"
+                  href={buildMediaUrl(viewerItem.url)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Télécharger
+                </a>
+                <button className="lightbox-close" onClick={() => setViewerIndex(null)} aria-label="Fermer">✕</button>
+              </div>
+            </div>
             <button
               className="lightbox-nav lightbox-nav--prev"
               type="button"
@@ -228,7 +344,7 @@ const Gallery = () => {
                 <source src={buildMediaUrl(viewerItem.url)} type={inferMime(viewerItem.url)} />
               </video>
             )}
-            <div className="lightbox-caption">{viewerItem.title || viewerItem.name || ''}</div>
+            <div className="lightbox-caption">{viewerItem.description || ''}</div>
           </div>
         </div>
       )}
