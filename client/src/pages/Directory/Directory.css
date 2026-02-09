@@ -1,7 +1,7 @@
 .directory-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.25rem;
 }
 
 .directory-header {
@@ -72,10 +72,15 @@
   font-weight: 900;
   cursor: pointer;
   backdrop-filter: blur(8px);
+  transition: transform 160ms ease, background 160ms ease;
 }
 
 .directory-hero-btn:hover {
   background: rgba(255,255,255,0.14);
+}
+
+.directory-hero-btn:active {
+  transform: translateY(1px);
 }
 
 .directory-hero-link {
@@ -140,6 +145,11 @@
   padding: 0.55rem 0.85rem;
   font-weight: 900;
   cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.directory-chip:active {
+  transform: translateY(1px);
 }
 
 .directory-chip.active {
@@ -279,10 +289,20 @@
   border: 1px solid rgba(15, 23, 42, 0.10);
   box-shadow: 0 18px 60px rgba(0,0,0,0.08);
   padding: 1.15rem;
+  background:
+    radial-gradient(520px 240px at 22% 20%, rgba(0, 166, 81, 0.10) 0%, rgba(0, 166, 81, 0) 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.78));
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .business-card:hover {
   transform: translateY(-5px);
+}
+
+.business-card.premium:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 90px rgba(15, 23, 42, 0.10);
+  border-color: rgba(0, 132, 61, 0.22);
 }
 
 .business-card h3 {
@@ -352,12 +372,34 @@
   color: #0f172a;
   font-weight: 900;
   text-decoration: none;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.directory-action:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.directory-action:active {
+  transform: translateY(1px);
 }
 
 .directory-action.primary {
   border-color: rgba(0,132,61,0.28);
   background: rgba(0,132,61,0.10);
   color: #006630;
+}
+
+.directory-action.primary:hover {
+  background: rgba(0,132,61,0.13);
+}
+
+.directory-chip:focus-visible,
+.directory-hero-btn:focus-visible,
+.directory-reset:focus-visible,
+.directory-tab:focus-visible,
+.directory-action:focus-visible {
+  outline: 3px solid rgba(0, 166, 81, 0.35);
+  outline-offset: 2px;
 }
 
 .directory-action.disabled {
