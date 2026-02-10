@@ -21,6 +21,864 @@ import {
   XCircle,
 } from 'lucide-react';
 
+const useCloseOnOutsideAndEscape = ({ open, ref, onClose }) => {
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (!ref?.current) return;
+      if (!ref.current.contains(e.target)) onClose();
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open, ref, onClose]);
+};
+
+const topicStatusMeta = (s) => {
+  const v = String(s || '').toLowerCase();
+  if (v === 'pinned') return { key: 'pinned', label: 'Épinglé' };
+  if (v === 'closed') return { key: 'closed', label: 'Fermé' };
+  if (v === 'active') return { key: 'active', label: 'Actif' };
+  return { key: 'unknown', label: String(s || '—') };
+};
+
+const ForumHeader = ({ forumStats, onGoModeration, onNewCategory }) => (
+  <div className="forum-header">
+    <div className="header-title">
+      <h1>Gestion du Forum</h1>
+      <p className="header-subtitle">Gérez les catégories, sujets et modération</p>
+    </div>
+    <div className="header-actions">
+      <button className="reports-btn" onClick={onGoModeration}>
+        <AlertTriangle size={18} aria-hidden="true" />
+        <span>Signalements</span>
+        <span className="count-badge">{forumStats?.reportedContent || 0}</span>
+      </button>
+      <button className="category-btn" onClick={onNewCategory}>
+        <FolderPlus size={18} aria-hidden="true" />
+        <span>Nouvelle catégorie</span>
+      </button>
+    </div>
+  </div>
+);
+
+const ForumTabs = ({ activeTab, setActiveTab }) => (
+  <div className="forum-tabs">
+    <button className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
+      Vue d'ensemble
+    </button>
+    <button className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
+      Catégories
+    </button>
+    <button className={`tab-btn ${activeTab === 'topics' ? 'active' : ''}`} onClick={() => setActiveTab('topics')}>
+      Sujets
+    </button>
+    <button className={`tab-btn ${activeTab === 'moderation' ? 'active' : ''}`} onClick={() => setActiveTab('moderation')}>
+      Modération
+    </button>
+  </div>
+);
+
+const OverviewTab = ({ loading, error, forumStats, DetailedStats }) => (
+  <>
+    {loading && <div style={{ padding: '12px' }}>Chargement...</div>}
+    {!loading && error && <div className="forum-error">{error}</div>}
+    {!loading && !error && (
+      <>
+        <div className="stats-overview">
+          <div className="stat-item">
+            <span className="stat-value">{forumStats?.categories ?? '—'}</span>
+            <span className="stat-label">Catégories</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{forumStats?.topics ?? '—'}</span>
+            <span className="stat-label">Sujets</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{forumStats?.posts ?? '—'}</span>
+            <span className="stat-label">Messages</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-value">{forumStats?.activeUsers ?? '—'}</span>
+            <span className="stat-label">Utilisateurs actifs</span>
+          </div>
+        </div>
+        <DetailedStats />
+      </>
+    )}
+  </>
+);
+
+const CategoriesTab = ({ categories, onAdd, onEdit, onDelete }) => (
+  <div className="categories-section">
+    <div className="section-header">
+      <h2>Gestion des catégories</h2>
+      <button className="add-btn" onClick={onAdd}>
+        Ajouter une catégorie
+      </button>
+    </div>
+    <div className="categories-table table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Description</th>
+            <th>Sujets</th>
+            <th>Messages</th>
+            <th>Dernière activité</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map((category) => (
+            <tr key={category.id}>
+              <td>{category.name}</td>
+              <td>{category.description}</td>
+              <td>{category.topics}</td>
+              <td>{category.posts}</td>
+              <td>{category.lastActivity ? new Date(category.lastActivity).toLocaleDateString('fr-FR') : '—'}</td>
+              <td className="actions-cell">
+                <button className="action-btn edit" title="Modifier" onClick={() => onEdit(category)} aria-label="Modifier">
+                  <Pencil size={16} aria-hidden="true" />
+                </button>
+                <button className="action-btn delete" title="Supprimer" onClick={() => onDelete(category.id)} aria-label="Supprimer">
+                  <Trash2 size={16} aria-hidden="true" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div className="mobile-cards" aria-label="Catégories">
+      {categories.map((category) => (
+        <div key={category.id} className="mobile-card">
+          <div className="mobile-card__top">
+            <div className="mobile-card__title">{category.name}</div>
+            <div className="mobile-card__actions">
+              <button className="action-btn edit" title="Modifier" onClick={() => onEdit(category)} aria-label="Modifier">
+                <Pencil size={16} aria-hidden="true" />
+              </button>
+              <button className="action-btn delete" title="Supprimer" onClick={() => onDelete(category.id)} aria-label="Supprimer">
+                <Trash2 size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          {category.description && <div className="mobile-card__desc">{category.description}</div>}
+
+          <div className="mobile-card__meta">
+            <div className="mobile-meta">
+              <span className="mobile-meta__label">Sujets</span>
+              <span className="mobile-meta__value">{category.topics}</span>
+            </div>
+            <div className="mobile-meta">
+              <span className="mobile-meta__label">Messages</span>
+              <span className="mobile-meta__value">{category.posts}</span>
+            </div>
+            <div className="mobile-meta">
+              <span className="mobile-meta__label">Dernière activité</span>
+              <span className="mobile-meta__value">{category.lastActivity ? new Date(category.lastActivity).toLocaleDateString('fr-FR') : '—'}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const TopicsTab = ({
+  categories,
+  filteredTopics,
+  searchQuery,
+  setSearchQuery,
+  categoryFilter,
+  setCategoryFilter,
+  statusFilter,
+  setStatusFilter,
+  onNewTopic,
+  onOpenTopicDetail,
+  onTogglePin,
+  onToggleClose,
+  onDeleteTopic,
+  openTopicMenuId,
+  setOpenTopicMenuId,
+  topicMenuRef,
+}) => (
+  <div className="topics-section">
+    <div className="section-header">
+      <h2>Gestion des sujets</h2>
+      <div className="section-actions">
+        <div className="topics-filters">
+          <input
+            type="text"
+            placeholder="Rechercher un sujet..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="filter-select">
+            <option value="all">Toutes les catégories</option>
+            {categories.map((c) => (
+              <option key={c.id || c.name} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
+            <option value="all">Tous les statuts</option>
+            <option value="active">Actif</option>
+            <option value="pinned">Épinglé</option>
+            <option value="closed">Fermé</option>
+          </select>
+        </div>
+        <button className="add-btn" onClick={onNewTopic}>
+          Nouveau sujet
+        </button>
+      </div>
+    </div>
+
+    <div className="topics-table table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Catégorie</th>
+            <th>Auteur</th>
+            <th>Réponses</th>
+            <th>Vues</th>
+            <th>Statut</th>
+            <th>Créé le</th>
+            <th>Dernier message</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredTopics.map((topic) => (
+            <tr key={topic.id}>
+              <td>{topic.title}</td>
+              <td>
+                <span className="category-badge">{topic.category}</span>
+              </td>
+              <td>{topic.author}</td>
+              <td>{topic.replies}</td>
+              <td>{topic.views}</td>
+              <td>
+                {(() => {
+                  const st = topicStatusMeta(topic.status);
+                  return <span className={`status-badge status-${st.key}`}>{st.label}</span>;
+                })()}
+              </td>
+              <td>{topic.created ? new Date(topic.created).toLocaleDateString('fr-FR') : '—'}</td>
+              <td>{topic.lastReply ? new Date(topic.lastReply).toLocaleDateString('fr-FR') : '—'}</td>
+              <td className="actions-cell">
+                <button className="action-btn view" title="Voir" onClick={() => onOpenTopicDetail(topic)} aria-label="Voir">
+                  <Eye size={16} aria-hidden="true" />
+                </button>
+                <button className="action-btn pin" title="Épingler" onClick={() => onTogglePin(topic)} aria-label="Épingler">
+                  <Pin size={16} aria-hidden="true" />
+                </button>
+                <button className="action-btn close" title="Fermer" onClick={() => onToggleClose(topic)} aria-label="Fermer">
+                  <Lock size={16} aria-hidden="true" />
+                </button>
+                <button className="action-btn delete" title="Supprimer" onClick={() => onDeleteTopic(topic)} aria-label="Supprimer">
+                  <Trash2 size={16} aria-hidden="true" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div className="mobile-cards" aria-label="Sujets">
+      {filteredTopics.map((topic) => {
+        const st = topicStatusMeta(topic.status);
+        return (
+          <div key={topic.id} className="mobile-card">
+            <div className="mobile-card__top">
+              <div className="mobile-card__title">{topic.title}</div>
+              <div className="mobile-card__actions">
+                <button className="action-btn view action-btn--primary" title="Voir" onClick={() => onOpenTopicDetail(topic)} aria-label="Voir">
+                  <Eye size={16} aria-hidden="true" />
+                  Voir
+                </button>
+                <div className="menu" ref={openTopicMenuId === topic.id ? topicMenuRef : null}>
+                  <button
+                    className="action-btn"
+                    aria-label="Actions"
+                    title="Actions"
+                    onClick={() => setOpenTopicMenuId((prev) => (prev === topic.id ? null : topic.id))}
+                  >
+                    <MoreVertical size={16} aria-hidden="true" />
+                  </button>
+                  {openTopicMenuId === topic.id && (
+                    <div className="menu__panel" role="menu">
+                      <button className="menu__item" role="menuitem" onClick={() => { setOpenTopicMenuId(null); onTogglePin(topic); }}>
+                        <Pin size={16} aria-hidden="true" />
+                        Épingler / Désépingler
+                      </button>
+                      <button className="menu__item" role="menuitem" onClick={() => { setOpenTopicMenuId(null); onToggleClose(topic); }}>
+                        <Lock size={16} aria-hidden="true" />
+                        Fermer / Réouvrir
+                      </button>
+                      <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenTopicMenuId(null); onDeleteTopic(topic); }}>
+                        <Trash2 size={16} aria-hidden="true" />
+                        Supprimer
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mobile-card__chips">
+              <span className="category-badge">{topic.category}</span>
+              <span className={`status-badge status-${st.key}`}>{st.label}</span>
+            </div>
+
+            <div className="mobile-card__meta">
+              <div className="mobile-meta">
+                <span className="mobile-meta__label">Auteur</span>
+                <span className="mobile-meta__value">{topic.author}</span>
+              </div>
+              <div className="mobile-meta">
+                <span className="mobile-meta__label">Réponses</span>
+                <span className="mobile-meta__value">{topic.replies}</span>
+              </div>
+              <div className="mobile-meta">
+                <span className="mobile-meta__label">Dernier message</span>
+                <span className="mobile-meta__value">{topic.lastReply ? new Date(topic.lastReply).toLocaleDateString('fr-FR') : '—'}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
+const ModerationTab = ({
+  reportStatusFilter,
+  setReportStatusFilter,
+  pendingFilterType,
+  setPendingFilterType,
+  pendingSearch,
+  setPendingSearch,
+  pendingSort,
+  setPendingSort,
+  pendingAdsLoading,
+  pendingAds,
+  getPendingAdsView,
+  onApproveAd,
+  onRejectAd,
+  onDeleteAd,
+  openModerationMenuId,
+  setOpenModerationMenuId,
+  moderationMenuRef,
+  reportsLoading,
+  reportsError,
+  reportedContent,
+  onOpenReportPreview,
+  onDeleteTarget,
+  onReloadStats,
+  setReportedContent,
+}) => (
+  <div className="moderation-section">
+    <div className="section-header">
+      <h2>Modération du contenu</h2>
+      <div className="moderation-filters">
+        <select className="filter-select" value={reportStatusFilter} onChange={(e) => setReportStatusFilter(e.target.value)}>
+          <option value="pending">En attente</option>
+          <option value="resolved">Traités</option>
+          <option value="all">Tous</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="reports-list reports-list--pending">
+      <div className="report-card report-card--pending">
+        <h3 className="report-card__title">Annonces en attente</h3>
+        <div className="moderation-filters moderation-filters--pending">
+          <select className="filter-select" value={pendingFilterType} onChange={(e) => setPendingFilterType(e.target.value)}>
+            <option value="all">Tous les types</option>
+            <option value="vends">Vends</option>
+            <option value="recherche">Recherche</option>
+            <option value="services">Services</option>
+          </select>
+          <input className="search-input" placeholder="Rechercher..." value={pendingSearch} onChange={(e) => setPendingSearch(e.target.value)} />
+          <select className="filter-select" value={pendingSort} onChange={(e) => setPendingSort(e.target.value)}>
+            <option value="newest">Plus récentes</option>
+            <option value="oldest">Plus anciennes</option>
+          </select>
+        </div>
+        {pendingAdsLoading && <div>Chargement...</div>}
+        {!pendingAdsLoading && pendingAds.length === 0 && <div>Aucune annonce en attente.</div>}
+        {!pendingAdsLoading &&
+          getPendingAdsView().map((ad) => (
+            <div key={ad.id} className="pending-ad">
+              <div className="pending-ad__row">
+                <div className="pending-ad__main">
+                  <div className="pending-ad__title">
+                    <span className="pending-ad__type">{(ad.type || '').toUpperCase()}</span>
+                    <span className="pending-ad__sep">·</span>
+                    <span className="pending-ad__titleText">{ad.title}</span>
+                  </div>
+                  <div className="pending-ad__desc">{[ad.description, ad.price].filter(Boolean).join(' — ')}</div>
+                  <div className="pending-ad__meta">Par {ad.author || '—'} • {ad.createdAt ? new Date(ad.createdAt).toLocaleString('fr-FR') : ''}</div>
+                </div>
+                <div className="report-actions report-actions--pending">
+                  <button className="action-btn approve" title="Approuver" onClick={() => onApproveAd(ad)}>
+                    <CheckCircle2 size={16} aria-hidden="true" />
+                    Approuver
+                  </button>
+                  <button className="action-btn reject" title="Rejeter" onClick={() => onRejectAd(ad)}>
+                    <XCircle size={16} aria-hidden="true" />
+                    Rejeter
+                  </button>
+                  <div className="menu" ref={openModerationMenuId === `ad-${ad.id}` ? moderationMenuRef : null}>
+                    <button
+                      className="action-btn"
+                      aria-label="Actions"
+                      title="Actions"
+                      onClick={() => setOpenModerationMenuId((prev) => (prev === `ad-${ad.id}` ? null : `ad-${ad.id}`))}
+                    >
+                      <MoreVertical size={16} aria-hidden="true" />
+                    </button>
+                    {openModerationMenuId === `ad-${ad.id}` && (
+                      <div className="menu__panel" role="menu">
+                        <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenModerationMenuId(null); onDeleteAd(ad); }}>
+                          <Trash2 size={16} aria-hidden="true" />
+                          Supprimer
+                        </button>
+                        <button
+                          className="menu__item"
+                          role="menuitem"
+                          onClick={() => {
+                            setOpenModerationMenuId(null);
+                            window.open(`/forum?hlType=ad&hlId=${ad.id}`, '_blank', 'noopener,noreferrer');
+                          }}
+                        >
+                          <Globe size={16} aria-hidden="true" />
+                          Ouvrir côté public
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+
+    <div className="reports-list">
+      {reportsLoading && <div className="report-card">Chargement...</div>}
+      {!reportsLoading && reportsError && <div className="report-card">{reportsError}</div>}
+      {!reportsLoading && !reportsError && reportedContent.length === 0 && <div className="report-card">Aucun signalement</div>}
+      {!reportsLoading &&
+        !reportsError &&
+        reportedContent.map((report) => (
+          <div key={report.id} className="report-card">
+            <div className="report-header">
+              <span className={`report-type ${report.targetType}`}>{report.targetType}</span>
+              <span className={`report-status ${report.status}`}>{report.status}</span>
+            </div>
+            <div className="report-content report-content--compact">
+              <div className="report-row">
+                <span className="report-key">Cible</span>
+                <span className="report-value">{report.targetType} · #{report.targetId}</span>
+              </div>
+              {report.targetTitle && (
+                <div className="report-row">
+                  <span className="report-key">Titre</span>
+                  <span className="report-value report-value--strong">{report.targetTitle}</span>
+                </div>
+              )}
+              {report.targetSnippet && (
+                <div className="report-row">
+                  <span className="report-key">Aperçu</span>
+                  <span className="report-value report-value--clamp">{report.targetSnippet}</span>
+                </div>
+              )}
+              <div className="report-row">
+                <span className="report-key">Raison</span>
+                <span className="report-value">{report.reason}</span>
+              </div>
+              {report.details && (
+                <div className="report-row">
+                  <span className="report-key">Détails</span>
+                  <span className="report-value report-value--clamp">{report.details}</span>
+                </div>
+              )}
+            </div>
+            <div className="report-meta">
+              <span>Signalé par: {report.reporter}</span>
+              <span>Date: {report.createdAt ? new Date(report.createdAt).toLocaleString('fr-FR') : ''}</span>
+            </div>
+            <div className="report-actions">
+              {(report.targetType === 'idea' || report.targetType === 'ad') && (
+                <>
+                  <button className="action-btn view action-btn--primary" onClick={() => onOpenReportPreview(report)}>
+                    <Eye size={16} aria-hidden="true" />
+                    Voir
+                  </button>
+                  <div className="menu" ref={openModerationMenuId === `report-${report.id}` ? moderationMenuRef : null}>
+                    <button
+                      className="action-btn"
+                      aria-label="Actions"
+                      title="Actions"
+                      onClick={() => setOpenModerationMenuId((prev) => (prev === `report-${report.id}` ? null : `report-${report.id}`))}
+                    >
+                      <MoreVertical size={16} aria-hidden="true" />
+                    </button>
+                    {openModerationMenuId === `report-${report.id}` && (
+                      <div className="menu__panel" role="menu">
+                        <button
+                          className="menu__item"
+                          role="menuitem"
+                          onClick={() => {
+                            setOpenModerationMenuId(null);
+                            window.open(`/forum?hlType=${report.targetType}&hlId=${report.targetId}`, '_blank', 'noopener,noreferrer');
+                          }}
+                        >
+                          <Globe size={16} aria-hidden="true" />
+                          Ouvrir côté public
+                        </button>
+                        <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenModerationMenuId(null); onDeleteTarget(report); }}>
+                          <Trash2 size={16} aria-hidden="true" />
+                          Supprimer l'élément
+                        </button>
+                        {report.targetType === 'ad' && (
+                          <>
+                            <button
+                              className="menu__item"
+                              role="menuitem"
+                              onClick={async () => {
+                                setOpenModerationMenuId(null);
+                                try {
+                                  await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'approved' });
+                                  emitToast('Annonce approuvée');
+                                  setReportedContent((prev) => prev.map((r) => (r.id === report.id ? { ...r, targetStatus: 'approved' } : r)));
+                                } catch (e) {
+                                  emitToast('Action impossible.');
+                                }
+                              }}
+                            >
+                              <CheckCircle2 size={16} aria-hidden="true" />
+                              Approuver l'annonce
+                            </button>
+                            <button
+                              className="menu__item"
+                              role="menuitem"
+                              onClick={async () => {
+                                setOpenModerationMenuId(null);
+                                try {
+                                  await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'rejected' });
+                                  emitToast('Annonce rejetée');
+                                  setReportedContent((prev) => prev.map((r) => (r.id === report.id ? { ...r, targetStatus: 'rejected' } : r)));
+                                } catch (e) {
+                                  emitToast('Action impossible.');
+                                }
+                              }}
+                            >
+                              <XCircle size={16} aria-hidden="true" />
+                              Rejeter l'annonce
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              {report.status !== 'resolved' ? (
+                <button
+                  className="action-btn approve"
+                  onClick={async () => {
+                    try {
+                      await api.put(`/api/forum/reports/${report.id}/status`, { status: 'resolved' });
+                      setReportedContent((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'resolved' } : r)));
+                      await onReloadStats();
+                    } catch (e) {
+                      emitToast('Action impossible.');
+                    }
+                  }}
+                >
+                  Marquer traité
+                </button>
+              ) : (
+                <button
+                  className="action-btn reject"
+                  onClick={async () => {
+                    try {
+                      await api.put(`/api/forum/reports/${report.id}/status`, { status: 'pending' });
+                      setReportedContent((prev) => prev.map((r) => (r.id === report.id ? { ...r, status: 'pending' } : r)));
+                      await onReloadStats();
+                    } catch (e) {
+                      emitToast('Action impossible.');
+                    }
+                  }}
+                >
+                  Repasser en attente
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+);
+
+const CategoryModal = ({ isOpen, onClose, category = null, onSave }) => {
+  const [name, setName] = useState(category?.name || '');
+  const [description, setDescription] = useState(category?.description || '');
+  useEffect(() => {
+    setName(category?.name || '');
+    setDescription(category?.description || '');
+  }, [category]);
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+        <form className="category-form" onSubmit={(e) => { e.preventDefault(); onSave && onSave({ id: category?.id, name, description }); }}>
+          <div className="form-group">
+            <label className="form-label">Nom de la catégorie</label>
+            <input
+              type="text"
+              className="form-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Événements du quartier"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-input"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description de la catégorie..."
+              rows="3"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Permissions</label>
+            <div className="permissions-grid">
+              <label className="checkbox-label">
+                <input type="checkbox" defaultChecked /> Lecture publique
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" defaultChecked /> Écriture membres
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" /> Modération requise
+              </label>
+            </div>
+          </div>
+          <div className="form-actions">
+            <button type="button" className="btn-cancel" onClick={onClose}>
+              Annuler
+            </button>
+            <button type="submit" className="btn-submit">
+              {category ? 'Mettre à jour' : 'Créer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const NewTopicModal = ({ open, onClose, onSubmit, newTopic, setNewTopic, categories }) => {
+  if (!open) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Nouveau sujet</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+        <form onSubmit={onSubmit}>
+          <div className="form-group">
+            <label className="form-label">Titre</label>
+            <input className="form-input" value={newTopic.title} onChange={(e) => setNewTopic({ ...newTopic, title: e.target.value })} required />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Catégorie</label>
+            <select className="form-input" value={newTopic.categoryId} onChange={(e) => setNewTopic({ ...newTopic, categoryId: e.target.value })} required>
+              <option value="">Sélectionner...</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-actions">
+            <button type="button" className="btn-cancel" onClick={onClose}>
+              Annuler
+            </button>
+            <button type="submit" className="btn-submit">
+              Créer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const PreviewModal = ({ preview, onClose, onDeleteTarget }) => {
+  if (!preview.open) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Contenu signalé</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+        {preview.loading && <div>Chargement...</div>}
+        {!preview.loading && preview.error && <div className="forum-error">{preview.error}</div>}
+        {!preview.loading && !preview.error && (
+          <div>
+            {preview.report?.targetType === 'idea' && preview.data && (
+              <div>
+                <p>
+                  <strong>Titre</strong>: {preview.data.title}
+                </p>
+                <p>
+                  <strong>Description</strong>: {preview.data.description}
+                </p>
+                <p>
+                  <strong>Votes</strong>: {preview.data.votes}
+                </p>
+                <p>
+                  <strong>Auteur</strong>: {preview.data.author}
+                </p>
+                <p>
+                  <strong>Date</strong>: {preview.data.createdAt ? new Date(preview.data.createdAt).toLocaleString('fr-FR') : ''}
+                </p>
+              </div>
+            )}
+            {preview.report?.targetType === 'ad' && preview.data && (
+              <div>
+                <p>
+                  <strong>Type</strong>: {preview.data.type}
+                </p>
+                <p>
+                  <strong>Titre</strong>: {preview.data.title}
+                </p>
+                <p>
+                  <strong>Description</strong>: {preview.data.description}
+                </p>
+                {preview.data.price && (
+                  <p>
+                    <strong>Prix</strong>: {preview.data.price}
+                  </p>
+                )}
+                <p>
+                  <strong>Statut</strong>: {preview.data.status}
+                </p>
+                <p>
+                  <strong>Auteur</strong>: {preview.data.author}
+                </p>
+                <p>
+                  <strong>Date</strong>: {preview.data.createdAt ? new Date(preview.data.createdAt).toLocaleString('fr-FR') : ''}
+                </p>
+              </div>
+            )}
+            {preview.report?.targetType !== 'idea' && preview.report?.targetType !== 'ad' && (
+              <div>Prévisualisation non disponible pour ce type: {preview.report?.targetType}</div>
+            )}
+          </div>
+        )}
+        <div className="form-actions">
+          {preview.report && (preview.report.targetType === 'idea' || preview.report.targetType === 'ad') && (
+            <button className="btn-submit" onClick={() => onDeleteTarget(preview.report)}>
+              Supprimer l'élément
+            </button>
+          )}
+          <button className="btn-secondary" onClick={onClose}>
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TopicDetailModal = ({ open, onClose, topicDetail, onAddPost, onToggleHidePost, onDeletePost, setTopicDetail }) => {
+  if (!open) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{topicDetail.topic?.title || 'Sujet'}</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
+        {topicDetail.loading && <div>Chargement des messages...</div>}
+        {!topicDetail.loading && topicDetail.error && <div className="forum-error">{topicDetail.error}</div>}
+        {!topicDetail.loading && !topicDetail.error && (
+          <div className="posts-list">
+            {topicDetail.posts.length === 0 && <div>Aucun message</div>}
+            {topicDetail.posts.map((p) => (
+              <div className={`post-item ${p.status}`} key={p.id}>
+                <div className="post-meta">
+                  <strong>{p.author}</strong>
+                  <span>{new Date(p.createdAt).toLocaleString('fr-FR')}</span>
+                  <span className={`status-badge ${p.status}`}>{p.status}</span>
+                </div>
+                <div className="post-content">{p.content}</div>
+                <div className="post-actions">
+                  <button onClick={() => onToggleHidePost(p)}>{p.status === 'hidden' ? 'Rendre visible' : 'Masquer'}</button>
+                  <button onClick={() => onDeletePost(p)}>Supprimer</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="new-post">
+          <textarea
+            rows="3"
+            placeholder="Votre message..."
+            value={topicDetail.newPost}
+            onChange={(e) => setTopicDetail((prev) => ({ ...prev, newPost: e.target.value }))}
+          />
+          <div className="form-actions">
+            <button className="btn-secondary" onClick={onClose}>
+              Fermer
+            </button>
+            <button className="btn-submit" onClick={onAddPost}>
+              Publier
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminForum = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -53,47 +911,8 @@ const AdminForum = () => {
   const [openModerationMenuId, setOpenModerationMenuId] = useState(null);
   const moderationMenuRef = useRef(null);
 
-  useEffect(() => {
-    if (!openTopicMenuId) return;
-    const onDown = (e) => {
-      if (!topicMenuRef.current) return;
-      if (!topicMenuRef.current.contains(e.target)) setOpenTopicMenuId(null);
-    };
-    const onKey = (e) => {
-      if (e.key === 'Escape') setOpenTopicMenuId(null);
-    };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [openTopicMenuId]);
-
-  useEffect(() => {
-    if (!openModerationMenuId) return;
-    const onDown = (e) => {
-      if (!moderationMenuRef.current) return;
-      if (!moderationMenuRef.current.contains(e.target)) setOpenModerationMenuId(null);
-    };
-    const onKey = (e) => {
-      if (e.key === 'Escape') setOpenModerationMenuId(null);
-    };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [openModerationMenuId]);
-
-  const topicStatusMeta = (s) => {
-    const v = String(s || '').toLowerCase();
-    if (v === 'pinned') return { key: 'pinned', label: 'Épinglé' };
-    if (v === 'closed') return { key: 'closed', label: 'Fermé' };
-    if (v === 'active') return { key: 'active', label: 'Actif' };
-    return { key: 'unknown', label: String(s || '—') };
-  };
+  useCloseOnOutsideAndEscape({ open: Boolean(openTopicMenuId), ref: topicMenuRef, onClose: () => setOpenTopicMenuId(null) });
+  useCloseOnOutsideAndEscape({ open: Boolean(openModerationMenuId), ref: moderationMenuRef, onClose: () => setOpenModerationMenuId(null) });
 
   const filteredTopics = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -394,7 +1213,6 @@ const AdminForum = () => {
     } catch (e) { emitToast('Suppression impossible.'); }
   };
 
-  // Nouveau composant pour les statistiques détaillées
   const DetailedStats = () => (
     <div className="detailed-stats">
       <div className="stats-row">
@@ -456,736 +1274,106 @@ const AdminForum = () => {
     </div>
   );
 
-  // Nouveau composant modal pour la création/modification de catégorie
-  const CategoryModal = ({ isOpen, onClose, category = null, onSave }) => {
-    const [name, setName] = useState(category?.name || '');
-    const [description, setDescription] = useState(category?.description || '');
-    useEffect(() => {
-      setName(category?.name || '');
-      setDescription(category?.description || '');
-    }, [category]);
-    if (!isOpen) return null;
-
-    return (
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={e => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>{category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h2>
-            <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
-              <X size={18} aria-hidden="true" />
-            </button>
-          </div>
-          <form className="category-form" onSubmit={(e) => { e.preventDefault(); onSave && onSave({ id: category?.id, name, description }); }}>
-            <div className="form-group">
-              <label className="form-label">Nom de la catégorie</label>
-              <input 
-                type="text" 
-                className="form-input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Événements du quartier"
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Description</label>
-              <textarea 
-                className="form-input"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description de la catégorie..."
-                rows="3"
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Permissions</label>
-              <div className="permissions-grid">
-                <label className="checkbox-label">
-                  <input type="checkbox" defaultChecked /> Lecture publique
-                </label>
-                <label className="checkbox-label">
-                  <input type="checkbox" defaultChecked /> Écriture membres
-                </label>
-                <label className="checkbox-label">
-                  <input type="checkbox" /> Modération requise
-                </label>
-              </div>
-            </div>
-            <div className="form-actions">
-              <button type="button" className="btn-cancel" onClick={onClose}>
-                Annuler
-              </button>
-              <button type="submit" className="btn-submit">
-                {category ? 'Mettre à jour' : 'Créer'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <AdminLayout title="Gestion du Forum">
       <div className="forum-page">
-          {/* Header */}
-          <div className="forum-header">
-            <div className="header-title">
-              <h1>Gestion du Forum</h1>
-              <p className="header-subtitle">Gérez les catégories, sujets et modération</p>
-            </div>
-            <div className="header-actions">
-              <button 
-                className="reports-btn" 
-                onClick={() => setActiveTab('moderation')}
-              >
-                <AlertTriangle size={18} aria-hidden="true" />
-                <span>Signalements</span>
-                <span className="count-badge">{forumStats?.reportedContent || 0}</span>
-              </button>
-              <button 
-                className="category-btn"
-                onClick={handleOpenCreateCategory}
-              >
-                <FolderPlus size={18} aria-hidden="true" />
-                <span>Nouvelle catégorie</span>
-              </button>
-            </div>
-          </div>
+        <ForumHeader forumStats={forumStats} onGoModeration={() => setActiveTab('moderation')} onNewCategory={handleOpenCreateCategory} />
 
-          {/* Navigation des onglets */}
-          <div className="forum-tabs">
-            <button 
-              className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              Vue d'ensemble
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
-              onClick={() => setActiveTab('categories')}
-            >
-              Catégories
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'topics' ? 'active' : ''}`}
-              onClick={() => setActiveTab('topics')}
-            >
-              Sujets
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'moderation' ? 'active' : ''}`}
-              onClick={() => setActiveTab('moderation')}
-            >
-              Modération
-            </button>
-          </div>
+        <ForumTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-          {activeTab === 'overview' && (
-            <>
-              {loading && <div style={{ padding: '12px' }}>Chargement...</div>}
-              {!loading && error && <div className="forum-error">{error}</div>}
-              {!loading && !error && (
-                <>
-                  <div className="stats-overview">
-                    <div className="stat-item">
-                      <span className="stat-value">{forumStats?.categories ?? '—'}</span>
-                      <span className="stat-label">Catégories</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{forumStats?.topics ?? '—'}</span>
-                      <span className="stat-label">Sujets</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{forumStats?.posts ?? '—'}</span>
-                      <span className="stat-label">Messages</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{forumStats?.activeUsers ?? '—'}</span>
-                      <span className="stat-label">Utilisateurs actifs</span>
-                    </div>
-                  </div>
-                  <DetailedStats />
-                </>
-              )}
-            </>
-          )}
+        {activeTab === 'overview' && <OverviewTab loading={loading} error={error} forumStats={forumStats} DetailedStats={DetailedStats} />}
 
-          {activeTab === 'categories' && (
-            <div className="categories-section">
-              <div className="section-header">
-                <h2>Gestion des catégories</h2>
-                <button className="add-btn" onClick={() => setShowCategoryModal(true)}>
-                  Ajouter une catégorie
-                </button>
-              </div>
-              <div className="categories-table table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Nom</th>
-                      <th>Description</th>
-                      <th>Sujets</th>
-                      <th>Messages</th>
-                      <th>Dernière activité</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categories.map(category => (
-                      <tr key={category.id}>
-                        <td>{category.name}</td>
-                        <td>{category.description}</td>
-                        <td>{category.topics}</td>
-                        <td>{category.posts}</td>
-                        <td>{category.lastActivity ? new Date(category.lastActivity).toLocaleDateString('fr-FR') : '—'}</td>
-                        <td className="actions-cell">
-                          <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEditCategory(category)} aria-label="Modifier">
-                            <Pencil size={16} aria-hidden="true" />
-                          </button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteCategory(category.id)} aria-label="Supprimer">
-                            <Trash2 size={16} aria-hidden="true" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+        {activeTab === 'categories' && (
+          <CategoriesTab
+            categories={categories}
+            onAdd={() => setShowCategoryModal(true)}
+            onEdit={handleOpenEditCategory}
+            onDelete={handleDeleteCategory}
+          />
+        )}
 
-              <div className="mobile-cards" aria-label="Catégories">
-                {categories.map((category) => (
-                  <div key={category.id} className="mobile-card">
-                    <div className="mobile-card__top">
-                      <div className="mobile-card__title">{category.name}</div>
-                      <div className="mobile-card__actions">
-                        <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEditCategory(category)} aria-label="Modifier">
-                          <Pencil size={16} aria-hidden="true" />
-                        </button>
-                        <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteCategory(category.id)} aria-label="Supprimer">
-                          <Trash2 size={16} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
+        {activeTab === 'topics' && (
+          <TopicsTab
+            categories={categories}
+            filteredTopics={filteredTopics}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            categoryFilter={categoryFilter}
+            setCategoryFilter={setCategoryFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            onNewTopic={handleOpenNewTopic}
+            onOpenTopicDetail={handleOpenTopicDetail}
+            onTogglePin={handleTogglePin}
+            onToggleClose={handleToggleClose}
+            onDeleteTopic={handleDeleteTopic}
+            openTopicMenuId={openTopicMenuId}
+            setOpenTopicMenuId={setOpenTopicMenuId}
+            topicMenuRef={topicMenuRef}
+          />
+        )}
 
-                    {category.description && (
-                      <div className="mobile-card__desc">{category.description}</div>
-                    )}
+        {activeTab === 'moderation' && (
+          <ModerationTab
+            reportStatusFilter={reportStatusFilter}
+            setReportStatusFilter={setReportStatusFilter}
+            pendingFilterType={pendingFilterType}
+            setPendingFilterType={setPendingFilterType}
+            pendingSearch={pendingSearch}
+            setPendingSearch={setPendingSearch}
+            pendingSort={pendingSort}
+            setPendingSort={setPendingSort}
+            pendingAdsLoading={pendingAdsLoading}
+            pendingAds={pendingAds}
+            getPendingAdsView={getPendingAdsView}
+            onApproveAd={handleApproveAd}
+            onRejectAd={handleRejectAd}
+            onDeleteAd={handleDeleteAd}
+            openModerationMenuId={openModerationMenuId}
+            setOpenModerationMenuId={setOpenModerationMenuId}
+            moderationMenuRef={moderationMenuRef}
+            reportsLoading={reportsLoading}
+            reportsError={reportsError}
+            reportedContent={reportedContent}
+            onOpenReportPreview={handleOpenReportPreview}
+            onDeleteTarget={handleDeleteTarget}
+            onReloadStats={reloadStats}
+            setReportedContent={setReportedContent}
+          />
+        )}
+      </div>
 
-                    <div className="mobile-card__meta">
-                      <div className="mobile-meta">
-                        <span className="mobile-meta__label">Sujets</span>
-                        <span className="mobile-meta__value">{category.topics}</span>
-                      </div>
-                      <div className="mobile-meta">
-                        <span className="mobile-meta__label">Messages</span>
-                        <span className="mobile-meta__value">{category.posts}</span>
-                      </div>
-                      <div className="mobile-meta">
-                        <span className="mobile-meta__label">Dernière activité</span>
-                        <span className="mobile-meta__value">{category.lastActivity ? new Date(category.lastActivity).toLocaleDateString('fr-FR') : '—'}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'topics' && (
-            <div className="topics-section">
-              <div className="section-header">
-                <h2>Gestion des sujets</h2>
-                <div className="section-actions">
-                  <div className="topics-filters">
-                    <input
-                      type="text"
-                      placeholder="Rechercher un sujet..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="search-input"
-                    />
-                    <select 
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="filter-select"
-                    >
-                      <option value="all">Toutes les catégories</option>
-                      {categories.map((c) => (
-                        <option key={c.id || c.name} value={c.name}>{c.name}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="filter-select"
-                    >
-                      <option value="all">Tous les statuts</option>
-                      <option value="active">Actif</option>
-                      <option value="pinned">Épinglé</option>
-                      <option value="closed">Fermé</option>
-                    </select>
-                  </div>
-                  <button className="add-btn" onClick={handleOpenNewTopic}>Nouveau sujet</button>
-                </div>
-              </div>
-              <div className="topics-table table-wrapper">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Titre</th>
-                      <th>Catégorie</th>
-                      <th>Auteur</th>
-                      <th>Réponses</th>
-                      <th>Vues</th>
-                      <th>Statut</th>
-                      <th>Créé le</th>
-                      <th>Dernier message</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTopics.map(topic => (
-                      <tr key={topic.id}>
-                        <td>{topic.title}</td>
-                        <td>
-                          <span className="category-badge">{topic.category}</span>
-                        </td>
-                        <td>{topic.author}</td>
-                        <td>{topic.replies}</td>
-                        <td>{topic.views}</td>
-                        <td>
-                          {(() => {
-                            const st = topicStatusMeta(topic.status);
-                            return (
-                              <span className={`status-badge status-${st.key}`}>
-                                {st.label}
-                              </span>
-                            );
-                          })()}
-                        </td>
-                        <td>{topic.created ? new Date(topic.created).toLocaleDateString('fr-FR') : '—'}</td>
-                        <td>{topic.lastReply ? new Date(topic.lastReply).toLocaleDateString('fr-FR') : '—'}</td>
-                        <td className="actions-cell">
-                          <button className="action-btn view" title="Voir" onClick={() => handleOpenTopicDetail(topic)} aria-label="Voir">
-                            <Eye size={16} aria-hidden="true" />
-                          </button>
-                          <button className="action-btn pin" title="Épingler" onClick={() => handleTogglePin(topic)} aria-label="Épingler">
-                            <Pin size={16} aria-hidden="true" />
-                          </button>
-                          <button className="action-btn close" title="Fermer" onClick={() => handleToggleClose(topic)} aria-label="Fermer">
-                            <Lock size={16} aria-hidden="true" />
-                          </button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteTopic(topic)} aria-label="Supprimer">
-                            <Trash2 size={16} aria-hidden="true" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="mobile-cards" aria-label="Sujets">
-                {filteredTopics.map((topic) => {
-                  const st = topicStatusMeta(topic.status);
-                  return (
-                    <div key={topic.id} className="mobile-card">
-                      <div className="mobile-card__top">
-                        <div className="mobile-card__title">{topic.title}</div>
-                        <div className="mobile-card__actions">
-                          <button className="action-btn view action-btn--primary" title="Voir" onClick={() => handleOpenTopicDetail(topic)} aria-label="Voir">
-                            <Eye size={16} aria-hidden="true" />
-                            Voir
-                          </button>
-                          <div className="menu" ref={openTopicMenuId === topic.id ? topicMenuRef : null}>
-                            <button
-                              className="action-btn"
-                              aria-label="Actions"
-                              title="Actions"
-                              onClick={() => setOpenTopicMenuId((prev) => (prev === topic.id ? null : topic.id))}
-                            >
-                              <MoreVertical size={16} aria-hidden="true" />
-                            </button>
-                            {openTopicMenuId === topic.id && (
-                              <div className="menu__panel" role="menu">
-                                <button className="menu__item" role="menuitem" onClick={() => { setOpenTopicMenuId(null); handleTogglePin(topic); }}>
-                                  <Pin size={16} aria-hidden="true" />
-                                  Épingler / Désépingler
-                                </button>
-                                <button className="menu__item" role="menuitem" onClick={() => { setOpenTopicMenuId(null); handleToggleClose(topic); }}>
-                                  <Lock size={16} aria-hidden="true" />
-                                  Fermer / Réouvrir
-                                </button>
-                                <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenTopicMenuId(null); handleDeleteTopic(topic); }}>
-                                  <Trash2 size={16} aria-hidden="true" />
-                                  Supprimer
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mobile-card__chips">
-                        <span className="category-badge">{topic.category}</span>
-                        <span className={`status-badge status-${st.key}`}>{st.label}</span>
-                      </div>
-
-                      <div className="mobile-card__meta">
-                        <div className="mobile-meta">
-                          <span className="mobile-meta__label">Auteur</span>
-                          <span className="mobile-meta__value">{topic.author}</span>
-                        </div>
-                        <div className="mobile-meta">
-                          <span className="mobile-meta__label">Réponses</span>
-                          <span className="mobile-meta__value">{topic.replies}</span>
-                        </div>
-                        <div className="mobile-meta">
-                          <span className="mobile-meta__label">Dernier message</span>
-                          <span className="mobile-meta__value">{topic.lastReply ? new Date(topic.lastReply).toLocaleDateString('fr-FR') : '—'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'moderation' && (
-            <div className="moderation-section">
-              <div className="section-header">
-                <h2>Modération du contenu</h2>
-                <div className="moderation-filters">
-                  <select className="filter-select" value={reportStatusFilter} onChange={(e) => setReportStatusFilter(e.target.value)}>
-                    <option value="pending">En attente</option>
-                    <option value="resolved">Traités</option>
-                    <option value="all">Tous</option>
-                  </select>
-                </div>
-              </div>
-              {/* Pending ads review */}
-              <div className="reports-list reports-list--pending">
-                <div className="report-card report-card--pending">
-                  <h3 className="report-card__title">Annonces en attente</h3>
-                  <div className="moderation-filters moderation-filters--pending">
-                    <select className="filter-select" value={pendingFilterType} onChange={(e) => setPendingFilterType(e.target.value)}>
-                      <option value="all">Tous les types</option>
-                      <option value="vends">Vends</option>
-                      <option value="recherche">Recherche</option>
-                      <option value="services">Services</option>
-                    </select>
-                    <input className="search-input" placeholder="Rechercher..." value={pendingSearch} onChange={(e) => setPendingSearch(e.target.value)} />
-                    <select className="filter-select" value={pendingSort} onChange={(e) => setPendingSort(e.target.value)}>
-                      <option value="newest">Plus récentes</option>
-                      <option value="oldest">Plus anciennes</option>
-                    </select>
-                  </div>
-                  {pendingAdsLoading && <div>Chargement...</div>}
-                  {!pendingAdsLoading && pendingAds.length === 0 && <div>Aucune annonce en attente.</div>}
-                  {!pendingAdsLoading && getPendingAdsView().map(ad => (
-                    <div key={ad.id} className="pending-ad">
-                      <div className="pending-ad__row">
-                        <div className="pending-ad__main">
-                          <div className="pending-ad__title">
-                            <span className="pending-ad__type">{(ad.type || '').toUpperCase()}</span>
-                            <span className="pending-ad__sep">·</span>
-                            <span className="pending-ad__titleText">{ad.title}</span>
-                          </div>
-                          <div className="pending-ad__desc">{[ad.description, ad.price].filter(Boolean).join(' — ')}</div>
-                          <div className="pending-ad__meta">Par {ad.author || '—'} • {ad.createdAt ? new Date(ad.createdAt).toLocaleString('fr-FR') : ''}</div>
-                        </div>
-                        <div className="report-actions report-actions--pending">
-                          <button className="action-btn approve" title="Approuver" onClick={() => handleApproveAd(ad)}>
-                            <CheckCircle2 size={16} aria-hidden="true" />
-                            Approuver
-                          </button>
-                          <button className="action-btn reject" title="Rejeter" onClick={() => handleRejectAd(ad)}>
-                            <XCircle size={16} aria-hidden="true" />
-                            Rejeter
-                          </button>
-                          <div className="menu" ref={openModerationMenuId === `ad-${ad.id}` ? moderationMenuRef : null}>
-                            <button
-                              className="action-btn"
-                              aria-label="Actions"
-                              title="Actions"
-                              onClick={() => setOpenModerationMenuId((prev) => (prev === `ad-${ad.id}` ? null : `ad-${ad.id}`))}
-                            >
-                              <MoreVertical size={16} aria-hidden="true" />
-                            </button>
-                            {openModerationMenuId === `ad-${ad.id}` && (
-                              <div className="menu__panel" role="menu">
-                                <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenModerationMenuId(null); handleDeleteAd(ad); }}>
-                                  <Trash2 size={16} aria-hidden="true" />
-                                  Supprimer
-                                </button>
-                                <button className="menu__item" role="menuitem" onClick={() => { setOpenModerationMenuId(null); window.open(`/forum?hlType=ad&hlId=${ad.id}`, '_blank', 'noopener,noreferrer'); }}>
-                                  <Globe size={16} aria-hidden="true" />
-                                  Ouvrir côté public
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="reports-list">
-                {reportsLoading && <div className="report-card">Chargement...</div>}
-                {!reportsLoading && reportsError && <div className="report-card">{reportsError}</div>}
-                {!reportsLoading && !reportsError && reportedContent.length === 0 && (
-                  <div className="report-card">Aucun signalement</div>
-                )}
-                {!reportsLoading && !reportsError && reportedContent.map(report => (
-                  <div key={report.id} className="report-card">
-                    <div className="report-header">
-                      <span className={`report-type ${report.targetType}`}>
-                        {report.targetType}
-                      </span>
-                      <span className={`report-status ${report.status}`}>
-                        {report.status}
-                      </span>
-                    </div>
-                    <div className="report-content report-content--compact">
-                      <div className="report-row">
-                        <span className="report-key">Cible</span>
-                        <span className="report-value">{report.targetType} · #{report.targetId}</span>
-                      </div>
-                      {report.targetTitle && (
-                        <div className="report-row">
-                          <span className="report-key">Titre</span>
-                          <span className="report-value report-value--strong">{report.targetTitle}</span>
-                        </div>
-                      )}
-                      {report.targetSnippet && (
-                        <div className="report-row">
-                          <span className="report-key">Aperçu</span>
-                          <span className="report-value report-value--clamp">{report.targetSnippet}</span>
-                        </div>
-                      )}
-                      <div className="report-row">
-                        <span className="report-key">Raison</span>
-                        <span className="report-value">{report.reason}</span>
-                      </div>
-                      {report.details && (
-                        <div className="report-row">
-                          <span className="report-key">Détails</span>
-                          <span className="report-value report-value--clamp">{report.details}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="report-meta">
-                      <span>Signalé par: {report.reporter}</span>
-                      <span>Date: {report.createdAt ? new Date(report.createdAt).toLocaleString('fr-FR') : ''}</span>
-                    </div>
-                    <div className="report-actions">
-                      {(report.targetType === 'idea' || report.targetType === 'ad') && (
-                        <>
-                          <button className="action-btn view action-btn--primary" onClick={() => handleOpenReportPreview(report)}>
-                            <Eye size={16} aria-hidden="true" />
-                            Voir
-                          </button>
-                          <div className="menu" ref={openModerationMenuId === `report-${report.id}` ? moderationMenuRef : null}>
-                            <button
-                              className="action-btn"
-                              aria-label="Actions"
-                              title="Actions"
-                              onClick={() => setOpenModerationMenuId((prev) => (prev === `report-${report.id}` ? null : `report-${report.id}`))}
-                            >
-                              <MoreVertical size={16} aria-hidden="true" />
-                            </button>
-                            {openModerationMenuId === `report-${report.id}` && (
-                              <div className="menu__panel" role="menu">
-                                <button className="menu__item" role="menuitem" onClick={() => { setOpenModerationMenuId(null); window.open(`/forum?hlType=${report.targetType}&hlId=${report.targetId}`, '_blank', 'noopener,noreferrer'); }}>
-                                  <Globe size={16} aria-hidden="true" />
-                                  Ouvrir côté public
-                                </button>
-                                <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenModerationMenuId(null); handleDeleteTarget(report); }}>
-                                  <Trash2 size={16} aria-hidden="true" />
-                                  Supprimer l'élément
-                                </button>
-                                {report.targetType === 'ad' && (
-                                  <>
-                                    <button className="menu__item" role="menuitem" onClick={async () => {
-                                      setOpenModerationMenuId(null);
-                                      try {
-                                        await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'approved' });
-                                        emitToast('Annonce approuvée');
-                                        setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'approved' } : r));
-                                      } catch (e) { emitToast('Action impossible.'); }
-                                    }}>
-                                      <CheckCircle2 size={16} aria-hidden="true" />
-                                      Approuver l'annonce
-                                    </button>
-                                    <button className="menu__item" role="menuitem" onClick={async () => {
-                                      setOpenModerationMenuId(null);
-                                      try {
-                                        await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'rejected' });
-                                        emitToast('Annonce rejetée');
-                                        setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'rejected' } : r));
-                                      } catch (e) { emitToast('Action impossible.'); }
-                                    }}>
-                                      <XCircle size={16} aria-hidden="true" />
-                                      Rejeter l'annonce
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
-                      {report.status !== 'resolved' ? (
-                        <button className="action-btn approve" onClick={async () => {
-                          try { await api.put(`/api/forum/reports/${report.id}/status`, { status: 'resolved' });
-                            setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r));
-                            await reloadStats();
-                          } catch (e) { emitToast('Action impossible.'); }
-                        }}>Marquer traité</button>
-                      ) : (
-                        <button className="action-btn reject" onClick={async () => {
-                          try { await api.put(`/api/forum/reports/${report.id}/status`, { status: 'pending' });
-                            setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, status: 'pending' } : r));
-                            await reloadStats();
-                          } catch (e) { emitToast('Action impossible.'); }
-                        }}>Repasser en attente</button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      <CategoryModal 
-        isOpen={showCategoryModal} 
+      <CategoryModal
+        isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
         category={selectedCategory}
         onSave={handleSaveCategory}
       />
 
-      {showTopicModal && (
-        <div className="modal-overlay" onClick={() => setShowTopicModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Nouveau sujet</h2>
-              <button type="button" className="modal-close" onClick={() => setShowTopicModal(false)} aria-label="Fermer">
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmitNewTopic}>
-              <div className="form-group">
-                <label className="form-label">Titre</label>
-                <input className="form-input" value={newTopic.title} onChange={(e) => setNewTopic({ ...newTopic, title: e.target.value })} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Catégorie</label>
-                <select className="form-input" value={newTopic.categoryId} onChange={(e) => setNewTopic({ ...newTopic, categoryId: e.target.value })} required>
-                  <option value="">Sélectionner...</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn-cancel" onClick={() => setShowTopicModal(false)}>Annuler</button>
-                <button type="submit" className="btn-submit">Créer</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <NewTopicModal
+        open={showTopicModal}
+        onClose={() => setShowTopicModal(false)}
+        onSubmit={handleSubmitNewTopic}
+        newTopic={newTopic}
+        setNewTopic={setNewTopic}
+        categories={categories}
+      />
 
-      {preview.open && (
-        <div className="modal-overlay" onClick={() => setPreview({ open: false, loading: false, error: '', data: null, report: null })}>
-          <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Contenu signalé</h2>
-              <button type="button" className="modal-close" onClick={() => setPreview({ open: false, loading: false, error: '', data: null, report: null })} aria-label="Fermer">
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
-            {preview.loading && <div>Chargement...</div>}
-            {!preview.loading && preview.error && <div className="forum-error">{preview.error}</div>}
-            {!preview.loading && !preview.error && (
-              <div>
-                {preview.report?.targetType === 'idea' && preview.data && (
-                  <div>
-                    <p><strong>Titre</strong>: {preview.data.title}</p>
-                    <p><strong>Description</strong>: {preview.data.description}</p>
-                    <p><strong>Votes</strong>: {preview.data.votes}</p>
-                    <p><strong>Auteur</strong>: {preview.data.author}</p>
-                    <p><strong>Date</strong>: {preview.data.createdAt ? new Date(preview.data.createdAt).toLocaleString('fr-FR') : ''}</p>
-                  </div>
-                )}
-                {preview.report?.targetType === 'ad' && preview.data && (
-                  <div>
-                    <p><strong>Type</strong>: {preview.data.type}</p>
-                    <p><strong>Titre</strong>: {preview.data.title}</p>
-                    <p><strong>Description</strong>: {preview.data.description}</p>
-                    {preview.data.price && <p><strong>Prix</strong>: {preview.data.price}</p>}
-                    <p><strong>Statut</strong>: {preview.data.status}</p>
-                    <p><strong>Auteur</strong>: {preview.data.author}</p>
-                    <p><strong>Date</strong>: {preview.data.createdAt ? new Date(preview.data.createdAt).toLocaleString('fr-FR') : ''}</p>
-                  </div>
-                )}
-                {(preview.report?.targetType !== 'idea' && preview.report?.targetType !== 'ad') && (
-                  <div>Prévisualisation non disponible pour ce type: {preview.report?.targetType}</div>
-                )}
-              </div>
-            )}
-            <div className="form-actions">
-              {preview.report && (preview.report.targetType === 'idea' || preview.report.targetType === 'ad') && (
-                <button className="btn-submit" onClick={() => handleDeleteTarget(preview.report)}>Supprimer l'élément</button>
-              )}
-              <button className="btn-secondary" onClick={() => setPreview({ open: false, loading: false, error: '', data: null, report: null })}>Fermer</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PreviewModal
+        preview={preview}
+        onClose={() => setPreview({ open: false, loading: false, error: '', data: null, report: null })}
+        onDeleteTarget={handleDeleteTarget}
+      />
 
-      {showTopicDetail && (
-        <div className="modal-overlay" onClick={() => setShowTopicDetail(false)}>
-          <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{topicDetail.topic?.title || 'Sujet'}</h2>
-              <button type="button" className="modal-close" onClick={() => setShowTopicDetail(false)} aria-label="Fermer">
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
-            {topicDetail.loading && <div>Chargement des messages...</div>}
-            {!topicDetail.loading && topicDetail.error && <div className="forum-error">{topicDetail.error}</div>}
-            {!topicDetail.loading && !topicDetail.error && (
-              <div className="posts-list">
-                {topicDetail.posts.length === 0 && <div>Aucun message</div>}
-                {topicDetail.posts.map(p => (
-                  <div className={`post-item ${p.status}`} key={p.id}>
-                    <div className="post-meta">
-                      <strong>{p.author}</strong>
-                      <span>{new Date(p.createdAt).toLocaleString('fr-FR')}</span>
-                      <span className={`status-badge ${p.status}`}>{p.status}</span>
-                    </div>
-                    <div className="post-content">{p.content}</div>
-                    <div className="post-actions">
-                      <button onClick={() => handleToggleHidePost(p)}>{p.status === 'hidden' ? 'Rendre visible' : 'Masquer'}</button>
-                      <button onClick={() => handleDeletePost(p)}>Supprimer</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="new-post">
-              <textarea rows="3" placeholder="Votre message..." value={topicDetail.newPost} onChange={(e) => setTopicDetail(prev => ({ ...prev, newPost: e.target.value }))} />
-              <div className="form-actions">
-                <button className="btn-secondary" onClick={() => setShowTopicDetail(false)}>Fermer</button>
-                <button className="btn-submit" onClick={handleAddPost}>Publier</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <TopicDetailModal
+        open={showTopicDetail}
+        onClose={() => setShowTopicDetail(false)}
+        topicDetail={topicDetail}
+        onAddPost={handleAddPost}
+        onToggleHidePost={handleToggleHidePost}
+        onDeletePost={handleDeletePost}
+        setTopicDetail={setTopicDetail}
+      />
     </AdminLayout>
   );
 };
