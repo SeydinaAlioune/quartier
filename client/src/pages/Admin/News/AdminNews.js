@@ -873,19 +873,19 @@ const AdminNews = () => {
             <div className="comment-content">{comment.content}</div>
             <div className="comment-article">Sur : {comment.postTitle}</div>
             <div className="comment-actions">
-              <button className="approve-btn" type="button" onClick={() => handleModerateComment(comment.id, 'approved')}>
+              <button className="media-action-btn is-approve" type="button" onClick={() => handleModerateComment(comment.id, 'approved')}>
                 <Check size={16} aria-hidden="true" />
                 Approuver
               </button>
-              <button className="reject-btn" type="button" onClick={() => handleModerateComment(comment.id, 'rejected')}>
+              <button className="media-action-btn is-reject" type="button" onClick={() => handleModerateComment(comment.id, 'rejected')}>
                 <Archive size={16} aria-hidden="true" />
                 Rejeter
               </button>
-              <button className="reply-btn" type="button" onClick={() => handleReplyToPost(comment.postId)}>
+              <button className="media-action-btn" type="button" onClick={() => handleReplyToPost(comment.postId)}>
                 <RefreshCw size={16} aria-hidden="true" />
                 Répondre
               </button>
-              <button className="delete-btn" type="button" onClick={() => handleDeleteComment(comment.id)}>
+              <button className="media-action-btn is-danger" type="button" onClick={() => handleDeleteComment(comment.id)}>
                 <Trash2 size={16} aria-hidden="true" />
                 Supprimer
               </button>
