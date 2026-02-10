@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminForum.css';
 import api from '../../../services/api';
 
 const AdminForum = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -423,15 +421,8 @@ const AdminForum = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion du Forum" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-        <div className="forum-page">
+    <AdminLayout title="Gestion du Forum">
+      <div className="forum-page">
           {/* Header */}
           <div className="forum-header">
             <div className="header-title">
@@ -774,7 +765,6 @@ const AdminForum = () => {
             </div>
           )}
         </div>
-      </div>
       <CategoryModal 
         isOpen={showCategoryModal} 
         onClose={() => setShowCategoryModal(false)}
@@ -887,7 +877,7 @@ const AdminForum = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 
