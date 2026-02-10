@@ -1,6 +1,8 @@
 .forum-page {
   padding: 2rem;
   min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .forum-page .table-wrapper {
@@ -692,6 +694,7 @@ tr:hover td {
   color: #1a202c;
   font-size: 0.95rem;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .report-value--strong {
@@ -873,6 +876,11 @@ tr:hover td {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .forum-page {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
   .forum-header {
     padding: 1rem;
     text-align: left;
@@ -950,6 +958,42 @@ tr:hover td {
     scroll-snap-align: start;
   }
 
+  .forum-page .forum-tabs {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    gap: 0.35rem;
+    padding: 0 0 0.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .forum-page .forum-tabs .tab-btn {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+  }
+
+  .forum-page .forum-tabs .tab-btn.active {
+    background: #fff;
+    border-color: #cbd5e1;
+    box-shadow: none;
+  }
+
+  .forum-page .forum-tabs .tab-btn.active {
+    position: relative;
+  }
+
+  .forum-page .forum-tabs .tab-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -6px;
+    height: 2px;
+    background: #00a651;
+    border-radius: 999px;
+  }
+
   .section-header {
     flex-direction: column;
     align-items: stretch;
@@ -1011,6 +1055,7 @@ tr:hover td {
   .forum-page .mobile-card__desc {
     color: #4a5568;
     margin-top: 8px;
+    overflow-wrap: anywhere;
   }
 
   .forum-page .mobile-card__chips {
