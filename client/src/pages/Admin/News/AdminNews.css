@@ -343,6 +343,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .media-preview img {
@@ -358,6 +362,69 @@
 .media-info {
   padding: 0.75rem;
   background-color: white;
+}
+
+.media-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  padding-top: 0;
+}
+
+.media-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #2d3748;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.media-action-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e0;
+}
+
+.media-action-btn:focus-visible {
+  outline: 3px solid rgba(0, 166, 81, 0.35);
+  outline-offset: 2px;
+}
+
+.media-action-btn.is-approve {
+  background: #ecfdf5;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.media-action-btn.is-approve:hover {
+  background: #dcfce7;
+}
+
+.media-action-btn.is-reject {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #9a3412;
+}
+
+.media-action-btn.is-reject:hover {
+  background: #ffedd5;
+}
+
+.media-action-btn.is-danger {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.media-action-btn.is-danger:hover {
+  background: #fee2e2;
 }
 
 .media-name {

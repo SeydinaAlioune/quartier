@@ -419,8 +419,9 @@ const AdminNews = () => {
       <div className="media-header">
         <h3>Bibliothèque de médias</h3>
         <div className="media-actions">
-          <button className="upload-btn" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
-            <span>+</span> Importer des médias
+          <button className="upload-btn" type="button" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+            <Plus size={18} aria-hidden="true" />
+            <span>Importer des médias</span>
           </button>
           <button className="organize-btn" onClick={() => fetchMedia()}>Organiser</button>
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*,video/*" onChange={handleFileSelected} />
@@ -510,7 +511,7 @@ const AdminNews = () => {
           })
           .map((media) => (
           <div key={media._id} className="media-item">
-            <button className="media-preview" style={{cursor:'pointer', border:'none', background:'transparent', padding:0}} onClick={() => setViewerMedia(media)} title="Aperçu">
+            <button className="media-preview" type="button" onClick={() => setViewerMedia(media)} title="Aperçu" aria-label="Prévisualiser">
               {media.type === 'image' ? (
                 <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
               ) : (
@@ -524,15 +525,27 @@ const AdminNews = () => {
               <span className="media-size">{media.metadata?.size || ''}</span>
               <span className={`media-status status-${media.status || 'pending'}`}>{media.status || 'pending'}</span>
             </div>
-            <div className="media-actions" style={{display:'flex', gap:'0.5rem', marginTop:'0.25rem', flexWrap:'wrap'}}>
-              <button className="approve-btn" onClick={() => setViewerMedia(media)}>Prévisualiser</button>
+            <div className="media-item-actions" aria-label="Actions média">
+              <button className="media-action-btn" type="button" onClick={() => setViewerMedia(media)}>
+                <Eye size={16} aria-hidden="true" />
+                Prévisualiser
+              </button>
               {media.status !== 'approved' && (
-                <button className="approve-btn" onClick={() => handleModerateMediaStatus(media._id, 'approved')}>Approuver</button>
+                <button className="media-action-btn is-approve" type="button" onClick={() => handleModerateMediaStatus(media._id, 'approved')}>
+                  <Check size={16} aria-hidden="true" />
+                  Approuver
+                </button>
               )}
               {media.status !== 'rejected' && (
-                <button className="reject-btn" onClick={() => handleModerateMediaStatus(media._id, 'rejected')}>Rejeter</button>
+                <button className="media-action-btn is-reject" type="button" onClick={() => handleModerateMediaStatus(media._id, 'rejected')}>
+                  <Archive size={16} aria-hidden="true" />
+                  Rejeter
+                </button>
               )}
-              <button className="delete-btn" onClick={() => handleDeleteMedia(media._id)}>Supprimer</button>
+              <button className="media-action-btn is-danger" type="button" onClick={() => handleDeleteMedia(media._id)}>
+                <Trash2 size={16} aria-hidden="true" />
+                Supprimer
+              </button>
             </div>
           </div>
         ))}
