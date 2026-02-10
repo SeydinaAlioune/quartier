@@ -2,6 +2,27 @@
   box-sizing: border-box;
 }
 
+:root {
+  --qc-color-bg: #ffffff;
+  --qc-color-text: #0f172a;
+  --qc-color-muted: #475569;
+  --qc-color-muted-2: #64748b;
+
+  --qc-color-border: rgba(15, 23, 42, 0.12);
+  --qc-color-border-soft: rgba(15, 23, 42, 0.10);
+  --qc-color-surface-soft: rgba(15, 23, 42, 0.03);
+
+  --qc-radius-md: 16px;
+  --qc-radius-lg: 18px;
+  --qc-radius-pill: 999px;
+
+  --qc-shadow-card: 0 18px 60px rgba(15, 23, 42, 0.06);
+  --qc-shadow-modal: 0 40px 140px rgba(0, 0, 0, 0.35);
+
+  --qc-focus-ring: 3px solid rgba(0, 166, 81, 0.35);
+  --qc-focus-ring-offset: 2px;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -18,8 +39,8 @@ body {
 }
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid rgba(0, 166, 81, 0.35);
-  outline-offset: 2px;
+  outline: var(--qc-focus-ring, 3px solid rgba(0, 166, 81, 0.35));
+  outline-offset: var(--qc-focus-ring-offset, 2px);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,20 +1,20 @@
 .ui-card {
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.10);
-  border-radius: 16px;
-  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.06);
+  background: var(--qc-color-bg, #fff);
+  border: 1px solid var(--qc-color-border-soft, rgba(15, 23, 42, 0.10));
+  border-radius: var(--qc-radius-md, 16px);
+  box-shadow: var(--qc-shadow-card, 0 18px 60px rgba(15, 23, 42, 0.06));
 }
 
 .ui-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.28rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(15, 23, 42, 0.03);
+  border-radius: var(--qc-radius-pill, 999px);
+  border: 1px solid var(--qc-color-border, rgba(15, 23, 42, 0.12));
+  background: var(--qc-color-surface-soft, rgba(15, 23, 42, 0.03));
   font-weight: 900;
   font-size: 0.78rem;
-  color: #0f172a;
+  color: var(--qc-color-text, #0f172a);
 }
 
 .ui-modal-overlay {
@@ -30,10 +30,10 @@
 
 .ui-modal-card {
   width: min(720px, 100%);
-  background: #fff;
-  border-radius: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  box-shadow: 0 40px 140px rgba(0,0,0,0.35);
+  background: var(--qc-color-bg, #fff);
+  border-radius: var(--qc-radius-lg, 18px);
+  border: 1px solid var(--qc-color-border, rgba(15, 23, 42, 0.12));
+  box-shadow: var(--qc-shadow-modal, 0 40px 140px rgba(0,0,0,0.35));
   overflow: hidden;
 }
 
@@ -51,7 +51,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--qc-color-muted-2, #64748b);
 }
 
 .ui-section-title {
@@ -61,7 +61,7 @@
 
 .ui-section-lead {
   margin: 0.5rem 0 0;
-  color: #475569;
+  color: var(--qc-color-muted, #475569);
   line-height: 1.55;
 }
 
