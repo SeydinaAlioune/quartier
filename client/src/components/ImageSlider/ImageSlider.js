@@ -48,7 +48,9 @@ const ImageSlider = ({
   useEffect(() => {
     if (!autoPlay || !length) return;
     const id = setInterval(() => {
-      if (!pausedRef.current) next();
+      if (pausedRef.current) return;
+      setDirection(1);
+      setIndex((prev) => prev + 1);
     }, intervalMs);
     return () => clearInterval(id);
   }, [autoPlay, intervalMs, length]);

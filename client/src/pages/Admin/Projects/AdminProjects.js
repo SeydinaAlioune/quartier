@@ -14,7 +14,6 @@ const AdminProjects = () => {
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [newProject, setNewProject] = useState({
     title: '',
     description: '',
@@ -38,12 +37,10 @@ const AdminProjects = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      setError('');
       const res = await api.get('/api/projects/admin');
       const data = Array.isArray(res.data) ? res.data : [];
       setProjects(data);
     } catch (e) {
-      setError("Impossible de charger les projets.");
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,6 @@ const Users = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [usersData, setUsersData] = useState([]);
@@ -106,7 +105,6 @@ const Users = () => {
     }
   };
 
-  const handleOpenAdd = () => setShowAddModal(true);
   const handleCloseAdd = () => setShowAddModal(false);
 
   const handleCreateUser = async (e) => {

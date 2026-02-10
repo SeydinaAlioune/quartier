@@ -10,7 +10,6 @@ const AdminDonations = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCampaign, setNewCampaign] = useState({
     title: '',
@@ -34,12 +33,10 @@ const AdminDonations = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      setError('');
       const res = await api.get('/api/donations/campaigns?status=all');
       const list = Array.isArray(res.data?.campaigns) ? res.data.campaigns : (Array.isArray(res.data) ? res.data : []);
       setCampaigns(list);
     } catch (e) {
-      setError("Impossible de charger les campagnes.");
     } finally {
       setLoading(false);
     }

@@ -9,19 +9,16 @@ const AdminEvents = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', location: '' });
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      setError('');
       const res = await api.get('/api/events');
       const data = Array.isArray(res.data) ? res.data : [];
       setEvents(data);
     } catch (e) {
-      setError("Impossible de charger les événements.");
     } finally {
       setLoading(false);
     }

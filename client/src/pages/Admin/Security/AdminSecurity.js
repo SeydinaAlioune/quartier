@@ -12,7 +12,6 @@ const AdminSecurity = () => {
 
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Filters state
   const [alertTypeFilter, setAlertTypeFilter] = useState('');
@@ -50,7 +49,6 @@ const AdminSecurity = () => {
     const fetchSecurity = async () => {
       try {
         setLoading(true);
-        setError('');
         const [aRes, iRes] = await Promise.all([
           api.get('/api/security/alerts'),
           api.get('/api/security/incidents'),
@@ -58,7 +56,6 @@ const AdminSecurity = () => {
         setAlerts(Array.isArray(aRes.data) ? aRes.data : []);
         setIncidents(Array.isArray(iRes.data) ? iRes.data : []);
       } catch (e) {
-        setError("Impossible de charger les données de sécurité.");
       } finally {
         setLoading(false);
       }

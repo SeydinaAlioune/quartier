@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
 import AdminHeader from '../../../components/AdminHeader/AdminHeader';
 import './AdminNews.css';
@@ -15,7 +15,6 @@ const AdminNews = () => {
   const [showComments, setShowComments] = useState(false);
   const [showAnnouncements, setShowAnnouncements] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [posts, setPosts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
@@ -58,31 +57,6 @@ const AdminNews = () => {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const pickerFileRef = useRef(null);
 
-  // Charger les posts depuis l'API
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const params = new URLSearchParams();
-      if (statusFilter !== 'all') params.set('status', statusFilter);
-      if (searchQuery.trim() !== '') params.set('search', searchQuery.trim());
-      params.set('page', String(currentPage));
-      params.set('limit', String(pageSize));
-      const res = await api.get(`/api/posts?${params.toString()}`);
-      const payload = res?.data;
-      const data = Array.isArray(payload?.posts) ? payload.posts : (Array.isArray(payload) ? payload : []);
-      setPosts(data);
-      if (payload?.totalPages) setTotalPages(Number(payload.totalPages));
-      if (typeof payload?.total === 'number') setTotalArticles(Number(payload.total));
-      // rafraîchir les compteurs publiés/brouillons
-      fetchPostCounts();
-    } catch (e) {
-      setError("Impossible de charger les articles.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Appliquer l'URL donnée en tant que couverture, selon la cible (create/edit)
   const applyMediaAsCover = (url) => {
     if (chooseCoverFor?.mode === 'create') {
@@ -119,7 +93,7 @@ const AdminNews = () => {
   };
 
   // Compteurs de posts par statut
-  const fetchPostCounts = async () => {
+  const fetchPostCounts = useCallback(async () => {
     try {
       const [pubRes, draftRes] = await Promise.all([
         api.get('/api/posts?status=published&limit=1&page=1'),
@@ -131,10 +105,33 @@ const AdminNews = () => {
       setPublishedTotal(null);
       setDraftTotal(null);
     }
-  };
+  }, []);
+
+  // Charger les posts depuis l'API
+  const fetchPosts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (searchQuery.trim() !== '') params.set('search', searchQuery.trim());
+      params.set('page', String(currentPage));
+      params.set('limit', String(pageSize));
+      const res = await api.get(`/api/posts?${params.toString()}`);
+      const payload = res?.data;
+      const data = Array.isArray(payload?.posts) ? payload.posts : (Array.isArray(payload) ? payload : []);
+      setPosts(data);
+      if (payload?.totalPages) setTotalPages(Number(payload.totalPages));
+      if (typeof payload?.total === 'number') setTotalArticles(Number(payload.total));
+      // rafraîchir les compteurs publiés/brouillons
+      fetchPostCounts();
+    } catch (e) {
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, fetchPostCounts, pageSize, searchQuery, statusFilter]);
 
   // Médias: liste + upload
-  const fetchMedia = async () => {
+  const fetchMedia = useCallback(async () => {
     try {
       setMediaLoading(true);
       setMediaError('');
@@ -155,7 +152,7 @@ const AdminNews = () => {
     } finally {
       setMediaLoading(false);
     }
-  };
+  }, [mediaTypeFilter]);
 
   const handleFileSelected = async (e) => {
     const file = e.target.files && e.target.files[0];
@@ -208,9 +205,42 @@ const AdminNews = () => {
     }
   };
 
+  // Comments API
+  const fetchComments = useCallback(async () => {
+    try {
+      setCommentsLoading(true);
+      setCommentsError('');
+      const url = commentsFilter === 'all' ? '/api/posts/comments' : `/api/posts/comments?status=${commentsFilter}`;
+      const res = await api.get(url);
+      const payload = res?.data;
+      setCommentsList(Array.isArray(payload?.comments) ? payload.comments : []);
+      setCommentsTotal(Number(payload?.total || 0));
+    } catch (e) {
+      setCommentsError('Impossible de charger les commentaires.');
+    } finally {
+      setCommentsLoading(false);
+    }
+  }, [commentsFilter]);
+
+  // ====== Annonces Importantes (Admin) ======
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      setAnnLoading(true);
+      setAnnError('');
+      const res = await api.get('/api/announcements/all');
+      const list = Array.isArray(res.data) ? res.data : [];
+      setAnnList(list);
+    } catch (e) {
+      setAnnError("Impossible de charger les annonces importantes.");
+      setAnnList([]);
+    } finally {
+      setAnnLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchPosts();
-  }, [currentPage, statusFilter]);
+  }, [fetchPosts]);
 
   // lorsque la recherche change, on repart page 1 et on refetch
   useEffect(() => {
@@ -219,28 +249,26 @@ const AdminNews = () => {
       fetchPosts();
     }, 300);
     return () => clearTimeout(t);
-  }, [searchQuery]);
+  }, [fetchPosts, searchQuery]);
 
   // Charger les médias au montage et à l'ouverture de la lib
   useEffect(() => {
     fetchMedia();
-  }, []);
+  }, [fetchMedia]);
   useEffect(() => {
     if (showMediaLibrary) fetchMedia();
-  }, [showMediaLibrary]);
+  }, [fetchMedia, showMediaLibrary]);
   // Rafraîchir quand le type change
   useEffect(() => {
     if (showMediaLibrary) fetchMedia();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaTypeFilter]);
+  }, [fetchMedia, mediaTypeFilter, showMediaLibrary]);
   useEffect(() => {
     if (showComments) fetchComments();
-  }, [showComments, commentsFilter]);
+  }, [fetchComments, showComments]);
   // Charger les annonces importantes quand la section est ouverte
   useEffect(() => {
     if (showAnnouncements) fetchAnnouncements();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showAnnouncements]);
+  }, [fetchAnnouncements, showAnnouncements]);
 
   // Compteur temps réel des annonces actives/inactives
   useEffect(() => {
@@ -270,7 +298,7 @@ const AdminNews = () => {
   // Ouvrir le picker déclenchera aussi un rafraîchissement des médias
   useEffect(() => {
     if (showMediaPicker) fetchMedia();
-  }, [showMediaPicker]);
+  }, [fetchMedia, showMediaPicker]);
 
   const handleCloseAdd = () => setShowAddModal(false);
 
@@ -303,25 +331,6 @@ const AdminNews = () => {
       fetchPosts();
     } catch (err) {
       alert("Échec de la modification. Vérifiez vos droits.");
-    }
-  };
-
-  // Comments API
-  const fetchComments = async () => {
-    try {
-      setCommentsLoading(true);
-      setCommentsError('');
-      const url = commentsFilter === 'all' ? '/api/posts/comments' : `/api/posts/comments?status=${commentsFilter}`;
-      const res = await api.get(url);
-      const payload = res?.data;
-      setCommentsList(Array.isArray(payload?.comments) ? payload.comments : []);
-      setCommentsTotal(Number(payload?.total || 0));
-    } catch (e) {
-      setCommentsError('Impossible de charger les commentaires.');
-      setCommentsList([]);
-      setCommentsTotal(0);
-    } finally {
-      setCommentsLoading(false);
     }
   };
 
@@ -386,9 +395,6 @@ const AdminNews = () => {
       alert("Impossible de changer le statut. Vérifiez vos droits.");
     }
   };
-
-  // Commentaires: non branché pour l'instant (placeholder vide)
-  const comments = [];
 
   const renderMediaLibrary = () => (
     <div className="media-library">
@@ -513,22 +519,6 @@ const AdminNews = () => {
       </div>
     </div>
   );
-
-  // ====== Annonces Importantes (Admin) ======
-  const fetchAnnouncements = async () => {
-    try {
-      setAnnLoading(true);
-      setAnnError('');
-      const res = await api.get('/api/announcements/all');
-      const list = Array.isArray(res.data) ? res.data : [];
-      setAnnList(list);
-    } catch (e) {
-      setAnnError("Impossible de charger les annonces importantes.");
-      setAnnList([]);
-    } finally {
-      setAnnLoading(false);
-    }
-  };
 
   const openCreateAnn = () => {
     setAnnForm({ title: '', description: '', buttonText: '', link: '', status: 'active', startsAt: '', endsAt: '' });

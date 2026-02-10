@@ -3,8 +3,6 @@ import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './Dashboard.css';
 import AdminDirectory from './Directory/AdminDirectory';
 import AdminNews from './News/AdminNews';
-import AdminForum from './Forum/AdminForum';
-import Users from './Users/Users';
 import AdminSecurity from './Security/AdminSecurity';
 import AdminProjects from './Projects/AdminProjects';
 import AdminDonations from './Donations/AdminDonations';
@@ -27,7 +25,6 @@ const Dashboard = () => {
     dons: { total: '—', evolution: '—' }
   });
   const [securityReports, setSecurityReports] = useState([]);
-  const [dashLoading, setDashLoading] = useState(false);
 
   // Charger profil connecté + statistiques en en-tête
   useEffect(() => {
@@ -63,7 +60,6 @@ const Dashboard = () => {
     };
     const hydrateStats = async () => {
       try {
-        setDashLoading(true);
         const [statsRes, draftsRes, alertsRes, campaignsRes, forumStatsRes] = await Promise.all([
           api.get('/api/admin/stats'),
           api.get('/api/posts?status=draft&limit=1&page=1'),
@@ -92,7 +88,6 @@ const Dashboard = () => {
       } catch (e) {
         // En cas d'erreur, conserver les valeurs par défaut
       } finally {
-        setDashLoading(false);
       }
     };
     hydrateUser();
