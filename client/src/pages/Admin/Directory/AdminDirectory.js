@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminDirectory.css';
 import api from '../../../services/api';
 
@@ -8,7 +7,6 @@ const AdminDirectory = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -276,15 +274,8 @@ const AdminDirectory = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion de l'Annuaire" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-        <div className="directory-page">
+    <AdminLayout title="Gestion de l'Annuaire">
+      <div className="directory-page">
           {error && (
             <div className="business-item" style={{ color: '#e53e3e', background: '#fff5f5' }}>{error}</div>
           )}
@@ -731,9 +722,8 @@ const AdminDirectory = () => {
               </div>
             </div>
           )}
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

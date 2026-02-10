@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminServices.css';
 import SERVICE_CATEGORIES from '../../../constants/serviceCategories';
 
 const AdminServices = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [approvalFilter, setApprovalFilter] = useState('all');
@@ -269,14 +267,7 @@ const AdminServices = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion des Services" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
+    <AdminLayout title="Gestion des Services">
 
         <div className="services-page">
           <div className="services-header">
@@ -523,8 +514,7 @@ const AdminServices = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

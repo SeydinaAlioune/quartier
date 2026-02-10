@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 
 const AdminEvents = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [events, setEvents] = useState([]);
@@ -51,16 +49,8 @@ const AdminEvents = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion des Événements" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-
-        <div className="events-page">
+    <AdminLayout title="Gestion des Événements">
+      <div className="events-page">
           <div className="events-header">
             <div className="header-title">
               <h1>Événements</h1>
@@ -143,8 +133,7 @@ const AdminEvents = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 
