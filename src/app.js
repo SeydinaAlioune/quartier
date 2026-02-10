@@ -26,11 +26,49 @@ const contactRoutes = require('./routes/contact.routes');
 const app = express();
 
 // Middleware
+const parseCorsOrigins = () => {
+  const raw = process.env.CORS_ORIGINS;
+  if (typeof raw === 'string' && raw.trim()) {
+    return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  return [
+    'https://quartier-b3o.pages.dev',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  ];
+};
+
+const allowedOrigins = parseCorsOrigins();
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const o = new URL(origin);
+    return allowedOrigins.some((entry) => {
+      if (!entry) return false;
+      if (entry.startsWith('*.')) {
+        const suffix = entry.slice(1);
+        return o.hostname.endsWith(suffix);
+      }
+      return false;
+    });
+  } catch (e) {
+    return false;
+  }
+};
+
 const corsOptions = {
-  origin: '*',
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','Range'],
-  exposedHeaders: ['Content-Length','Content-Range','Accept-Ranges']
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Range'],
+  exposedHeaders: ['Content-Length', 'Content-Range', 'Accept-Ranges']
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
