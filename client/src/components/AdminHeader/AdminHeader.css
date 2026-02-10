@@ -43,6 +43,131 @@
   gap: 1rem;
 }
 
+.admin-notifications {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.notif-btn {
+  position: relative;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2d3748;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.notif-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.notif-btn.has-unread {
+  border-color: rgba(225, 29, 72, 0.35);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(360px, 88vw);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.notif-dropdown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.notif-dropdown__title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.notif-dropdown__link {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.notif-dropdown__link:hover {
+  background: #eef2f7;
+}
+
+.notif-dropdown__body {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.notif-dropdown__empty {
+  padding: 14px 12px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.notif-item {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.notif-item:hover {
+  background: #f8fafc;
+}
+
+.notif-item__title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.notif-item__meta {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
 .notification-badge {
   background-color: #00a651;
   color: white;

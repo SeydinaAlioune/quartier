@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminMessages.css';
+import { emitToast } from '../../../utils/toast';
 
   // Linkify helper for message body
   const renderLinked = (text = '') => {
@@ -123,7 +124,7 @@ const AdminMessages = () => {
       await fetchMessages();
       if (selected?._id === id) setSelected({ ...selected, status });
     } catch {
-      alert("Mise à jour du statut impossible");
+      emitToast("Mise à jour du statut impossible");
     }
   };
 
@@ -137,7 +138,7 @@ const AdminMessages = () => {
       await openDetail(selected);
       await fetchMessages();
     } catch {
-      alert("Envoi de la réponse impossible");
+      emitToast("Envoi de la réponse impossible");
     } finally {
       setResponding(false);
     }
@@ -146,12 +147,12 @@ const AdminMessages = () => {
   // TODO: Implémenter quand les endpoints backend d'assignation seront disponibles
   const assignToMe = async () => {
     if (!selected) return;
-    alert("Fonction d'assignation non disponible pour l'instant.");
+    emitToast("Fonction d'assignation non disponible pour l'instant.");
   };
 
   const unassign = async () => {
     if (!selected) return;
-    alert("Fonction de désassignation non disponible pour l'instant.");
+    emitToast("Fonction de désassignation non disponible pour l'instant.");
   };
 
   return (

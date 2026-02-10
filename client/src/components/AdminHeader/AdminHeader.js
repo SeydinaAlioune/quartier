@@ -2,10 +2,14 @@ import React, { useEffect, useState } from 'react';
 import './AdminHeader.css';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 
 const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 0 }) => {
   const [user, setUser] = useState(null);
   const [notifCount, setNotifCount] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifItems, setNotifItems] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +67,29 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
     return () => { cancelled = true; clearInterval(t); };
   }, []);
 
+  const effectiveCount = (notificationsCount || notifCount || 0);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    let cancelled = false;
+    const loadLatest = async () => {
+      try {
+        setNotifLoading(true);
+        const res = await api.get('/api/contact?status=new&limit=5&page=1');
+        const arr = Array.isArray(res?.data?.contacts)
+          ? res.data.contacts
+          : (Array.isArray(res?.data) ? res.data : []);
+        if (!cancelled) setNotifItems(arr);
+      } catch {
+        if (!cancelled) setNotifItems([]);
+      } finally {
+        if (!cancelled) setNotifLoading(false);
+      }
+    };
+    loadLatest();
+    return () => { cancelled = true; };
+  }, [notifOpen]);
+
   return (
     <div className="admin-header">
       <div className="header-left">
@@ -72,9 +99,44 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
         <h1>{title}</h1>
       </div>
       <div className="admin-profile">
-        <span className={`notification-badge ${((notificationsCount || notifCount || 0) > 0) ? 'has-unread' : ''}`} title="Voir les nouveaux messages" onClick={() => navigate('/admin/messages')}>
-          {notificationsCount || notifCount || 0}
-        </span>
+        <div className="admin-notifications">
+          <button
+            type="button"
+            className={`notif-btn ${effectiveCount > 0 ? 'has-unread' : ''}`}
+            aria-label="Notifications"
+            aria-haspopup="menu"
+            aria-expanded={notifOpen}
+            onClick={() => setNotifOpen(v => !v)}
+          >
+            <Bell size={18} />
+            {effectiveCount > 0 && <span className="notif-badge">{effectiveCount}</span>}
+          </button>
+          {notifOpen && (
+            <div className="notif-dropdown" role="menu">
+              <div className="notif-dropdown__header">
+                <div className="notif-dropdown__title">Nouveaux messages</div>
+                <button type="button" className="notif-dropdown__link" onClick={() => { setNotifOpen(false); navigate('/admin/messages'); }}>
+                  Tout voir
+                </button>
+              </div>
+              <div className="notif-dropdown__body">
+                {notifLoading && <div className="notif-dropdown__empty">Chargement…</div>}
+                {!notifLoading && notifItems.length === 0 && <div className="notif-dropdown__empty">Aucun nouveau message</div>}
+                {!notifLoading && notifItems.map((m) => (
+                  <button
+                    key={m._id}
+                    type="button"
+                    className="notif-item"
+                    onClick={() => { setNotifOpen(false); navigate('/admin/messages'); }}
+                  >
+                    <div className="notif-item__title">{m.subject || 'Message'}</div>
+                    <div className="notif-item__meta">{m.name || m.email || '—'}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <span className="admin-name">{user?.name || '—'}</span>
         <span className="admin-role">{user?.role === 'admin' ? 'Administrateur' : (user?.role ? 'Membre' : '—')}</span>
       </div>

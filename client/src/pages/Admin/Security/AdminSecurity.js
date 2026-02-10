@@ -3,6 +3,7 @@ import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminSecurity.css';
 import api from '../../../services/api';
 import loadLeaflet from '../../../utils/loadLeaflet';
+import { emitToast } from '../../../utils/toast';
 
 const AdminSecurity = () => {
   const [activeTab, setActiveTab] = useState('alertes');
@@ -170,7 +171,7 @@ const AdminSecurity = () => {
       await api.delete(`/api/security/alerts/${id}`);
       setAlerts(prev => prev.filter(a => a._id !== id));
     } catch (e) {
-      alert("Suppression impossible (droit administrateur requis).");
+      emitToast("Suppression impossible (droit administrateur requis).");
     }
   };
 
@@ -184,7 +185,7 @@ const AdminSecurity = () => {
     } catch (e) {
       // revert on error
       setIncidents(incidents.map(incident => incident._id === id ? { ...incident, status: prev } : incident));
-      alert("Mise à jour du statut impossible.");
+      emitToast("Mise à jour du statut impossible.");
     }
   };
 

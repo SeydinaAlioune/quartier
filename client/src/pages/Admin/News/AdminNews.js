@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminNews.css';
 import api from '../../../services/api';
+import { emitToast } from '../../../utils/toast';
 
 const AdminNews = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,11 +81,11 @@ const AdminNews = () => {
         // On utilise immédiatement le média comme couverture (qu'il soit pending ou pas)
         applyMediaAsCover(created.url);
       } else {
-        alert("Upload terminé, mais le média n'a pas pu être utilisé.");
+        emitToast("Upload terminé, mais le média n'a pas pu être utilisé.");
       }
     } catch (err) {
       const msg = err?.response?.data?.message || "Échec de l'upload.";
-      alert(msg);
+      emitToast(msg);
     } finally {
       e.target.value = '';
     }
@@ -312,7 +313,7 @@ const AdminNews = () => {
       setShowAddModal(false);
       fetchPosts();
     } catch (err) {
-      alert("Impossible de créer l'article. Vérifiez vos droits et réessayez.");
+      emitToast("Impossible de créer l'article. Vérifiez vos droits et réessayez.");
     }
   };
 
@@ -328,7 +329,7 @@ const AdminNews = () => {
       setEditing(null);
       fetchPosts();
     } catch (err) {
-      alert("Échec de la modification. Vérifiez vos droits.");
+      emitToast("Échec de la modification. Vérifiez vos droits.");
     }
   };
 
@@ -337,7 +338,7 @@ const AdminNews = () => {
       await api.put(`/api/posts/comments/${commentId}/moderate`, { status });
       fetchComments();
     } catch (e) {
-      alert('Action impossible. Vérifiez vos droits (admin).');
+      emitToast('Action impossible. Vérifiez vos droits (admin).');
     }
   };
 
@@ -347,7 +348,7 @@ const AdminNews = () => {
       await api.delete(`/api/posts/comments/${commentId}`);
       fetchComments();
     } catch (e) {
-      alert('Suppression impossible.');
+      emitToast('Suppression impossible.');
     }
   };
 
@@ -356,10 +357,10 @@ const AdminNews = () => {
     if (!content || !content.trim()) return;
     try {
       await api.post(`/api/posts/${postId}/comments`, { content });
-      alert('Réponse publiée');
+      emitToast('Réponse publiée');
       if (showComments) fetchComments();
     } catch (e) {
-      alert("Impossible de répondre (connexion requise).");
+      emitToast("Impossible de répondre (connexion requise).");
     }
   };
 
@@ -369,7 +370,7 @@ const AdminNews = () => {
       await api.put(`/api/media/${mediaId}/moderate`, { status });
       await fetchMedia();
     } catch (e) {
-      alert('Action impossible. Rôle admin/moderator requis.');
+      emitToast('Action impossible. Rôle admin/moderator requis.');
     }
   };
 
@@ -380,7 +381,7 @@ const AdminNews = () => {
       await fetchMedia();
     } catch (e) {
       const msg = e?.response?.data?.message || 'Suppression impossible.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -390,7 +391,7 @@ const AdminNews = () => {
       await api.put(`/api/posts/${p._id}/status`, { status: next });
       fetchPosts();
     } catch (err) {
-      alert("Impossible de changer le statut. Vérifiez vos droits.");
+      emitToast("Impossible de changer le statut. Vérifiez vos droits.");
     }
   };
 
@@ -567,7 +568,7 @@ const AdminNews = () => {
         setAnnInactiveCount(Array.isArray(r2.data)?r2.data.length:0);
       } catch {}
     } catch (err) {
-      alert("Enregistrement impossible. Vérifiez vos droits.");
+      emitToast("Enregistrement impossible. Vérifiez vos droits.");
     }
   };
 
@@ -585,7 +586,7 @@ const AdminNews = () => {
         setAnnInactiveCount(Array.isArray(r2.data)?r2.data.length:0);
       } catch {}
     } catch {
-      alert("Changement de statut impossible");
+      emitToast("Changement de statut impossible");
     }
   };
 
@@ -596,7 +597,7 @@ const AdminNews = () => {
       await fetchAnnouncements();
       try { const r = await api.get('/api/announcements'); setAnnActiveCount(Array.isArray(r.data)?r.data.length:0);} catch {}
     } catch {
-      alert('Suppression impossible');
+      emitToast('Suppression impossible');
     }
   };
 
@@ -1047,7 +1048,7 @@ const AdminNews = () => {
                                 // Fallback: suppression par auteur
                                 await api.delete(`/api/posts/${p._id}`);
                               } catch (e2) {
-                                alert('Suppression impossible. Vérifiez vos droits.');
+                                emitToast('Suppression impossible. Vérifiez vos droits.');
                                 return;
                               }
                             }
