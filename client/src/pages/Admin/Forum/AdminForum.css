@@ -1,15 +1,3 @@
-.admin-layout {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f6fa;
-}
-
-.admin-content {
-  flex: 1;
-  margin-left: 280px;
-  min-width: 0;
-}
-
 .forum-page {
   padding: 2rem;
   min-height: 100vh;
@@ -387,21 +375,7 @@ tr:hover td {
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-  .admin-content {
-    margin-left: 0;
-  }
-  
-  .stats-overview {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
-  .admin-content {
-    margin-left: 0;
-  }
-  
   .forum-header {
     padding: 1.5rem;
   }
