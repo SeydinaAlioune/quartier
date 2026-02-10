@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminNews.css';
 import api from '../../../services/api';
 
 const AdminNews = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -793,18 +791,11 @@ const AdminNews = () => {
   );
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={isCollapsed ? 'admin-content sidebar-collapsed' : 'admin-content'}>
-        <AdminHeader 
-          title="Gestion des Actualités" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-        <div className="news-page">
+    <AdminLayout title="Gestion des Actualités">
+      <div className="news-page">
           <div className="news-header">
             <div className="header-title">
-              <h1>Gestion des Actualités</h1>
+              <h1>Articles</h1>
               <p className="header-subtitle">Gérez vos articles, médias et commentaires</p>
             </div>
             <div className="header-actions">
@@ -1080,9 +1071,8 @@ const AdminNews = () => {
               <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>{'>'}</button>
             </div>
           </div>
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 
 };
