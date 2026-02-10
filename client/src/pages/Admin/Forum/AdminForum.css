@@ -24,6 +24,12 @@
   font-weight: 600;
 }
 
+.forum-header h1,
+.forum-header h2,
+.forum-header p {
+  text-shadow: none;
+}
+
 .header-subtitle {
   color: #718096;
   font-size: 0.95rem;
@@ -852,6 +858,18 @@ tr:hover td {
 @media (max-width: 768px) {
   .forum-header {
     padding: 1rem;
+    text-align: left;
+  }
+
+  .header-title h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .header-subtitle {
+    font-size: 0.9rem;
+    margin-top: 0.35rem;
   }
   
   .header-actions {
@@ -892,11 +910,19 @@ tr:hover td {
   .forum-tabs {
     overflow-x: auto;
     padding: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .forum-tabs::-webkit-scrollbar {
+    display: none;
   }
   
   .tab-btn {
     padding: 0.75rem 1rem;
     white-space: nowrap;
+    flex: 0 0 auto;
+    font-size: 0.9rem;
   }
 
   .section-header {
@@ -1016,6 +1042,37 @@ tr:hover td {
     width: 100%;
     justify-content: flex-end;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+  }
+
+  .moderation-filters--pending {
+    gap: 8px;
+  }
+
+  .report-actions--pending {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .report-actions--pending .action-btn {
+    justify-content: center;
+    width: 100%;
   }
 }
 
