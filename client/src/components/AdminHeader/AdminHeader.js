@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './AdminHeader.css';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Bell, Menu, X } from 'lucide-react';
 
 const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 0 }) => {
   const [user, setUser] = useState(null);
@@ -93,8 +93,13 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
   return (
     <div className="admin-header">
       <div className="header-left">
-        <button className="toggle-sidebar-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed ? '☰' : '✕'}
+        <button
+          type="button"
+          className="toggle-sidebar-btn"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
+        >
+          {isCollapsed ? <Menu size={20} aria-hidden="true" /> : <X size={20} aria-hidden="true" />}
         </button>
         <h1>{title}</h1>
       </div>
