@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminSecurity.css';
 import api from '../../../services/api';
 import loadLeaflet from '../../../utils/loadLeaflet';
 
 const AdminSecurity = () => {
   const [activeTab, setActiveTab] = useState('alertes');
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [alerts, setAlerts] = useState([]);
 
@@ -237,24 +236,10 @@ const AdminSecurity = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+    <AdminLayout title="Gestion de la Sécurité">
       <div className="admin-security">
-        <div className="dashboard-header">
-          <div className="header-left">
-            <button className="toggle-sidebar-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
-              {isCollapsed ? '☰' : '✕'}
-            </button>
-            <h1>Gestion de la Sécurité</h1>
-          </div>
-          <div className="header-actions">
-            <button className="config-btn" onClick={openConfig}>Configurer</button>
-          </div>
-          <div className="admin-profile">
-            <span className="notification-badge">2</span>
-            <span className="admin-name">Mohammed Diallo</span>
-            <span className="admin-role">Administrateur</span>
-          </div>
+        <div className="security-topbar">
+          <button className="config-btn" onClick={openConfig}>Configurer</button>
         </div>
 
         <div className="security-tabs">
@@ -490,7 +475,7 @@ const AdminSecurity = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

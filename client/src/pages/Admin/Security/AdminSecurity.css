@@ -1,74 +1,11 @@
-.admin-page {
-  display: flex;
-  min-height: 100vh;
-  background-color: #ffffff;
-}
-
 .admin-security {
-  flex: 1;
   background-color: #ffffff;
-  margin-left: 280px;
-  transition: margin-left 0.3s ease;
 }
 
-.dashboard-header {
+.security-topbar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: white;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.toggle-sidebar-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #495057;
-  transition: color 0.2s ease;
-}
-
-.toggle-sidebar-btn:hover {
-  color: #00a651;
-}
-
-.admin-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.notification-badge {
-  background-color: #00a651;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-}
-
-.admin-name {
-  font-weight: 500;
-  color: #2d3748;
-}
-
-.admin-role {
-  color: #718096;
-  font-size: 0.9rem;
-}
-
-.admin-page .admin-sidebar.collapsed + .admin-security {
-  margin-left: 0; /* sidebar collapses fully */
+  justify-content: flex-end;
+  margin-bottom: 1rem;
 }
 
 .alerts-section {
@@ -336,7 +273,6 @@
 @media (max-width: 768px) {
   .admin-security {
     padding: 1rem;
-    margin-left: 0; /* overlay mode on mobile */
   }
 
   .alerts-list, .incidents-list {
