@@ -271,18 +271,24 @@
   }
 
   .notif-dropdown {
+    position: fixed;
     left: 8px;
     right: 8px;
+    top: 64px;
     width: auto;
     max-width: none;
+    max-height: calc(100vh - 80px);
   }
 }
 
 @media (max-width: 1024px) {
   .notif-dropdown {
+    position: fixed;
     left: 8px;
     right: 8px;
+    top: 72px;
     width: auto;
     max-width: none;
+    max-height: calc(100vh - 88px);
   }
 }
