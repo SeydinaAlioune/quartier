@@ -843,24 +843,24 @@ const AdminNews = () => {
 
   const MediaViewer = () => (
     !viewerMedia ? null : (
-      <div className="modal-overlay" style={{ zIndex: 1200, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewerMedia(null)}>
-        <div className="modal" style={{ width: '900px', maxWidth: '95vw', background: '#000', borderRadius: '12px', padding: 0, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px', background: '#111' }}>
-            <button onClick={() => setViewerMedia(null)} className="btn-secondary" style={{ background:'#fff', border:'none', padding:'6px 10px', borderRadius: '6px', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'0.35rem' }}>
+      <div className="modal-overlay news-modal-overlay news-modal-overlay--viewer" onClick={() => setViewerMedia(null)}>
+        <div className="modal news-modal news-modal--viewer" onClick={(e) => e.stopPropagation()}>
+          <div className="news-modal__topbar">
+            <button type="button" onClick={() => setViewerMedia(null)} className="btn-secondary news-modal__close">
               <X size={16} aria-hidden="true" />
               Fermer
             </button>
           </div>
-          <div style={{ maxHeight: '80vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div className="news-modal__body">
             {viewerMedia.type === 'image' ? (
-              <img src={`${API_BASE}${viewerMedia.url}`} alt={viewerMedia.title || viewerMedia.name || 'media'} style={{ maxWidth: '100%', maxHeight: '78vh', objectFit: 'contain' }} />
+              <img className="news-modal__image" src={`${API_BASE}${viewerMedia.url}`} alt={viewerMedia.title || viewerMedia.name || 'media'} />
             ) : (
-              <video controls preload="metadata" style={{ width:'100%', height:'auto', maxHeight:'78vh' }} crossOrigin="anonymous">
+              <video className="news-modal__video" controls preload="metadata" crossOrigin="anonymous">
                 <source src={`${API_BASE}${viewerMedia.url}`} type={inferMime(viewerMedia.url)} />
               </video>
             )}
           </div>
-          <div style={{ color:'#fff', padding:'8px 12px', background:'#111' }}>{viewerMedia.title || viewerMedia.name || ''}</div>
+          <div className="news-modal__footer">{viewerMedia.title || viewerMedia.name || ''}</div>
         </div>
       </div>
     )
@@ -869,20 +869,20 @@ const AdminNews = () => {
   // Media Picker modal (au-dessus des autres modales) pour choisir une couverture
   const MediaPicker = () => (
     !showMediaPicker ? null : (
-      <div className="modal-overlay" style={{ zIndex: 1100, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="modal" style={{ width: '900px', maxWidth: '95vw', background: '#fff', borderRadius: '12px', padding: '16px' }}>
+      <div className="modal-overlay news-modal-overlay news-modal-overlay--picker" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>
+        <div className="modal news-modal news-modal--picker" onClick={(e) => e.stopPropagation()}>
           <h3>Sélectionner une image de couverture</h3>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <button className="upload-btn" onClick={() => pickerFileRef.current && pickerFileRef.current.click()}>Téléverser depuis l'ordinateur</button>
+          <div className="news-modal__actions">
+            <button className="upload-btn" type="button" onClick={() => pickerFileRef.current && pickerFileRef.current.click()}>Téléverser depuis l'ordinateur</button>
             <input type="file" ref={pickerFileRef} style={{ display: 'none' }} accept="image/*" onChange={handlePickerFileSelected} />
-            <button className="btn-secondary" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>Fermer</button>
+            <button className="btn-secondary" type="button" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>Fermer</button>
           </div>
-          <div className="media-grid" style={{ maxHeight: '60vh', overflow: 'auto' }}>
+          <div className="media-grid news-modal__grid">
             {mediaLoading && <div>Chargement des médias...</div>}
             {!mediaLoading && mediaError && <div className="media-error">{mediaError}</div>}
             {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').length === 0 && <div>Aucune image</div>}
             {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').map((media) => (
-              <div key={media._id} className="media-item" style={{ cursor: 'pointer' }} onClick={() => applyMediaAsCover(media.url)}>
+              <div key={media._id} className="media-item news-modal__pick-item" onClick={() => applyMediaAsCover(media.url)}>
                 <div className="media-preview">
                   <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
                 </div>

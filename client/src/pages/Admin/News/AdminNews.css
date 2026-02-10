@@ -150,6 +150,96 @@
   white-space: pre-wrap;
 }
 
+.news-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.news-modal-overlay--viewer {
+  z-index: 1200;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.news-modal-overlay--picker {
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.news-modal {
+  width: 900px;
+  max-width: 95vw;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.news-modal--viewer {
+  background: #000;
+  padding: 0;
+}
+
+.news-modal--picker {
+  background: #fff;
+  padding: 16px;
+}
+
+.news-modal__topbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px;
+  background: #111;
+}
+
+.news-modal__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.news-modal__body {
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.news-modal__image {
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+}
+
+.news-modal__video {
+  width: 100%;
+  height: auto;
+  max-height: 78vh;
+}
+
+.news-modal__footer {
+  color: #fff;
+  padding: 8px 12px;
+  background: #111;
+}
+
+.news-modal__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.news-modal__grid {
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.news-modal__pick-item {
+  cursor: pointer;
+}
+
 .media-btn, .comments-btn {
   background-color: #4a5568;
   color: white;
@@ -1037,7 +1127,9 @@
 
   .media-actions {
     width: 100%;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
     align-items: stretch;
   }
 
@@ -1045,6 +1137,39 @@
   .organize-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.65rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .media-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .media-header h3 {
+    margin: 0;
+  }
+
+  .stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stat-item {
+    padding: 0.75rem;
+  }
+
+  .stat-item:hover {
+    transform: none;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
   }
 
   .articles-table--desktop,
