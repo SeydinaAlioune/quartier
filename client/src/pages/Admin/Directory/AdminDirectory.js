@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminDirectory.css';
 import api from '../../../services/api';
+import { emitToast } from '../../../utils/toast';
 
 const AdminDirectory = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -97,9 +98,9 @@ const AdminDirectory = () => {
       }
       const refresh = await api.get('/api/useful-contacts');
       setUCats(Array.isArray(refresh?.data?.categories) ? refresh.data.categories : []);
-      alert('Contacts utiles pré-remplis.');
+      emitToast('Contacts utiles pré-remplis.');
     } catch (e) {
-      alert('Pré-remplissage impossible.');
+      emitToast('Pré-remplissage impossible.');
     } finally {
       setUcLoading(false);
     }
@@ -193,7 +194,7 @@ const AdminDirectory = () => {
       fetchPendingCount();
     } catch (err) {
       const msg = err?.response?.data?.message || "Création impossible. Vérifiez vos droits (connexion admin requise).";
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -205,7 +206,7 @@ const AdminDirectory = () => {
       fetchPendingCount();
     } catch (err) {
       const msg = err?.response?.data?.message || "Suppression impossible. Vérifiez vos droits.";
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -218,7 +219,7 @@ const AdminDirectory = () => {
       await fetchBusinesses('active');
     } catch (err) {
       const msg = err?.response?.data?.message || "Action de modération impossible. Vérifiez vos droits (admin/modérateur).";
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -266,10 +267,10 @@ const AdminDirectory = () => {
       await fetchBusinesses('active');
       await fetchPendingCount();
       if (activeTab === 'validation') await fetchPendingBusinesses();
-      alert('Entreprise mise à jour');
+      emitToast('Entreprise mise à jour');
     } catch (err) {
       const msg = err?.response?.data?.message || 'Mise à jour impossible. Vérifiez vos droits.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -302,7 +303,7 @@ const AdminDirectory = () => {
                         const r = await api.get('/api/useful-contacts');
                         setUCats(Array.isArray(r?.data?.categories) ? r.data.categories : []);
                       } catch {
-                        alert('Création de catégorie impossible');
+                        emitToast('Création de catégorie impossible');
                       }
                     }}>Créer</button>
                   </div>
@@ -321,13 +322,13 @@ const AdminDirectory = () => {
                           const title = prompt('Nouveau titre', cat.title) || cat.title;
                           try { await api.put(`/api/useful-contacts/categories/${cat._id}`, { title });
                             const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                          } catch { alert('Mise à jour impossible'); }
+                          } catch { emitToast('Mise à jour impossible'); }
                         }}>✏️</button>
                         <button className="action-btn delete" title="Supprimer" onClick={async () => {
                           if (!window.confirm('Supprimer cette catégorie ?')) return;
                           try { await api.delete(`/api/useful-contacts/categories/${cat._id}`);
                             const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                          } catch { alert('Suppression impossible'); }
+                          } catch { emitToast('Suppression impossible'); }
                         }}>🗑️</button>
                       </div>
                     </div>
@@ -345,7 +346,7 @@ const AdminDirectory = () => {
                             await api.post(`/api/useful-contacts/categories/${cat._id}/contacts`, { name: newContact.name, number: newContact.number, note: newContact.note });
                             setNewContact({ name: '', number: '', note: '', catId: '' });
                             const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                          } catch { alert('Ajout impossible'); }
+                          } catch { emitToast('Ajout impossible'); }
                         }}>Ajouter</button>
                       </div>
 
@@ -361,7 +362,7 @@ const AdminDirectory = () => {
                                   try { await api.put(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`, { name: editingContact.name, number: editingContact.number, note: editingContact.note });
                                     setEditingContact(null);
                                     const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                                  } catch { alert('Mise à jour impossible'); }
+                                  } catch { emitToast('Mise à jour impossible'); }
                                 }}>Enregistrer</button>
                                 <button className="btn-secondary" onClick={() => setEditingContact(null)}>Annuler</button>
                               </>
@@ -376,7 +377,7 @@ const AdminDirectory = () => {
                                     if (!window.confirm('Supprimer ce contact ?')) return;
                                     try { await api.delete(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`);
                                       const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                                    } catch { alert('Suppression impossible'); }
+                                    } catch { emitToast('Suppression impossible'); }
                                   }}>🗑️</button>
                                 </div>
                               </>
