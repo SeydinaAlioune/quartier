@@ -16,6 +16,7 @@ import {
   Pin,
   Trash2,
   Wrench,
+  X,
   XCircle,
 } from 'lucide-react';
 
@@ -418,7 +419,12 @@ const AdminForum = () => {
     return (
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={e => e.stopPropagation()}>
-          <h2>{category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h2>
+          <div className="modal-header">
+            <h2>{category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h2>
+            <button type="button" className="modal-close" onClick={onClose} aria-label="Fermer">
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
           <form className="category-form" onSubmit={(e) => { e.preventDefault(); onSave && onSave({ id: category?.id, name, description }); }}>
             <div className="form-group">
               <label className="form-label">Nom de la catégorie</label>
@@ -562,7 +568,7 @@ const AdminForum = () => {
                   Ajouter une catégorie
                 </button>
               </div>
-              <div className="categories-table">
+              <div className="categories-table table-wrapper">
                 <table>
                   <thead>
                     <tr>
@@ -594,6 +600,43 @@ const AdminForum = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="mobile-cards" aria-label="Catégories">
+                {categories.map((category) => (
+                  <div key={category.id} className="mobile-card">
+                    <div className="mobile-card__top">
+                      <div className="mobile-card__title">{category.name}</div>
+                      <div className="mobile-card__actions">
+                        <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEditCategory(category)} aria-label="Modifier">
+                          <Pencil size={16} aria-hidden="true" />
+                        </button>
+                        <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteCategory(category.id)} aria-label="Supprimer">
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {category.description && (
+                      <div className="mobile-card__desc">{category.description}</div>
+                    )}
+
+                    <div className="mobile-card__meta">
+                      <div className="mobile-meta">
+                        <span className="mobile-meta__label">Sujets</span>
+                        <span className="mobile-meta__value">{category.topics}</span>
+                      </div>
+                      <div className="mobile-meta">
+                        <span className="mobile-meta__label">Messages</span>
+                        <span className="mobile-meta__value">{category.posts}</span>
+                      </div>
+                      <div className="mobile-meta">
+                        <span className="mobile-meta__label">Dernière activité</span>
+                        <span className="mobile-meta__value">{category.lastActivity ? new Date(category.lastActivity).toLocaleDateString('fr-FR') : '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -635,7 +678,7 @@ const AdminForum = () => {
                   <button className="add-btn" onClick={handleOpenNewTopic}>Nouveau sujet</button>
                 </div>
               </div>
-              <div className="topics-table">
+              <div className="topics-table table-wrapper">
                 <table>
                   <thead>
                     <tr>
@@ -691,6 +734,61 @@ const AdminForum = () => {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mobile-cards" aria-label="Sujets">
+                {filteredTopics.map((topic) => {
+                  const st = topicStatusMeta(topic.status);
+                  return (
+                    <div key={topic.id} className="mobile-card">
+                      <div className="mobile-card__top">
+                        <div className="mobile-card__title">{topic.title}</div>
+                        <div className="mobile-card__actions">
+                          <button className="action-btn view" title="Voir" onClick={() => handleOpenTopicDetail(topic)} aria-label="Voir">
+                            <Eye size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn pin" title="Épingler" onClick={() => handleTogglePin(topic)} aria-label="Épingler">
+                            <Pin size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn close" title="Fermer" onClick={() => handleToggleClose(topic)} aria-label="Fermer">
+                            <Lock size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteTopic(topic)} aria-label="Supprimer">
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mobile-card__chips">
+                        <span className="category-badge">{topic.category}</span>
+                        <span className={`status-badge status-${st.key}`}>{st.label}</span>
+                      </div>
+
+                      <div className="mobile-card__meta">
+                        <div className="mobile-meta">
+                          <span className="mobile-meta__label">Auteur</span>
+                          <span className="mobile-meta__value">{topic.author}</span>
+                        </div>
+                        <div className="mobile-meta">
+                          <span className="mobile-meta__label">Réponses</span>
+                          <span className="mobile-meta__value">{topic.replies}</span>
+                        </div>
+                        <div className="mobile-meta">
+                          <span className="mobile-meta__label">Vues</span>
+                          <span className="mobile-meta__value">{topic.views}</span>
+                        </div>
+                        <div className="mobile-meta">
+                          <span className="mobile-meta__label">Créé le</span>
+                          <span className="mobile-meta__value">{topic.created ? new Date(topic.created).toLocaleDateString('fr-FR') : '—'}</span>
+                        </div>
+                        <div className="mobile-meta">
+                          <span className="mobile-meta__label">Dernier message</span>
+                          <span className="mobile-meta__value">{topic.lastReply ? new Date(topic.lastReply).toLocaleDateString('fr-FR') : '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -707,17 +805,17 @@ const AdminForum = () => {
                 </div>
               </div>
               {/* Pending ads review */}
-              <div className="reports-list" style={{ marginBottom: '16px' }}>
-                <div className="report-card" style={{ background: '#f8fafc' }}>
-                  <h3 style={{ marginTop: 0 }}>Annonces en attente</h3>
-                  <div className="moderation-filters" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+              <div className="reports-list reports-list--pending">
+                <div className="report-card report-card--pending">
+                  <h3 className="report-card__title">Annonces en attente</h3>
+                  <div className="moderation-filters moderation-filters--pending">
                     <select className="filter-select" value={pendingFilterType} onChange={(e) => setPendingFilterType(e.target.value)}>
                       <option value="all">Tous les types</option>
                       <option value="vends">Vends</option>
                       <option value="recherche">Recherche</option>
                       <option value="services">Services</option>
                     </select>
-                    <input className="search-input" placeholder="Rechercher..." value={pendingSearch} onChange={(e) => setPendingSearch(e.target.value)} style={{ maxWidth: 240 }} />
+                    <input className="search-input" placeholder="Rechercher..." value={pendingSearch} onChange={(e) => setPendingSearch(e.target.value)} />
                     <select className="filter-select" value={pendingSort} onChange={(e) => setPendingSort(e.target.value)}>
                       <option value="newest">Plus récentes</option>
                       <option value="oldest">Plus anciennes</option>
@@ -726,14 +824,14 @@ const AdminForum = () => {
                   {pendingAdsLoading && <div>Chargement...</div>}
                   {!pendingAdsLoading && pendingAds.length === 0 && <div>Aucune annonce en attente.</div>}
                   {!pendingAdsLoading && getPendingAdsView().map(ad => (
-                    <div key={ad.id} style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', marginTop: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <div>
-                          <div><strong>{(ad.type || '').toUpperCase()}</strong> · {ad.title}</div>
-                          <div style={{ color: '#4a5568' }}>{[ad.description, ad.price].filter(Boolean).join(' — ')}</div>
-                          <div style={{ color: '#718096', fontSize: '0.9rem' }}>Par {ad.author || '—'} • {ad.createdAt ? new Date(ad.createdAt).toLocaleString('fr-FR') : ''}</div>
+                    <div key={ad.id} className="pending-ad">
+                      <div className="pending-ad__row">
+                        <div className="pending-ad__main">
+                          <div className="pending-ad__title"><strong>{(ad.type || '').toUpperCase()}</strong> · {ad.title}</div>
+                          <div className="pending-ad__desc">{[ad.description, ad.price].filter(Boolean).join(' — ')}</div>
+                          <div className="pending-ad__meta">Par {ad.author || '—'} • {ad.createdAt ? new Date(ad.createdAt).toLocaleString('fr-FR') : ''}</div>
                         </div>
-                        <div className="report-actions" style={{ display: 'flex', gap: '8px' }}>
+                        <div className="report-actions report-actions--pending">
                           <button className="action-btn approve" title="Approuver" onClick={() => handleApproveAd(ad)}>
                             <CheckCircle2 size={16} aria-hidden="true" />
                             Approuver
@@ -866,7 +964,12 @@ const AdminForum = () => {
       {showTopicModal && (
         <div className="modal-overlay" onClick={() => setShowTopicModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Nouveau sujet</h2>
+            <div className="modal-header">
+              <h2>Nouveau sujet</h2>
+              <button type="button" className="modal-close" onClick={() => setShowTopicModal(false)} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
             <form onSubmit={handleSubmitNewTopic}>
               <div className="form-group">
                 <label className="form-label">Titre</label>
@@ -893,7 +996,12 @@ const AdminForum = () => {
       {preview.open && (
         <div className="modal-overlay" onClick={() => setPreview({ open: false, loading: false, error: '', data: null, report: null })}>
           <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-            <h2>Contenu signalé</h2>
+            <div className="modal-header">
+              <h2>Contenu signalé</h2>
+              <button type="button" className="modal-close" onClick={() => setPreview({ open: false, loading: false, error: '', data: null, report: null })} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
             {preview.loading && <div>Chargement...</div>}
             {!preview.loading && preview.error && <div className="forum-error">{preview.error}</div>}
             {!preview.loading && !preview.error && (
@@ -936,7 +1044,12 @@ const AdminForum = () => {
       {showTopicDetail && (
         <div className="modal-overlay" onClick={() => setShowTopicDetail(false)}>
           <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-            <h2>{topicDetail.topic?.title || 'Sujet'}</h2>
+            <div className="modal-header">
+              <h2>{topicDetail.topic?.title || 'Sujet'}</h2>
+              <button type="button" className="modal-close" onClick={() => setShowTopicDetail(false)} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
             {topicDetail.loading && <div>Chargement des messages...</div>}
             {!topicDetail.loading && topicDetail.error && <div className="forum-error">{topicDetail.error}</div>}
             {!topicDetail.loading && !topicDetail.error && (
