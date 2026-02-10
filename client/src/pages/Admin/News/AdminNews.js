@@ -32,6 +32,7 @@ const AdminNews = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
   const [editing, setEditing] = useState(null); // { id, title, content, status }
+  const [previewPost, setPreviewPost] = useState(null);
   const [totalArticles, setTotalArticles] = useState(0);
   const [publishedTotal, setPublishedTotal] = useState(null);
   const [draftTotal, setDraftTotal] = useState(null);
@@ -800,6 +801,46 @@ const AdminNews = () => {
     return undefined;
   };
 
+  const toAbsoluteMediaUrl = (url = '') => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith('/')) return `${API_BASE}${url}`;
+    return url;
+  };
+
+  const ArticlePreviewModal = () => (
+    !previewPost ? null : (
+      <div className="modal-overlay" onClick={() => setPreviewPost(null)}>
+        <div className="modal" style={{ maxWidth: '900px' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ marginTop: 0 }}>{previewPost.title || '—'}</h3>
+              <div className="article-preview-meta">
+                <span>{previewPost.author?.name || '—'}</span>
+                <span>•</span>
+                <span>{previewPost.createdAt ? new Date(previewPost.createdAt).toLocaleString('fr-FR') : '—'}</span>
+              </div>
+            </div>
+            <button type="button" className="btn-secondary" onClick={() => setPreviewPost(null)}>
+              <X size={16} aria-hidden="true" />
+              Fermer
+            </button>
+          </div>
+
+          {previewPost.coverUrl && (
+            <div className="article-preview-cover">
+              <img src={toAbsoluteMediaUrl(previewPost.coverUrl)} alt={previewPost.title || 'couverture'} />
+            </div>
+          )}
+
+          <div className="article-preview-content">
+            {String(previewPost.content || '').trim() ? previewPost.content : '—'}
+          </div>
+        </div>
+      </div>
+    )
+  );
+
   const MediaViewer = () => (
     !viewerMedia ? null : (
       <div className="modal-overlay" style={{ zIndex: 1200, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewerMedia(null)}>
@@ -998,6 +1039,7 @@ const AdminNews = () => {
           {isAnnouncementsTab && renderAnnouncementsSection()}
           <MediaPicker />
           <MediaViewer />
+          <ArticlePreviewModal />
 
           {editing && (
             <div className="modal-overlay">
@@ -1205,7 +1247,7 @@ const AdminNews = () => {
                           </span>
                         </td>
                         <td className="actions-cell">
-                          <button className="action-btn view" type="button" title="Voir" aria-label="Voir">
+                          <button className="action-btn view" type="button" title="Voir" aria-label="Voir" onClick={() => setPreviewPost(p)}>
                             <Eye size={16} aria-hidden="true" />
                           </button>
                           <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => handleOpenEdit(p)}>
@@ -1277,7 +1319,7 @@ const AdminNews = () => {
                       </div>
                     </div>
                     <div className="news-mobile-card__actions" aria-label="Actions">
-                      <button className="media-action-btn" type="button">
+                      <button className="media-action-btn" type="button" onClick={() => setPreviewPost(p)}>
                         <Eye size={16} aria-hidden="true" />
                         Voir
                       </button>
