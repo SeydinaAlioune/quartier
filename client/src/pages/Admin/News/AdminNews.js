@@ -619,17 +619,21 @@ const AdminNews = () => {
     }
   };
 
-  const AnnouncementsSection = () => (
+  const renderAnnouncementsSection = () => (
     <div className="announcements-admin">
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.75rem'}}>
         <h3>Annonces Importantes</h3>
-        <button className="add-news-btn" onClick={openCreateAnn}><span>+</span><span>Nouvelle annonce</span></button>
+        <button className="add-news-btn" type="button" onClick={openCreateAnn}>
+          <Plus size={18} aria-hidden="true" />
+          <span>Nouvelle annonce</span>
+        </button>
       </div>
       {annLoading && <div>Chargement…</div>}
       {!annLoading && annError && <div className="media-error">{annError}</div>}
       {!annLoading && !annError && annList.length === 0 && <div>Aucune annonce</div>}
       {!annLoading && !annError && annList.length > 0 && (
-        <div className="articles-table">
+        <>
+        <div className="articles-table announcements-table--desktop">
           <table>
             <thead>
               <tr>
@@ -669,6 +673,46 @@ const AdminNews = () => {
             </tbody>
           </table>
         </div>
+        <div className="news-mobile-cards announcements-cards--mobile" role="list" aria-label="Annonces importantes">
+          {annList.map((a) => (
+            <div className="news-mobile-card" key={a.id} role="listitem">
+              <div className="news-mobile-card__top">
+                <div className="news-mobile-card__title">{a.title}</div>
+                <div className="news-mobile-card__meta">
+                  <span className={`status-badge ${a.status}`}>{a.status === 'active' ? 'Active' : 'Inactive'}</span>
+                </div>
+              </div>
+              <div className="news-mobile-card__grid">
+                <div className="news-mobile-card__field">
+                  <div className="news-mobile-card__label">Début</div>
+                  <div className="news-mobile-card__value">{a.startsAt ? new Date(a.startsAt).toLocaleString('fr-FR') : '—'}</div>
+                </div>
+                <div className="news-mobile-card__field">
+                  <div className="news-mobile-card__label">Fin</div>
+                  <div className="news-mobile-card__value">{a.endsAt ? new Date(a.endsAt).toLocaleString('fr-FR') : '—'}</div>
+                </div>
+              </div>
+              <div className="news-mobile-card__actions" aria-label="Actions">
+                <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => openEditAnn(a)}>
+                  <Pencil size={16} aria-hidden="true" />
+                </button>
+                <button
+                  className="action-btn"
+                  type="button"
+                  title={a.status==='active'?'Désactiver':'Activer'}
+                  aria-label={a.status==='active'?'Désactiver':'Activer'}
+                  onClick={() => toggleAnnStatus(a)}
+                >
+                  {a.status==='active' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                </button>
+                <button className="action-btn delete" type="button" title="Supprimer" aria-label="Supprimer" onClick={() => deleteAnn(a)}>
+                  <Trash2 size={16} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        </>
       )}
 
       {annModalOpen && (
@@ -678,33 +722,33 @@ const AdminNews = () => {
             <form onSubmit={saveAnnouncement}>
               <div className="form-row">
                 <label>Titre</label>
-                <input type="text" value={annForm.title} onChange={(e)=>setAnnForm({...annForm, title:e.target.value})} required />
+                <input type="text" value={annForm.title} onChange={(e) => setAnnForm((p) => ({ ...p, title: e.target.value }))} required />
               </div>
               <div className="form-row">
                 <label>Description</label>
-                <textarea rows="4" value={annForm.description} onChange={(e)=>setAnnForm({...annForm, description:e.target.value})} required />
+                <textarea rows="4" value={annForm.description} onChange={(e) => setAnnForm((p) => ({ ...p, description: e.target.value }))} required />
               </div>
               <div className="form-row">
                 <label>Texte du bouton</label>
-                <input type="text" value={annForm.buttonText} onChange={(e)=>setAnnForm({...annForm, buttonText:e.target.value})} />
+                <input type="text" value={annForm.buttonText} onChange={(e) => setAnnForm((p) => ({ ...p, buttonText: e.target.value }))} />
               </div>
               <div className="form-row">
                 <label>Lien (URL)</label>
-                <input type="url" value={annForm.link} onChange={(e)=>setAnnForm({...annForm, link:e.target.value})} placeholder="https://…" />
+                <input type="url" value={annForm.link} onChange={(e) => setAnnForm((p) => ({ ...p, link: e.target.value }))} placeholder="https://…" />
               </div>
               <div className="form-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem'}}>
                 <div>
                   <label>Début (optionnel)</label>
-                  <input type="datetime-local" value={annForm.startsAt} onChange={(e)=>setAnnForm({...annForm, startsAt:e.target.value})} />
+                  <input type="datetime-local" value={annForm.startsAt} onChange={(e) => setAnnForm((p) => ({ ...p, startsAt: e.target.value }))} />
                 </div>
                 <div>
                   <label>Fin (optionnel)</label>
-                  <input type="datetime-local" value={annForm.endsAt} onChange={(e)=>setAnnForm({...annForm, endsAt:e.target.value})} />
+                  <input type="datetime-local" value={annForm.endsAt} onChange={(e) => setAnnForm((p) => ({ ...p, endsAt: e.target.value }))} />
                 </div>
               </div>
               <div className="form-row">
                 <label>Statut</label>
-                <select value={annForm.status} onChange={(e)=>setAnnForm({...annForm, status:e.target.value})}>
+                <select value={annForm.status} onChange={(e) => setAnnForm((p) => ({ ...p, status: e.target.value }))}>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
@@ -896,7 +940,7 @@ const AdminNews = () => {
 
           {showMediaLibrary && renderMediaLibrary()}
           {showComments && <CommentsSection />}
-          {showAnnouncements && <AnnouncementsSection />}
+          {showAnnouncements && renderAnnouncementsSection()}
           <MediaPicker />
           <MediaViewer />
 
@@ -1070,7 +1114,7 @@ const AdminNews = () => {
               </div>
             </div>
 
-            <div className="articles-table">
+            <div className="articles-table articles-table--desktop">
               <table>
                 <thead>
                   <tr>
@@ -1146,6 +1190,79 @@ const AdminNews = () => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div className="news-mobile-cards articles-cards--mobile" role="list" aria-label="Articles">
+              {!loading && posts
+                .filter(p =>
+                  (statusFilter === 'all' || p.status === statusFilter) &&
+                  (searchQuery.trim() === '' || (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || (p.content || '').toLowerCase().includes(searchQuery.toLowerCase()))
+                )
+                .map((p) => (
+                  <div className="news-mobile-card" key={p._id} role="listitem">
+                    <div className="news-mobile-card__top">
+                      <div className="news-mobile-card__title">{p.title}</div>
+                      <div className="news-mobile-card__meta">
+                        <span className={`status-badge ${p.status === 'published' ? 'publié' : 'brouillon'}`}>
+                          {p.status === 'published' ? 'Publié' : 'Brouillon'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="news-mobile-card__grid">
+                      <div className="news-mobile-card__field">
+                        <div className="news-mobile-card__label">Auteur</div>
+                        <div className="news-mobile-card__value">{p.author?.name || '—'}</div>
+                      </div>
+                      <div className="news-mobile-card__field">
+                        <div className="news-mobile-card__label">Création</div>
+                        <div className="news-mobile-card__value">{p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : '—'}</div>
+                      </div>
+                    </div>
+                    <div className="news-mobile-card__actions" aria-label="Actions">
+                      <button className="action-btn view" type="button" title="Voir" aria-label="Voir">
+                        <Eye size={16} aria-hidden="true" />
+                      </button>
+                      <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => handleOpenEdit(p)}>
+                        <Pencil size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        className="action-btn"
+                        type="button"
+                        title={p.status === 'published' ? 'Passer en brouillon' : 'Publier'}
+                        aria-label={p.status === 'published' ? 'Passer en brouillon' : 'Publier'}
+                        onClick={() => toggleStatus(p)}
+                      >
+                        {p.status === 'published' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                      </button>
+                      <button
+                        className="action-btn delete"
+                        title="Supprimer"
+                        aria-label="Supprimer"
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            if (window.confirm('Supprimer cet article ?')) {
+                              await api.delete(`/api/posts/${p._id}`);
+                            }
+                          } catch {
+                            emitToast('Suppression impossible.');
+                          }
+                          fetchPosts();
+                        }}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+              {!loading && posts.length === 0 && (
+                <div className="news-mobile-cards__empty">Aucun article</div>
+              )}
+
+              {loading && (
+                <div className="news-mobile-cards__empty">Chargement...</div>
+              )}
             </div>
 
             <div className="pagination">
