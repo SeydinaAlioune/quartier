@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminForum.css';
 import api from '../../../services/api';
+import { emitToast } from '../../../utils/toast';
 
 const AdminForum = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -143,7 +144,7 @@ const AdminForum = () => {
       } else if (report.targetType === 'ad') {
         await api.delete(`/api/forum/ads/${report.targetId}`);
       } else {
-        alert('Suppression non prise en charge pour ce type.');
+        emitToast('Suppression non prise en charge pour ce type.');
         return;
       }
       try { await api.put(`/api/forum/reports/${report.id}/status`, { status: 'resolved' }); } catch {}
@@ -151,7 +152,7 @@ const AdminForum = () => {
       setPreview({ open: false, loading: false, error: '', data: null, report: null });
       await reloadStats();
     } catch (e) {
-      alert('Suppression impossible.');
+      emitToast('Suppression impossible.');
     }
   };
 
@@ -160,31 +161,31 @@ const AdminForum = () => {
   const handleOpenEditCategory = (category) => { setSelectedCategory(category); setShowCategoryModal(true); };
   const handleSaveCategory = async ({ id, name, description }) => {
     try {
-      if (!name || !name.trim()) { alert('Le nom est requis'); return; }
+      if (!name || !name.trim()) { emitToast('Le nom est requis'); return; }
       if (id) {
         await api.put(`/api/forum/categories/${id}`, { name, description });
-        alert('Catégorie mise à jour');
+        emitToast('Catégorie mise à jour');
       } else {
         await api.post('/api/forum/categories', { name, description });
-        alert('Catégorie créée');
+        emitToast('Catégorie créée');
       }
       setShowCategoryModal(false);
       setSelectedCategory(null);
       await reloadCategories();
       await reloadStats();
     } catch (e) {
-      alert("Action impossible. Vérifiez vos droits (admin) et réessayez.");
+      emitToast("Action impossible. Vérifiez vos droits (admin) et réessayez.");
     }
   };
   const handleDeleteCategory = async (id) => {
     if (!window.confirm('Supprimer cette catégorie ?')) return;
     try {
       await api.delete(`/api/forum/categories/${id}`);
-      alert('Catégorie supprimée');
+      emitToast('Catégorie supprimée');
       await reloadCategories();
       await reloadStats();
     } catch (e) {
-      alert("Suppression impossible. Vérifiez qu'aucun sujet n'existe dans cette catégorie.");
+      emitToast("Suppression impossible. Vérifiez qu'aucun sujet n'existe dans cette catégorie.");
     }
   };
 
@@ -194,9 +195,9 @@ const AdminForum = () => {
       const pinned = topic.status !== 'pinned';
       await api.put(`/api/forum/topics/${topic.id}/pin`, { pinned });
       await reloadRecentTopics();
-      alert(pinned ? 'Sujet épinglé' : 'Sujet désépinglé');
+      emitToast(pinned ? 'Sujet épinglé' : 'Sujet désépinglé');
     } catch (e) {
-      alert("Impossible de changer l'état d'épingle (admin requis).");
+      emitToast("Impossible de changer l'état d'épingle (admin requis).");
     }
   };
   const handleToggleClose = async (topic) => {
@@ -204,9 +205,9 @@ const AdminForum = () => {
       const next = topic.status === 'closed' ? 'active' : 'closed';
       await api.put(`/api/forum/topics/${topic.id}/close`, { status: next });
       await reloadRecentTopics();
-      alert(next === 'closed' ? 'Sujet fermé' : 'Sujet réouvert');
+      emitToast(next === 'closed' ? 'Sujet fermé' : 'Sujet réouvert');
     } catch (e) {
-      alert("Impossible de changer le statut (admin requis).");
+      emitToast("Impossible de changer le statut (admin requis).");
     }
   };
   const handleDeleteTopic = async (topic) => {
@@ -214,9 +215,9 @@ const AdminForum = () => {
     try {
       await api.delete(`/api/forum/topics/${topic.id}`);
       await reloadRecentTopics();
-      alert('Sujet supprimé');
+      emitToast('Sujet supprimé');
     } catch (e) {
-      alert("Suppression du sujet impossible (admin requis).");
+      emitToast("Suppression du sujet impossible (admin requis).");
     }
   };
 
@@ -228,14 +229,14 @@ const AdminForum = () => {
   const handleSubmitNewTopic = async (e) => {
     e.preventDefault();
     try {
-      if (!newTopic.title.trim() || !newTopic.categoryId) { alert('Titre et catégorie requis'); return; }
+      if (!newTopic.title.trim() || !newTopic.categoryId) { emitToast('Titre et catégorie requis'); return; }
       await api.post('/api/forum/topics', { title: newTopic.title.trim(), category: newTopic.categoryId });
       setShowTopicModal(false);
       setNewTopic({ title: '', categoryId: '' });
       await reloadRecentTopics();
-      alert('Sujet créé');
+      emitToast('Sujet créé');
     } catch (e) {
-      alert("Création du sujet impossible (connexion requise).");
+      emitToast("Création du sujet impossible (connexion requise).");
     }
   };
 
@@ -251,15 +252,13 @@ const AdminForum = () => {
   };
 
   const handleAddPost = async () => {
-    if (!topicDetail.topic) return;
-    const content = topicDetail.newPost.trim();
-    if (!content) return;
+    if (!topicDetail.topic || !topicDetail.newPost.trim()) return;
     try {
-      await api.post('/api/forum/posts', { topic: topicDetail.topic.id, content });
+      await api.post(`/api/forum/topics/${topicDetail.topic.id}/posts`, { content: topicDetail.newPost.trim() });
       const r = await api.get(`/api/forum/topics/${topicDetail.topic.id}/posts`);
       setTopicDetail(prev => ({ ...prev, posts: Array.isArray(r?.data) ? r.data : [], newPost: '' }));
     } catch (e) {
-      alert("Impossible d'ajouter le message (connexion requise).");
+      emitToast("Impossible d'ajouter le message (connexion requise).");
     }
   };
 
@@ -270,18 +269,19 @@ const AdminForum = () => {
       const r = await api.get(`/api/forum/topics/${topicDetail.topic.id}/posts`);
       setTopicDetail(prev => ({ ...prev, posts: Array.isArray(r?.data) ? r.data : prev.posts }));
     } catch (e) {
-      alert("Action de modération impossible (admin requis).");
+      emitToast("Action de modération impossible (admin requis).");
     }
   };
 
   const handleDeletePost = async (post) => {
     if (!window.confirm('Supprimer ce message ?')) return;
+    if (!topicDetail.topic) return;
     try {
       await api.delete(`/api/forum/posts/${post.id}`);
       const r = await api.get(`/api/forum/topics/${topicDetail.topic.id}/posts`);
       setTopicDetail(prev => ({ ...prev, posts: Array.isArray(r?.data) ? r.data : prev.posts }));
     } catch (e) {
-      alert("Suppression impossible (admin requis).");
+      emitToast("Suppression impossible (admin requis).");
     }
   };
 
@@ -292,7 +292,7 @@ const AdminForum = () => {
       setPendingAds(prev => prev.filter(x => x.id !== ad.id));
       await reloadStats();
       await reloadPendingAds();
-    } catch (e) { alert('Action impossible.'); }
+    } catch (e) { emitToast('Action impossible.'); }
   };
   const handleRejectAd = async (ad) => {
     try {
@@ -300,7 +300,7 @@ const AdminForum = () => {
       setPendingAds(prev => prev.filter(x => x.id !== ad.id));
       await reloadStats();
       await reloadPendingAds();
-    } catch (e) { alert('Action impossible.'); }
+    } catch (e) { emitToast('Action impossible.'); }
   };
   const handleDeleteAd = async (ad) => {
     if (!window.confirm('Supprimer définitivement cette annonce ?')) return;
@@ -309,7 +309,7 @@ const AdminForum = () => {
       setPendingAds(prev => prev.filter(x => x.id !== ad.id));
       await reloadStats();
       await reloadPendingAds();
-    } catch (e) { alert('Suppression impossible.'); }
+    } catch (e) { emitToast('Suppression impossible.'); }
   };
 
   // Nouveau composant pour les statistiques détaillées
@@ -727,17 +727,17 @@ const AdminForum = () => {
                               <button className="action-btn approve" title="Approuver l'annonce" onClick={async () => {
                                 try {
                                   await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'approved' });
-                                  alert('Annonce approuvée');
+                                  emitToast('Annonce approuvée');
                                   // mettre à jour l'état affiché
                                   setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'approved' } : r));
-                                } catch (e) { alert('Action impossible.'); }
+                                } catch (e) { emitToast('Action impossible.'); }
                               }}>✅ Approuver</button>
                               <button className="action-btn reject" title="Rejeter l'annonce" onClick={async () => {
                                 try {
                                   await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'rejected' });
-                                  alert('Annonce rejetée');
+                                  emitToast('Annonce rejetée');
                                   setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'rejected' } : r));
-                                } catch (e) { alert('Action impossible.'); }
+                                } catch (e) { emitToast('Action impossible.'); }
                               }}>⛔ Rejeter</button>
                             </>
                           )}
@@ -748,14 +748,14 @@ const AdminForum = () => {
                           try { await api.put(`/api/forum/reports/${report.id}/status`, { status: 'resolved' });
                             setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, status: 'resolved' } : r));
                             await reloadStats();
-                          } catch (e) { alert('Action impossible.'); }
+                          } catch (e) { emitToast('Action impossible.'); }
                         }}>Marquer traité</button>
                       ) : (
                         <button className="action-btn reject" onClick={async () => {
                           try { await api.put(`/api/forum/reports/${report.id}/status`, { status: 'pending' });
                             setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, status: 'pending' } : r));
                             await reloadStats();
-                          } catch (e) { alert('Action impossible.'); }
+                          } catch (e) { emitToast('Action impossible.'); }
                         }}>Repasser en attente</button>
                       )}
                     </div>
