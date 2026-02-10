@@ -811,10 +811,10 @@ const AdminNews = () => {
   const ArticlePreviewModal = () => (
     !previewPost ? null : (
       <div className="modal-overlay" onClick={() => setPreviewPost(null)}>
-        <div className="modal" style={{ maxWidth: '900px' }} onClick={(e) => e.stopPropagation()}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-            <div style={{ minWidth: 0 }}>
-              <h3 style={{ marginTop: 0 }}>{previewPost.title || '—'}</h3>
+        <div className="modal article-preview-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="article-preview-header">
+            <div className="article-preview-header__text">
+              <h3 className="article-preview-header__title">{previewPost.title || '—'}</h3>
               <div className="article-preview-meta">
                 <span>{previewPost.author?.name || '—'}</span>
                 <span>•</span>

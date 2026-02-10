@@ -150,6 +150,25 @@
   white-space: pre-wrap;
 }
 
+.news-page .article-preview-modal {
+  max-width: 900px;
+}
+
+.news-page .article-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.news-page .article-preview-header__text {
+  min-width: 0;
+}
+
+.news-page .article-preview-header__title {
+  margin-top: 0;
+}
+
 .news-modal-overlay {
   position: fixed;
   inset: 0;
