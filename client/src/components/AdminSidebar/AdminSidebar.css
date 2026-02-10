@@ -13,13 +13,13 @@
 }
 
 .admin-sidebar.collapsed {
-  width: 0;
-  overflow: hidden;
-  pointer-events: none;
+  width: 72px;
 }
 
 .admin-sidebar.collapsed .sidebar-header h2 {
-  display: none;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
 }
 
 .admin-sidebar.collapsed .nav-text {
@@ -37,7 +37,9 @@
 }
 
 .close-sidebar-btn {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-left: auto;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.2);
@@ -107,6 +109,22 @@
   padding: 1rem 0;
 }
 
+.nav-group {
+  margin: 0.75rem 0;
+}
+
+.nav-group__label {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.65);
+  padding: 0.25rem 1.5rem;
+}
+
+.admin-sidebar.collapsed .nav-group__label {
+  display: none;
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -117,6 +135,12 @@
   margin: 0.25rem 1rem;
   border-radius: 8px;
   position: relative;
+}
+
+.admin-sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0.75rem;
+  margin: 0.25rem 0.5rem;
 }
 
 .nav-item:hover {
@@ -152,7 +176,6 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 0.5rem;
-  font-size: 1rem;
 }
 
 .nav-text {
@@ -162,33 +185,9 @@
   transition: opacity 0.3s ease;
 }
 
-.collapsed .nav-text {
-  opacity: 0;
-  width: 0;
-}
 
-.collapsed .nav-icon {
+.admin-sidebar.collapsed .nav-icon {
   margin-right: 0;
-}
-
-.collapsed .sidebar-header h2 {
-  opacity: 0;
-  width: 0;
-}
-
-.admin-content {
-  margin-left: 280px;
-  flex: 1;
-  transition: margin-left 0.3s ease;
-}
-
-.admin-content.sidebar-collapsed {
-  margin-left: 0;
-}
-
-/* Ajuster le contenu principal quand la sidebar est présente */
-.admin-layout {
-  display: flex;
 }
 
 @media (max-width: 768px) {
@@ -196,15 +195,10 @@
     width: 200px;
   }
 
-  /* On mobile, the sidebar overlays the content; do not shift layout */
-  .admin-content {
-    margin-left: 0;
-  }
-
-  .close-sidebar-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .admin-sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+    pointer-events: none;
   }
 
   .sidebar-backdrop {

@@ -16,7 +16,6 @@ const Dashboard = () => {
   const [usersData, setUsersData] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState('');
-  const [currentUser, setCurrentUser] = useState(null);
   const [dashStats, setDashStats] = useState({
     utilisateurs: { total: 0, nouveaux: '—' },
     actualites: { total: 0, enAttente: '—' },
@@ -32,13 +31,11 @@ const Dashboard = () => {
       if (!token) {
         // Pas de token => ne pas afficher d'utilisateur et nettoyer l'ancien cache
         localStorage.removeItem('user');
-        setCurrentUser(null);
         return;
       }
       try {
         const res = await api.get('/api/auth/profile');
         if (res?.data) {
-          setCurrentUser(res.data);
           // rafraîchir le cache local pour l'entête
           localStorage.setItem('user', JSON.stringify({
             id: res.data._id || res.data.id,
@@ -49,12 +46,10 @@ const Dashboard = () => {
         } else {
           // réponse inattendue => nettoyer
           localStorage.removeItem('user');
-          setCurrentUser(null);
         }
       } catch (e) {
         // échec d'appel API => nettoyer pour éviter les faux noms
         localStorage.removeItem('user');
-        setCurrentUser(null);
       }
     };
     const hydrateStats = async () => {

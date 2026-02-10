@@ -10,7 +10,7 @@
 }
 
 .admin-shell__content--collapsed {
-  margin-left: 0;
+  margin-left: 72px;
 }
 
 .admin-shell__body {
@@ -19,6 +19,10 @@
 
 @media (max-width: 768px) {
   .admin-shell__content {
+    margin-left: 0;
+  }
+
+  .admin-shell__content--collapsed {
     margin-left: 0;
   }
 
