@@ -50,6 +50,8 @@ const AdminForum = () => {
   const [topicDetail, setTopicDetail] = useState({ topic: null, posts: [], loading: false, error: '', newPost: '' });
   const [openTopicMenuId, setOpenTopicMenuId] = useState(null);
   const topicMenuRef = useRef(null);
+  const [openModerationMenuId, setOpenModerationMenuId] = useState(null);
+  const moderationMenuRef = useRef(null);
 
   useEffect(() => {
     if (!openTopicMenuId) return;
@@ -67,6 +69,23 @@ const AdminForum = () => {
       document.removeEventListener('keydown', onKey);
     };
   }, [openTopicMenuId]);
+
+  useEffect(() => {
+    if (!openModerationMenuId) return;
+    const onDown = (e) => {
+      if (!moderationMenuRef.current) return;
+      if (!moderationMenuRef.current.contains(e.target)) setOpenModerationMenuId(null);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpenModerationMenuId(null);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openModerationMenuId]);
 
   const topicStatusMeta = (s) => {
     const v = String(s || '').toLowerCase();
@@ -868,7 +887,11 @@ const AdminForum = () => {
                     <div key={ad.id} className="pending-ad">
                       <div className="pending-ad__row">
                         <div className="pending-ad__main">
-                          <div className="pending-ad__title"><strong>{(ad.type || '').toUpperCase()}</strong> · {ad.title}</div>
+                          <div className="pending-ad__title">
+                            <span className="pending-ad__type">{(ad.type || '').toUpperCase()}</span>
+                            <span className="pending-ad__sep">·</span>
+                            <span className="pending-ad__titleText">{ad.title}</span>
+                          </div>
                           <div className="pending-ad__desc">{[ad.description, ad.price].filter(Boolean).join(' — ')}</div>
                           <div className="pending-ad__meta">Par {ad.author || '—'} • {ad.createdAt ? new Date(ad.createdAt).toLocaleString('fr-FR') : ''}</div>
                         </div>
@@ -881,14 +904,28 @@ const AdminForum = () => {
                             <XCircle size={16} aria-hidden="true" />
                             Rejeter
                           </button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteAd(ad)}>
-                            <Trash2 size={16} aria-hidden="true" />
-                            Supprimer
-                          </button>
-                          <a className="action-btn view" href={`/forum?hlType=ad&hlId=${ad.id}`} target="_blank" rel="noreferrer">
-                            <Globe size={16} aria-hidden="true" />
-                            Ouvrir côté public
-                          </a>
+                          <div className="menu" ref={openModerationMenuId === `ad-${ad.id}` ? moderationMenuRef : null}>
+                            <button
+                              className="action-btn"
+                              aria-label="Actions"
+                              title="Actions"
+                              onClick={() => setOpenModerationMenuId((prev) => (prev === `ad-${ad.id}` ? null : `ad-${ad.id}`))}
+                            >
+                              <MoreVertical size={16} aria-hidden="true" />
+                            </button>
+                            {openModerationMenuId === `ad-${ad.id}` && (
+                              <div className="menu__panel" role="menu">
+                                <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenModerationMenuId(null); handleDeleteAd(ad); }}>
+                                  <Trash2 size={16} aria-hidden="true" />
+                                  Supprimer
+                                </button>
+                                <button className="menu__item" role="menuitem" onClick={() => { setOpenModerationMenuId(null); window.open(`/forum?hlType=ad&hlId=${ad.id}`, '_blank', 'noopener,noreferrer'); }}>
+                                  <Globe size={16} aria-hidden="true" />
+                                  Ouvrir côté public
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -911,15 +948,33 @@ const AdminForum = () => {
                         {report.status}
                       </span>
                     </div>
-                    <div className="report-content">
-                      <p>
-                        Cible: <strong>{report.targetType}</strong> #{report.targetId}
-                      </p>
-                      {report.targetTitle && <p><strong>Titre</strong>: {report.targetTitle}</p>}
-                      {report.targetSnippet && <p><strong>Aperçu</strong>: {report.targetSnippet}</p>}
-                      {report.targetStatus && <p><strong>Statut</strong>: {report.targetStatus}</p>}
-                      <p>Raison: {report.reason}</p>
-                      {report.details && <p>Détails: {report.details}</p>}
+                    <div className="report-content report-content--compact">
+                      <div className="report-row">
+                        <span className="report-key">Cible</span>
+                        <span className="report-value">{report.targetType} · #{report.targetId}</span>
+                      </div>
+                      {report.targetTitle && (
+                        <div className="report-row">
+                          <span className="report-key">Titre</span>
+                          <span className="report-value report-value--strong">{report.targetTitle}</span>
+                        </div>
+                      )}
+                      {report.targetSnippet && (
+                        <div className="report-row">
+                          <span className="report-key">Aperçu</span>
+                          <span className="report-value report-value--clamp">{report.targetSnippet}</span>
+                        </div>
+                      )}
+                      <div className="report-row">
+                        <span className="report-key">Raison</span>
+                        <span className="report-value">{report.reason}</span>
+                      </div>
+                      {report.details && (
+                        <div className="report-row">
+                          <span className="report-key">Détails</span>
+                          <span className="report-value report-value--clamp">{report.details}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="report-meta">
                       <span>Signalé par: {report.reporter}</span>
@@ -928,49 +983,58 @@ const AdminForum = () => {
                     <div className="report-actions">
                       {(report.targetType === 'idea' || report.targetType === 'ad') && (
                         <>
-                          <button className="action-btn view" onClick={() => handleOpenReportPreview(report)}>
+                          <button className="action-btn view action-btn--primary" onClick={() => handleOpenReportPreview(report)}>
                             <Eye size={16} aria-hidden="true" />
                             Voir
                           </button>
-                          <button className="action-btn delete" onClick={() => handleDeleteTarget(report)}>
-                            <Trash2 size={16} aria-hidden="true" />
-                            Supprimer l'élément
-                          </button>
-                          <a
-                            className="action-btn view"
-                            href={`/forum?hlType=${report.targetType}&hlId=${report.targetId}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Ouvrir côté public"
-                          >
-                            <Globe size={16} aria-hidden="true" />
-                            Ouvrir côté public
-                          </a>
-                          {report.targetType === 'ad' && (
-                            <>
-                              <button className="action-btn approve" title="Approuver l'annonce" onClick={async () => {
-                                try {
-                                  await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'approved' });
-                                  emitToast('Annonce approuvée');
-                                  // mettre à jour l'état affiché
-                                  setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'approved' } : r));
-                                } catch (e) { emitToast('Action impossible.'); }
-                              }}>
-                                <CheckCircle2 size={16} aria-hidden="true" />
-                                Approuver
-                              </button>
-                              <button className="action-btn reject" title="Rejeter l'annonce" onClick={async () => {
-                                try {
-                                  await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'rejected' });
-                                  emitToast('Annonce rejetée');
-                                  setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'rejected' } : r));
-                                } catch (e) { emitToast('Action impossible.'); }
-                              }}>
-                                <XCircle size={16} aria-hidden="true" />
-                                Rejeter
-                              </button>
-                            </>
-                          )}
+                          <div className="menu" ref={openModerationMenuId === `report-${report.id}` ? moderationMenuRef : null}>
+                            <button
+                              className="action-btn"
+                              aria-label="Actions"
+                              title="Actions"
+                              onClick={() => setOpenModerationMenuId((prev) => (prev === `report-${report.id}` ? null : `report-${report.id}`))}
+                            >
+                              <MoreVertical size={16} aria-hidden="true" />
+                            </button>
+                            {openModerationMenuId === `report-${report.id}` && (
+                              <div className="menu__panel" role="menu">
+                                <button className="menu__item" role="menuitem" onClick={() => { setOpenModerationMenuId(null); window.open(`/forum?hlType=${report.targetType}&hlId=${report.targetId}`, '_blank', 'noopener,noreferrer'); }}>
+                                  <Globe size={16} aria-hidden="true" />
+                                  Ouvrir côté public
+                                </button>
+                                <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenModerationMenuId(null); handleDeleteTarget(report); }}>
+                                  <Trash2 size={16} aria-hidden="true" />
+                                  Supprimer l'élément
+                                </button>
+                                {report.targetType === 'ad' && (
+                                  <>
+                                    <button className="menu__item" role="menuitem" onClick={async () => {
+                                      setOpenModerationMenuId(null);
+                                      try {
+                                        await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'approved' });
+                                        emitToast('Annonce approuvée');
+                                        setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'approved' } : r));
+                                      } catch (e) { emitToast('Action impossible.'); }
+                                    }}>
+                                      <CheckCircle2 size={16} aria-hidden="true" />
+                                      Approuver l'annonce
+                                    </button>
+                                    <button className="menu__item" role="menuitem" onClick={async () => {
+                                      setOpenModerationMenuId(null);
+                                      try {
+                                        await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'rejected' });
+                                        emitToast('Annonce rejetée');
+                                        setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'rejected' } : r));
+                                      } catch (e) { emitToast('Action impossible.'); }
+                                    }}>
+                                      <XCircle size={16} aria-hidden="true" />
+                                      Rejeter l'annonce
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </>
                       )}
                       {report.status !== 'resolved' ? (

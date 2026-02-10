@@ -581,6 +581,12 @@ tr:hover td {
 
 .pending-ad__desc {
   color: #4a5568;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .pending-ad__meta {
@@ -591,6 +597,91 @@ tr:hover td {
 .report-actions--pending {
   display: flex;
   gap: 8px;
+}
+
+.pending-ad__title {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.pending-ad__type {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #1a202c;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.pending-ad__sep {
+  color: #94a3b8;
+}
+
+.pending-ad__titleText {
+  font-weight: 800;
+  color: #1a202c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-actions--pending .action-btn {
+  padding: 0.45rem 0.6rem;
+}
+
+.report-actions--pending .action-btn.approve,
+.report-actions--pending .action-btn.reject {
+  min-width: 0;
+}
+
+.report-actions--pending .action-btn svg {
+  flex: 0 0 auto;
+}
+
+/* Reports compact layout */
+.report-content--compact {
+  margin-top: 10px;
+}
+
+.report-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.report-row + .report-row {
+  border-top: 1px dashed #edf2f7;
+}
+
+.report-key {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.report-value {
+  color: #1a202c;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.report-value--strong {
+  font-weight: 800;
+}
+
+.report-value--clamp {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .report-card {
@@ -915,6 +1006,16 @@ tr:hover td {
     height: 100vh;
     overflow: auto;
     padding: 1.25rem;
+  }
+
+  .report-row {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+
+  .report-actions--pending {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 }
 
