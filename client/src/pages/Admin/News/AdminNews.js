@@ -3,6 +3,22 @@ import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminNews.css';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
+import {
+  Archive,
+  Check,
+  Eye,
+  Film,
+  Folder,
+  Heart,
+  MessageSquare,
+  Megaphone,
+  Pause,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+  X,
+} from 'lucide-react';
 
 const AdminNews = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -495,7 +511,9 @@ const AdminNews = () => {
               {media.type === 'image' ? (
                 <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
               ) : (
-                <div className="video-preview">🎥</div>
+                <div className="video-preview" aria-label="Vidéo">
+                  <Film size={22} aria-hidden="true" />
+                </div>
               )}
             </button>
             <div className="media-info">
@@ -630,9 +648,21 @@ const AdminNews = () => {
                   <td>{a.startsAt ? new Date(a.startsAt).toLocaleString('fr-FR') : '—'}</td>
                   <td>{a.endsAt ? new Date(a.endsAt).toLocaleString('fr-FR') : '—'}</td>
                   <td className="actions-cell">
-                    <button className="action-btn edit" title="Modifier" onClick={() => openEditAnn(a)}>✏️</button>
-                    <button className="action-btn" title={a.status==='active'?'Désactiver':'Activer'} onClick={() => toggleAnnStatus(a)}>{a.status==='active'?'⏸️':'✅'}</button>
-                    <button className="action-btn delete" title="Supprimer" onClick={() => deleteAnn(a)}>🗑️</button>
+                    <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => openEditAnn(a)}>
+                      <Pencil size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      className="action-btn"
+                      type="button"
+                      title={a.status==='active'?'Désactiver':'Activer'}
+                      aria-label={a.status==='active'?'Désactiver':'Activer'}
+                      onClick={() => toggleAnnStatus(a)}
+                    >
+                      {a.status==='active' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                    </button>
+                    <button className="action-btn delete" type="button" title="Supprimer" aria-label="Supprimer" onClick={() => deleteAnn(a)}>
+                      <Trash2 size={16} aria-hidden="true" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -705,7 +735,10 @@ const AdminNews = () => {
       <div className="modal-overlay" style={{ zIndex: 1200, position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setViewerMedia(null)}>
         <div className="modal" style={{ width: '900px', maxWidth: '95vw', background: '#000', borderRadius: '12px', padding: 0, overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px', background: '#111' }}>
-            <button onClick={() => setViewerMedia(null)} className="btn-secondary" style={{ background:'#fff', border:'none', padding:'6px 10px', borderRadius: '6px', cursor:'pointer' }}>Fermer ✕</button>
+            <button onClick={() => setViewerMedia(null)} className="btn-secondary" style={{ background:'#fff', border:'none', padding:'6px 10px', borderRadius: '6px', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'0.35rem' }}>
+              <X size={16} aria-hidden="true" />
+              Fermer
+            </button>
           </div>
           <div style={{ maxHeight: '80vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
             {viewerMedia.type === 'image' ? (
@@ -780,10 +813,22 @@ const AdminNews = () => {
             <div className="comment-content">{comment.content}</div>
             <div className="comment-article">Sur : {comment.postTitle}</div>
             <div className="comment-actions">
-              <button className="approve-btn" onClick={() => handleModerateComment(comment.id, 'approved')}>✓ Approuver</button>
-              <button className="reject-btn" onClick={() => handleModerateComment(comment.id, 'rejected')}>✕ Rejeter</button>
-              <button className="reply-btn" onClick={() => handleReplyToPost(comment.postId)}>↩ Répondre</button>
-              <button className="delete-btn" onClick={() => handleDeleteComment(comment.id)}>🗑️ Supprimer</button>
+              <button className="approve-btn" type="button" onClick={() => handleModerateComment(comment.id, 'approved')}>
+                <Check size={16} aria-hidden="true" />
+                Approuver
+              </button>
+              <button className="reject-btn" type="button" onClick={() => handleModerateComment(comment.id, 'rejected')}>
+                <Archive size={16} aria-hidden="true" />
+                Rejeter
+              </button>
+              <button className="reply-btn" type="button" onClick={() => handleReplyToPost(comment.postId)}>
+                <RefreshCw size={16} aria-hidden="true" />
+                Répondre
+              </button>
+              <button className="delete-btn" type="button" onClick={() => handleDeleteComment(comment.id)}>
+                <Trash2 size={16} aria-hidden="true" />
+                Supprimer
+              </button>
             </div>
           </div>
         ))}
@@ -800,26 +845,50 @@ const AdminNews = () => {
               <p className="header-subtitle">Gérez vos articles, médias et commentaires</p>
             </div>
             <div className="header-actions">
-              <button className="media-btn" onClick={() => setShowMediaLibrary(!showMediaLibrary)}>
-                <span>📁</span>
+              <button
+                className="media-btn"
+                type="button"
+                onClick={() => {
+                  setShowMediaLibrary((v) => !v);
+                  setShowComments(false);
+                  setShowAnnouncements(false);
+                }}
+              >
+                <Folder size={18} aria-hidden="true" />
                 <span>Médias</span>
                 <span className="count-badge">{mediaTotal}</span>
               </button>
-              <button className="comments-btn" onClick={() => setShowComments(!showComments)}>
-                <span>💬</span>
+              <button
+                className="comments-btn"
+                type="button"
+                onClick={() => {
+                  setShowComments((v) => !v);
+                  setShowMediaLibrary(false);
+                  setShowAnnouncements(false);
+                }}
+              >
+                <MessageSquare size={18} aria-hidden="true" />
                 <span>Commentaires</span>
                 <span className="count-badge">{commentsTotal || '—'}</span>
               </button>
-              <button className="comments-btn" onClick={() => { setShowAnnouncements(!showAnnouncements); }}>
-                <span>📣</span>
+              <button
+                className="comments-btn"
+                type="button"
+                onClick={() => {
+                  setShowAnnouncements((v) => !v);
+                  setShowMediaLibrary(false);
+                  setShowComments(false);
+                }}
+              >
+                <Megaphone size={18} aria-hidden="true" />
                 <span>Annonces</span>
                 <span className={`count-badge ${annActiveCount>0?'active':''}`}>{annActiveCount}</span>
                 {annInactiveCount>0 && (
                   <span className={`count-badge ${annInactiveCount>0?'inactive':''}`} title="Inactives à modérer">{annInactiveCount}</span>
                 )}
               </button>
-              <button className="add-news-btn" onClick={() => setShowAddModal(true)}>
-                <span>+</span>
+              <button className="add-news-btn" type="button" onClick={() => setShowAddModal(true)}>
+                <Plus size={18} aria-hidden="true" />
                 <span>Créer un article</span>
               </button>
             </div>
@@ -947,22 +1016,22 @@ const AdminNews = () => {
                 <h3>Engagement</h3>
                 <div className="engagement-stats">
                   <div className="stat-item">
-                    <span className="stat-icon">👁️</span>
+                    <span className="stat-icon" aria-hidden="true"><Eye size={18} /></span>
                     <span className="stat-value">—</span>
                     <span className="stat-label">Vues</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-icon">❤️</span>
+                    <span className="stat-icon" aria-hidden="true"><Heart size={18} /></span>
                     <span className="stat-value">—</span>
                     <span className="stat-label">Likes</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-icon">💬</span>
+                    <span className="stat-icon" aria-hidden="true"><MessageSquare size={18} /></span>
                     <span className="stat-value">—</span>
                     <span className="stat-label">Commentaires</span>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-icon">🔄</span>
+                    <span className="stat-icon" aria-hidden="true"><RefreshCw size={18} /></span>
                     <span className="stat-value">—</span>
                     <span className="stat-label">Partages</span>
                   </div>
@@ -1029,31 +1098,44 @@ const AdminNews = () => {
                         <td>{p.author?.name || '—'}</td>
                         <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
                         <td>
-                          <span className={`status-badge ${p.status}`}>
+                          <span className={`status-badge ${p.status === 'published' ? 'publié' : 'brouillon'}`}>
                             {p.status === 'published' ? 'Publié' : 'Brouillon'}
                           </span>
                         </td>
                         <td className="actions-cell">
-                          <button className="action-btn view" title="Voir">👁️</button>
-                          <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEdit(p)}>✏️</button>
-                          <button className="action-btn" title={p.status === 'published' ? 'Passer en brouillon' : 'Publier'} onClick={() => toggleStatus(p)}>
-                            {p.status === 'published' ? '⏸️' : '✅'}
+                          <button className="action-btn view" type="button" title="Voir" aria-label="Voir">
+                            <Eye size={16} aria-hidden="true" />
                           </button>
-                          <button className="action-btn delete" title="Supprimer" onClick={async () => {
-                            try {
-                              // Tentative suppression admin
-                              await api.delete(`/api/posts/${p._id}/force`);
-                            } catch (e1) {
+                          <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => handleOpenEdit(p)}>
+                            <Pencil size={16} aria-hidden="true" />
+                          </button>
+                          <button
+                            className="action-btn"
+                            type="button"
+                            title={p.status === 'published' ? 'Passer en brouillon' : 'Publier'}
+                            aria-label={p.status === 'published' ? 'Passer en brouillon' : 'Publier'}
+                            onClick={() => toggleStatus(p)}
+                          >
+                            {p.status === 'published' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                          </button>
+                          <button
+                            className="action-btn delete"
+                            title="Supprimer"
+                            aria-label="Supprimer"
+                            type="button"
+                            onClick={async () => {
                               try {
-                                // Fallback: suppression par auteur
-                                await api.delete(`/api/posts/${p._id}`);
-                              } catch (e2) {
-                                emitToast('Suppression impossible. Vérifiez vos droits.');
-                                return;
+                                if (window.confirm('Supprimer cet article ?')) {
+                                  await api.delete(`/api/posts/${p._id}`);
+                                }
+                              } catch {
+                                emitToast('Suppression impossible.');
                               }
-                            }
-                            fetchPosts();
-                          }}>🗑️</button>
+                              fetchPosts();
+                            }}
+                          >
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
                         </td>
                       </tr>
                     ))}

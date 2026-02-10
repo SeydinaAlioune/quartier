@@ -1,6 +1,8 @@
 .news-page {
   padding: 2rem;
   min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -13,12 +15,15 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  gap: 1rem;
+  min-width: 0;
 }
 
 .header-title {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .header-subtitle {
@@ -55,6 +60,8 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .media-btn, .comments-btn {
@@ -69,6 +76,7 @@
   align-items: center;
   gap: 0.5rem;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .media-btn:hover, .comments-btn:hover {
@@ -587,7 +595,7 @@
   gap: 1rem;
 }
 
-.search-input {
+.news-page .search-input {
   flex: 1;
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
@@ -596,17 +604,17 @@
   transition: border-color 0.2s ease;
 }
 
-.search-input:focus {
+.news-page .search-input:focus {
   outline: none;
   border-color: #00a651;
 }
 
-.filter-group {
+.news-page .filter-group {
   display: flex;
   gap: 1rem;
 }
 
-.filter-select {
+.news-page .filter-select {
   padding: 0.75rem 2rem 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -626,13 +634,13 @@
   overflow-x: auto;
 }
 
-table {
+.news-page table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-th {
+.news-page th {
   background-color: #f8fafc;
   color: #4a5568;
   font-weight: 600;
@@ -641,13 +649,13 @@ th {
   border-bottom: 2px solid #e2e8f0;
 }
 
-td {
+.news-page td {
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   color: #2d3748;
 }
 
-tr:hover {
+.news-page tr:hover {
   background-color: #f8fafc;
 }
 
@@ -741,10 +749,28 @@ tr:hover {
   }
   .header-actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: stretch;
+    flex-direction: column;
+  }
+
+  .media-btn,
+  .comments-btn,
+  .add-news-btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .filter-group {
+    width: 100%;
+  }
+
+  .articles-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .news-page .search-input,
+  .news-page .filter-select {
     width: 100%;
   }
 
