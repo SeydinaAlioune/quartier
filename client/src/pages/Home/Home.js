@@ -237,7 +237,7 @@ const Home = () => {
             <Link to="/register" className="cta-button">
               Rejoindre la communauté
             </Link>
-            <Link to="/actualites" className="cta-button" style={{ backgroundColor: '#111827' }}>
+            <Link to="/actualites" className="cta-button cta-button--dark">
               Voir les actualités
             </Link>
           </div>
@@ -359,7 +359,7 @@ const Home = () => {
               </p>
               <div className="memory-actions">
                 <Link to="/galerie" className="cta-button">Découvrir la galerie</Link>
-                <Link to="/actualites" className="cta-button" style={{ backgroundColor: '#111827' }}>Lire les actualités</Link>
+                <Link to="/actualites" className="cta-button cta-button--dark">Lire les actualités</Link>
               </div>
             </div>
             <div className="memory-card">
