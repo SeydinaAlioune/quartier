@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 
 const AdminDonations = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -117,16 +115,8 @@ const AdminDonations = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion des Dons" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-
-        <div className="donations-page">
+    <AdminLayout title="Gestion des Dons">
+      <div className="donations-page">
           <div className="donations-header">
             <div className="header-title">
               <h1>Campagnes de Dons</h1>
@@ -344,8 +334,7 @@ const AdminDonations = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 

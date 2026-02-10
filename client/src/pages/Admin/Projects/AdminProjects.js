@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminProjects.css';
 import api from '../../../services/api';
 
 const AdminProjects = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -96,15 +94,8 @@ const AdminProjects = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion des Projets" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-        <div className="projects-page">
+    <AdminLayout title="Gestion des Projets">
+      <div className="projects-page">
           {/* En-tête de la page */}
           <div className="projects-header">
             <div className="header-title">
@@ -532,9 +523,8 @@ const AdminProjects = () => {
               </div>
             </div>
           )}
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

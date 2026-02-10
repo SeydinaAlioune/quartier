@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminPaymentsConfig.css';
 
@@ -30,7 +29,6 @@ const SecretEditor = ({ label, value, onChange, onCancel }) => (
 );
 
 const AdminPaymentsConfig = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -146,12 +144,8 @@ const AdminPaymentsConfig = () => {
   }), []);
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader title="Configuration Paiements" isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
-        <div className="payments-config">
+    <AdminLayout title="Configuration Paiements">
+      <div className="payments-config">
           {loading && <div className="card">Chargement…</div>}
           {error && <div className="card error">{error}</div>}
 
@@ -221,9 +215,8 @@ const AdminPaymentsConfig = () => {
               </div>
             </>
           )}
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 
