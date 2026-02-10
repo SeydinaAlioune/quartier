@@ -64,7 +64,7 @@ const Topic = () => {
         <>
           <header className="topic-header">
             <div className="topic-breadcrumb">
-              <Link to="/forum" className="link-like" style={{ textDecoration: 'none' }}>
+              <Link to="/forum" className="link-like">
                 <i className="fas fa-arrow-left" aria-hidden="true"></i> Retour au forum
               </Link>
             </div>
@@ -126,8 +126,8 @@ const Topic = () => {
               <div className="compose-login">
                 <div className="compose-login-title">Connectez-vous pour répondre</div>
                 <div className="compose-login-actions">
-                  <Link to="/login" className="btn-submit" style={{ textDecoration: 'none' }}>Se connecter</Link>
-                  <Link to="/register" className="btn-cancel" style={{ textDecoration: 'none' }}>Créer un compte</Link>
+                  <Link to="/login" className="btn-submit">Se connecter</Link>
+                  <Link to="/register" className="btn-cancel">Créer un compte</Link>
                 </div>
               </div>
             )}
@@ -142,7 +142,7 @@ const Topic = () => {
                   placeholder="Écrivez une réponse utile et respectueuse…"
                 />
                 <div className="compose-actions">
-                  <Link to="/forum" className="btn-cancel" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>Retour</Link>
+                  <Link to="/forum" className="btn-cancel">Retour</Link>
                   <button type="submit" className="btn-submit" disabled={sending || !reply.trim()}>
                     {sending ? 'Envoi…' : 'Publier'}
                   </button>

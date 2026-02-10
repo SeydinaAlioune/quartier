@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../../services/api';
+import './SearchResults.css';
 
 const useQuery = () => {
   const { search } = useLocation();
@@ -55,21 +56,21 @@ const SearchResults = () => {
   }, [term]);
 
   return (
-    <section className="search-results" style={{maxWidth:1200, margin:'0 auto', padding:'1rem'}}>
+    <section className="search-results">
       <h2>Résultats de recherche</h2>
-      <div style={{margin:'6px 0 14px', color:'#4b5563'}}>Terme: <strong>{term || '—'}</strong></div>
+      <div className="search-results__meta">Terme: <strong>{term || '—'}</strong></div>
       {loading && (<div className="card">Recherche en cours…</div>)}
       {!loading && error && (<div className="card error">{error}</div>)}
       {!loading && !error && term && (
         <>
-          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:'12px', margin:'10px 0 18px'}}>
-            <div className="card"><div>Articles</div><div style={{fontSize:'1.3rem', fontWeight:700}}>{posts.length}</div></div>
-            <div className="card"><div>Annonces</div><div style={{fontSize:'1.3rem', fontWeight:700}}>{ads.length}</div></div>
-            <div className="card"><div>Idées</div><div style={{fontSize:'1.3rem', fontWeight:700}}>{ideas.length}</div></div>
-            <div className="card"><div>Annuaire</div><div style={{fontSize:'1.3rem', fontWeight:700}}>{businesses.length}</div></div>
+          <div className="search-results__kpis">
+            <div className="card"><div>Articles</div><div className="search-results__kpi-value">{posts.length}</div></div>
+            <div className="card"><div>Annonces</div><div className="search-results__kpi-value">{ads.length}</div></div>
+            <div className="card"><div>Idées</div><div className="search-results__kpi-value">{ideas.length}</div></div>
+            <div className="card"><div>Annuaire</div><div className="search-results__kpi-value">{businesses.length}</div></div>
           </div>
 
-          <div style={{display:'grid', gap:'18px'}}>
+          <div className="search-results__sections">
             <div>
               <h3>Articles</h3>
               {posts.length===0 ? <div>Aucun article. <Link to="/actualites">Voir les actualités</Link></div> : (
