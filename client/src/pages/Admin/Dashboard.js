@@ -7,6 +7,7 @@ import AdminSecurity from './Security/AdminSecurity';
 import AdminProjects from './Projects/AdminProjects';
 import AdminDonations from './Donations/AdminDonations';
 import api from '../../services/api';
+import AdminHeader from '../../components/AdminHeader/AdminHeader';
 
 const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState('users');
@@ -124,19 +125,12 @@ const Dashboard = () => {
     <div className="admin-dashboard">
       <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className="dashboard-header">
-          <div className="header-left">
-            <button className="toggle-sidebar-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
-              {isCollapsed ? '☰' : '✕'}
-            </button>
-            <h1>Tableau de Bord Administration</h1>
-          </div>
-          <div className="admin-profile">
-            <span className="notification-badge">{securityReports.length || 0}</span>
-            <span className="admin-name">{currentUser?.name || '—'}</span>
-            <span className="admin-role">{currentUser?.role === 'admin' ? 'Administrateur' : (currentUser?.role ? 'Membre' : '—')}</span>
-          </div>
-        </div>
+        <AdminHeader
+          title="Tableau de Bord Administration"
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          notificationsCount={securityReports.length || 0}
+        />
 
         <div className="stats-grid">
           <div className="stat-card">

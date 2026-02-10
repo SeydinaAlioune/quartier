@@ -64,7 +64,7 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
   }, []);
 
   return (
-    <div className="dashboard-header">
+    <div className="admin-header">
       <div className="header-left">
         <button className="toggle-sidebar-btn" onClick={() => setIsCollapsed(!isCollapsed)}>
           {isCollapsed ? '☰' : '✕'}
