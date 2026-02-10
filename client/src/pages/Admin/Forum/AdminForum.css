@@ -95,7 +95,7 @@
 }
 
 /* Navigation par onglets améliorée */
-.forum-tabs {
+.forum-page .forum-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
@@ -106,7 +106,7 @@
   box-shadow: none;
 }
 
-.tab-btn {
+.forum-page .forum-tabs .tab-btn {
   padding: 0.65rem 1rem;
   border: none;
   border-radius: 8px;
@@ -118,18 +118,18 @@
   position: relative;
 }
 
-.tab-btn:hover {
+.forum-page .forum-tabs .tab-btn:hover {
   color: #1a202c;
   background-color: #edf2f7;
 }
 
-.tab-btn.active {
+.forum-page .forum-tabs .tab-btn.active {
   background-color: #fff;
   color: #1a202c;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-.tab-btn.active::after {
+.forum-page .forum-tabs .tab-btn.active::after {
   content: none;
 }
 
