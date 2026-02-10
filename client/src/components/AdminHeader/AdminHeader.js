@@ -142,8 +142,10 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
             </div>
           )}
         </div>
-        <span className="admin-name">{user?.name || '—'}</span>
-        <span className="admin-role">{user?.role === 'admin' ? 'Administrateur' : (user?.role ? 'Membre' : '—')}</span>
+        <div className="admin-identity">
+          <span className="admin-name">{user?.name || '—'}</span>
+          <span className="admin-role">{user?.role === 'admin' ? 'Administrateur' : (user?.role ? 'Membre' : '—')}</span>
+        </div>
       </div>
     </div>
   );

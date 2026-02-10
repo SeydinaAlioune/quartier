@@ -122,6 +122,14 @@ const Dashboard = () => {
   }, []);
   const visibleReports = reportsTab === 'securite' ? securityReports : [];
 
+  const filteredUsers = usersData
+    .filter(u => userStatusFilter === 'all' || u.statut.toLowerCase() === (userStatusFilter === 'pending' ? 'en attente' : userStatusFilter))
+    .filter(u => {
+      const q = userSearch.trim().toLowerCase();
+      return q === '' || u.nom.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    });
+  const topUsers = filteredUsers.slice(0, 5);
+
   return (
     <AdminLayout title="Tableau de Bord Administration" notificationsCount={securityReports.length || 0}>
       <div className="dashboard-page">
@@ -240,14 +248,7 @@ const Dashboard = () => {
                         <td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td>
                       </tr>
                     )}
-                    {!usersLoading && usersData
-                      .filter(u => userStatusFilter === 'all' || u.statut.toLowerCase() === (userStatusFilter === 'pending' ? 'en attente' : userStatusFilter))
-                      .filter(u => {
-                        const q = userSearch.trim().toLowerCase();
-                        return q === '' || u.nom.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-                      })
-                      .slice(0, 5)
-                      .map((user, index) => (
+                    {!usersLoading && topUsers.map((user, index) => (
                         <tr key={index}>
                           <td>{user.nom}</td>
                           <td>{user.email}</td>
@@ -267,7 +268,7 @@ const Dashboard = () => {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                    ))}
                     {!usersLoading && !usersError && usersData.length === 0 && (
                       <tr>
                         <td colSpan="6" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
@@ -280,6 +281,38 @@ const Dashboard = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="users-cards" aria-label="Aperçu utilisateurs (mobile)">
+                {usersLoading && <div className="mobile-card mobile-card--empty">Chargement…</div>}
+                {!usersLoading && usersError && <div className="mobile-card mobile-card--empty">{usersError}</div>}
+                {!usersLoading && !usersError && topUsers.length === 0 && <div className="mobile-card mobile-card--empty">Aucun utilisateur</div>}
+                {!usersLoading && !usersError && topUsers.map((user, index) => (
+                  <div key={index} className="mobile-card">
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Nom</div>
+                      <div className="mobile-card__value">{user.nom}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Email</div>
+                      <div className="mobile-card__value">{user.email}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Inscription</div>
+                      <div className="mobile-card__value">{user.dateInscription}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Statut</div>
+                      <div className="mobile-card__value">
+                        <span className={`status-badge ${user.statut.toLowerCase()}`}>{user.statut}</span>
+                      </div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Rôle</div>
+                      <div className="mobile-card__value">{user.role}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="pagination" aria-hidden="true">
@@ -408,6 +441,36 @@ const Dashboard = () => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          <div className="reports-cards" aria-label="Aperçu rapports (mobile)">
+            {visibleReports.length === 0 && <div className="mobile-card mobile-card--empty">Aucun rapport pour cet onglet.</div>}
+            {visibleReports.map((report, index) => {
+              const dateStr = report.date || report.createdAt;
+              const statut = report.severity === 'high' ? 'Urgent' : (report.severity === 'medium' ? 'À examiner' : 'Info');
+              return (
+                <div key={index} className="mobile-card">
+                  <div className="mobile-card__row">
+                    <div className="mobile-card__label">Type</div>
+                    <div className="mobile-card__value">{report.type || 'Alerte'}</div>
+                  </div>
+                  <div className="mobile-card__row">
+                    <div className="mobile-card__label">Description</div>
+                    <div className="mobile-card__value">{report.message || report.description || '—'}</div>
+                  </div>
+                  <div className="mobile-card__row">
+                    <div className="mobile-card__label">Date</div>
+                    <div className="mobile-card__value">{dateStr ? new Date(dateStr).toLocaleString('fr-FR') : '—'}</div>
+                  </div>
+                  <div className="mobile-card__row">
+                    <div className="mobile-card__label">Statut</div>
+                    <div className="mobile-card__value">
+                      <span className={`status-badge ${statut.toLowerCase().replace(' ', '-')}`}>{statut}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
