@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminMessages.css';
 
@@ -42,7 +41,6 @@ import './AdminMessages.css';
   };
 
 const AdminMessages = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [messages, setMessages] = useState([]);
@@ -157,12 +155,8 @@ const AdminMessages = () => {
   };
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader title="Messages de Contact" isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-
-        <div className="messages-page">
+    <AdminLayout title="Messages de Contact">
+      <div className="messages-page">
           <div className="toolbar">
             <input className="search" placeholder="Rechercher (nom, email, objet, message)" value={q} onChange={(e)=>setQ(e.target.value)} />
             <div className="filters">
@@ -290,9 +284,8 @@ const AdminMessages = () => {
               )}
             </div>
           </div>
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

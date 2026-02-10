@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../../components/AdminSidebar/AdminSidebar';
-import AdminHeader from '../../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './Users.css';
 import api from '../../../services/api';
 
@@ -8,7 +7,6 @@ const Users = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [usersData, setUsersData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -171,15 +169,8 @@ const Users = () => {
   const stats = computeStats();
 
   return (
-    <div className="admin-page">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader 
-          title="Gestion des Utilisateurs" 
-          isCollapsed={isCollapsed} 
-          setIsCollapsed={setIsCollapsed}
-        />
-        <div className="users-page">
+    <AdminLayout title="Gestion des Utilisateurs">
+      <div className="users-page">
           <div className="users-header">
             <h1>Gestion des Utilisateurs</h1>
             <button className="add-user-btn" onClick={() => setShowAddModal(true)}>
@@ -418,9 +409,8 @@ const Users = () => {
               </div>
             </div>
           </div>
-        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

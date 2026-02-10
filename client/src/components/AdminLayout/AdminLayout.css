@@ -1,0 +1,28 @@
+.admin-shell {
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.admin-shell__content {
+  min-height: 100vh;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+}
+
+.admin-shell__content--collapsed {
+  margin-left: 0;
+}
+
+.admin-shell__body {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .admin-shell__content {
+    margin-left: 0;
+  }
+
+  .admin-shell__body {
+    padding: 1rem;
+  }
+}

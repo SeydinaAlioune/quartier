@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../../components/AdminSidebar/AdminSidebar';
 import './Dashboard.css';
 import AdminDirectory from './Directory/AdminDirectory';
 import AdminNews from './News/AdminNews';
@@ -7,11 +6,10 @@ import AdminSecurity from './Security/AdminSecurity';
 import AdminProjects from './Projects/AdminProjects';
 import AdminDonations from './Donations/AdminDonations';
 import api from '../../services/api';
-import AdminHeader from '../../components/AdminHeader/AdminHeader';
+import AdminLayout from '../../components/AdminLayout/AdminLayout';
 
 const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState('users');
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [reportsTab, setReportsTab] = useState('securite');
   const [userSearch, setUserSearch] = useState('');
   const [userStatusFilter, setUserStatusFilter] = useState('all');
@@ -122,16 +120,7 @@ const Dashboard = () => {
   const visibleReports = reportsTab === 'securite' ? securityReports : [];
 
   return (
-    <div className="admin-dashboard">
-      <AdminSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <div className={`admin-content ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <AdminHeader
-          title="Tableau de Bord Administration"
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          notificationsCount={securityReports.length || 0}
-        />
-
+    <AdminLayout title="Tableau de Bord Administration" notificationsCount={securityReports.length || 0}>
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon users-icon">👥</div>
@@ -327,8 +316,7 @@ const Dashboard = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+    </AdminLayout>
   );
 };
 
