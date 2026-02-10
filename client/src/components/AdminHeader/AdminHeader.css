@@ -109,7 +109,12 @@
   border-radius: 12px;
   box-shadow: 0 18px 40px rgba(0,0,0,0.12);
   overflow: hidden;
-  z-index: 50;
+  z-index: 200;
+}
+
+.notif-btn:focus-visible {
+  outline: 3px solid rgba(0, 166, 81, 0.35);
+  outline-offset: 2px;
 }
 
 .notif-dropdown__header {
@@ -263,5 +268,12 @@
   .admin-role {
     font-size: 0.8rem;
     margin-left: 0;
+  }
+
+  .notif-dropdown {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
   }
 }

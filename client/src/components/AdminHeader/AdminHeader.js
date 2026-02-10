@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './AdminHeader.css';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,8 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifItems, setNotifItems] = useState([]);
+  const [notifTotal, setNotifTotal] = useState(0);
+  const notifWrapRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,17 +50,16 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
     let cancelled = false;
     const loadCount = async () => {
       try {
-        const res = await api.get('/api/contact/stats/summary');
-        const totalNew = Number(res?.data?.byStatus?.new || 0);
-        if (!cancelled) setNotifCount(totalNew);
+        const r = await api.get('/api/contact?status=new&limit=1&page=1');
+        const total = Number(r?.data?.total || 0);
+        if (!cancelled) {
+          setNotifCount(total);
+          setNotifTotal(total);
+        }
       } catch {
-        // Fallback: tenter un comptage rapide via la liste (total)
-        try {
-          const r = await api.get('/api/contact?status=new&limit=1&page=1');
-          const total = Number(r?.data?.total || 0);
-          if (!cancelled) setNotifCount(total);
-        } catch {
-          // ignorer erreurs (non-admin, etc.)
+        if (!cancelled) {
+          setNotifCount(0);
+          setNotifTotal(0);
         }
       }
     };
@@ -79,15 +80,45 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
         const arr = Array.isArray(res?.data?.contacts)
           ? res.data.contacts
           : (Array.isArray(res?.data) ? res.data : []);
-        if (!cancelled) setNotifItems(arr);
+        const total = Number(res?.data?.total || arr.length || 0);
+        if (!cancelled) {
+          setNotifItems(arr);
+          setNotifTotal(total);
+          setNotifCount(total);
+        }
       } catch {
-        if (!cancelled) setNotifItems([]);
+        if (!cancelled) {
+          setNotifItems([]);
+          setNotifTotal(0);
+          setNotifCount(0);
+        }
       } finally {
         if (!cancelled) setNotifLoading(false);
       }
     };
     loadLatest();
     return () => { cancelled = true; };
+  }, [notifOpen]);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onDocPointer = (e) => {
+      const root = notifWrapRef.current;
+      if (!root) return;
+      if (root.contains(e.target)) return;
+      setNotifOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', onDocPointer);
+    document.addEventListener('touchstart', onDocPointer, { passive: true });
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onDocPointer);
+      document.removeEventListener('touchstart', onDocPointer);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, [notifOpen]);
 
   return (
@@ -104,7 +135,7 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
         <h1>{title}</h1>
       </div>
       <div className="admin-profile">
-        <div className="admin-notifications">
+        <div className="admin-notifications" ref={notifWrapRef}>
           <button
             type="button"
             className={`notif-btn ${effectiveCount > 0 ? 'has-unread' : ''}`}
@@ -126,7 +157,13 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
               </div>
               <div className="notif-dropdown__body">
                 {notifLoading && <div className="notif-dropdown__empty">Chargement…</div>}
-                {!notifLoading && notifItems.length === 0 && <div className="notif-dropdown__empty">Aucun nouveau message</div>}
+                {!notifLoading && notifItems.length === 0 && (
+                  <div className="notif-dropdown__empty">
+                    {notifTotal > 0
+                      ? `Vous avez ${notifTotal} nouveau(x) message(s).`
+                      : 'Aucun nouveau message'}
+                  </div>
+                )}
                 {!notifLoading && notifItems.map((m) => (
                   <button
                     key={m._id}
