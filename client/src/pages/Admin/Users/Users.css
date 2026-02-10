@@ -2,6 +2,8 @@
   padding: 2rem;
   background-color: #ffffff;
   min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .users-header {
@@ -45,6 +47,9 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   padding: 1.5rem;
   margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .users-section h2 {
@@ -102,6 +107,7 @@
 
 .users-page .users-cards {
   display: none;
+  width: 100%;
 }
 
 .users-page .mobile-card {
@@ -110,6 +116,8 @@
   padding: 0.9rem;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .users-page .mobile-card--empty {
@@ -386,6 +394,14 @@
 }
 
 @media (max-width: 768px) {
+  .users-page {
+    padding: 1rem;
+  }
+
+  .users-section {
+    padding: 1rem;
+  }
+
   .users-header {
     flex-direction: column;
     align-items: stretch;
@@ -407,6 +423,11 @@
 
   .filter-group {
     flex-direction: column;
+  }
+
+  .users-page .search-input,
+  .users-page .filter-select {
+    width: 100%;
   }
 
   .users-page .table-scroll {
