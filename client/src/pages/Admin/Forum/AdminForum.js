@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminForum.css';
 import api from '../../../services/api';
@@ -13,6 +13,7 @@ import {
   Globe,
   Lock,
   MessageCircle,
+  MoreVertical,
   Pin,
   Trash2,
   Wrench,
@@ -47,6 +48,25 @@ const AdminForum = () => {
   const [newTopic, setNewTopic] = useState({ title: '', categoryId: '' });
   const [showTopicDetail, setShowTopicDetail] = useState(false);
   const [topicDetail, setTopicDetail] = useState({ topic: null, posts: [], loading: false, error: '', newPost: '' });
+  const [openTopicMenuId, setOpenTopicMenuId] = useState(null);
+  const topicMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!openTopicMenuId) return;
+    const onDown = (e) => {
+      if (!topicMenuRef.current) return;
+      if (!topicMenuRef.current.contains(e.target)) setOpenTopicMenuId(null);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpenTopicMenuId(null);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openTopicMenuId]);
 
   const topicStatusMeta = (s) => {
     const v = String(s || '').toLowerCase();
@@ -645,36 +665,36 @@ const AdminForum = () => {
             <div className="topics-section">
               <div className="section-header">
                 <h2>Gestion des sujets</h2>
-                <div className="topics-filters">
-                  <input
-                    type="text"
-                    placeholder="Rechercher un sujet..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="search-input"
-                  />
-                  <select 
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">Toutes les catégories</option>
-                    {categories.map((c) => (
-                      <option key={c.id || c.name} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">Tous les statuts</option>
-                    <option value="active">Actif</option>
-                    <option value="pinned">Épinglé</option>
-                    <option value="closed">Fermé</option>
-                  </select>
-                </div>
-                <div>
+                <div className="section-actions">
+                  <div className="topics-filters">
+                    <input
+                      type="text"
+                      placeholder="Rechercher un sujet..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="search-input"
+                    />
+                    <select 
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="all">Toutes les catégories</option>
+                      {categories.map((c) => (
+                        <option key={c.id || c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="filter-select"
+                    >
+                      <option value="all">Tous les statuts</option>
+                      <option value="active">Actif</option>
+                      <option value="pinned">Épinglé</option>
+                      <option value="closed">Fermé</option>
+                    </select>
+                  </div>
                   <button className="add-btn" onClick={handleOpenNewTopic}>Nouveau sujet</button>
                 </div>
               </div>
@@ -743,18 +763,36 @@ const AdminForum = () => {
                       <div className="mobile-card__top">
                         <div className="mobile-card__title">{topic.title}</div>
                         <div className="mobile-card__actions">
-                          <button className="action-btn view" title="Voir" onClick={() => handleOpenTopicDetail(topic)} aria-label="Voir">
+                          <button className="action-btn view action-btn--primary" title="Voir" onClick={() => handleOpenTopicDetail(topic)} aria-label="Voir">
                             <Eye size={16} aria-hidden="true" />
+                            Voir
                           </button>
-                          <button className="action-btn pin" title="Épingler" onClick={() => handleTogglePin(topic)} aria-label="Épingler">
-                            <Pin size={16} aria-hidden="true" />
-                          </button>
-                          <button className="action-btn close" title="Fermer" onClick={() => handleToggleClose(topic)} aria-label="Fermer">
-                            <Lock size={16} aria-hidden="true" />
-                          </button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteTopic(topic)} aria-label="Supprimer">
-                            <Trash2 size={16} aria-hidden="true" />
-                          </button>
+                          <div className="menu" ref={openTopicMenuId === topic.id ? topicMenuRef : null}>
+                            <button
+                              className="action-btn"
+                              aria-label="Actions"
+                              title="Actions"
+                              onClick={() => setOpenTopicMenuId((prev) => (prev === topic.id ? null : topic.id))}
+                            >
+                              <MoreVertical size={16} aria-hidden="true" />
+                            </button>
+                            {openTopicMenuId === topic.id && (
+                              <div className="menu__panel" role="menu">
+                                <button className="menu__item" role="menuitem" onClick={() => { setOpenTopicMenuId(null); handleTogglePin(topic); }}>
+                                  <Pin size={16} aria-hidden="true" />
+                                  Épingler / Désépingler
+                                </button>
+                                <button className="menu__item" role="menuitem" onClick={() => { setOpenTopicMenuId(null); handleToggleClose(topic); }}>
+                                  <Lock size={16} aria-hidden="true" />
+                                  Fermer / Réouvrir
+                                </button>
+                                <button className="menu__item menu__item--danger" role="menuitem" onClick={() => { setOpenTopicMenuId(null); handleDeleteTopic(topic); }}>
+                                  <Trash2 size={16} aria-hidden="true" />
+                                  Supprimer
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -771,14 +809,6 @@ const AdminForum = () => {
                         <div className="mobile-meta">
                           <span className="mobile-meta__label">Réponses</span>
                           <span className="mobile-meta__value">{topic.replies}</span>
-                        </div>
-                        <div className="mobile-meta">
-                          <span className="mobile-meta__label">Vues</span>
-                          <span className="mobile-meta__value">{topic.views}</span>
-                        </div>
-                        <div className="mobile-meta">
-                          <span className="mobile-meta__label">Créé le</span>
-                          <span className="mobile-meta__value">{topic.created ? new Date(topic.created).toLocaleDateString('fr-FR') : '—'}</span>
                         </div>
                         <div className="mobile-meta">
                           <span className="mobile-meta__label">Dernier message</span>
