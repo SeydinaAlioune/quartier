@@ -1277,25 +1277,33 @@ const AdminNews = () => {
                       </div>
                     </div>
                     <div className="news-mobile-card__actions" aria-label="Actions">
-                      <button className="action-btn view" type="button" title="Voir" aria-label="Voir">
+                      <button className="media-action-btn" type="button">
                         <Eye size={16} aria-hidden="true" />
+                        Voir
                       </button>
-                      <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => handleOpenEdit(p)}>
+                      <button className="media-action-btn" type="button" onClick={() => handleOpenEdit(p)}>
                         <Pencil size={16} aria-hidden="true" />
+                        Modifier
                       </button>
                       <button
-                        className="action-btn"
+                        className={p.status === 'published' ? 'media-action-btn is-reject' : 'media-action-btn is-approve'}
                         type="button"
-                        title={p.status === 'published' ? 'Passer en brouillon' : 'Publier'}
-                        aria-label={p.status === 'published' ? 'Passer en brouillon' : 'Publier'}
                         onClick={() => toggleStatus(p)}
                       >
-                        {p.status === 'published' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                        {p.status === 'published' ? (
+                          <>
+                            <Pause size={16} aria-hidden="true" />
+                            Brouillon
+                          </>
+                        ) : (
+                          <>
+                            <Check size={16} aria-hidden="true" />
+                            Publier
+                          </>
+                        )}
                       </button>
                       <button
-                        className="action-btn delete"
-                        title="Supprimer"
-                        aria-label="Supprimer"
+                        className="media-action-btn is-danger"
                         type="button"
                         onClick={async () => {
                           try {
@@ -1309,6 +1317,7 @@ const AdminNews = () => {
                         }}
                       >
                         <Trash2 size={16} aria-hidden="true" />
+                        Supprimer
                       </button>
                     </div>
                   </div>
