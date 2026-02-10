@@ -20,6 +20,7 @@
   margin: 0;
   font-weight: 600;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .toggle-sidebar-btn {
@@ -246,10 +247,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1 1 auto;
   }
 
   .admin-profile {
     gap: 0.5rem;
+    flex: 0 0 auto;
   }
 
   .admin-identity {
@@ -278,6 +281,16 @@
     width: auto;
     max-width: none;
     max-height: calc(100vh - 80px);
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-identity {
+    max-width: 96px;
+  }
+
+  .admin-role {
+    display: none;
   }
 }
 
