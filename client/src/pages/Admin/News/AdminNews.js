@@ -1066,14 +1066,17 @@ const AdminNews = () => {
                   </div>
                   <div className="form-row">
                     <label>Image de couverture (URL)</label>
-                    <div style={{display:'flex', gap:'0.5rem'}}>
+                    <div className="cover-url-row">
                       <input
                         type="text"
                         value={editing.coverUrl || ''}
                         onChange={(e) => setEditing({ ...editing, coverUrl: e.target.value })}
                         placeholder="/uploads/monfichier.jpg"
                       />
-                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'edit', id: editing.id }); setActiveTab('media'); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
+                      <button className="media-action-btn" type="button" onClick={() => { setChooseCoverFor({ mode: 'edit', id: editing.id }); setActiveTab('media'); setShowMediaPicker(true); }}>
+                        <Folder size={16} aria-hidden="true" />
+                        Choisir dans la bibliothèque
+                      </button>
                     </div>
                   </div>
                   <div className="modal-actions">
@@ -1110,14 +1113,17 @@ const AdminNews = () => {
                   </div>
                   <div className="form-row">
                     <label>Image de couverture (URL)</label>
-                    <div style={{display:'flex', gap:'0.5rem'}}>
+                    <div className="cover-url-row">
                       <input
                         type="text"
                         value={newPost.coverUrl || ''}
                         onChange={(e) => setNewPost({ ...newPost, coverUrl: e.target.value })}
                         placeholder="/uploads/monfichier.jpg"
                       />
-                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'create' }); setActiveTab('media'); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
+                      <button className="media-action-btn" type="button" onClick={() => { setChooseCoverFor({ mode: 'create' }); setActiveTab('media'); setShowMediaPicker(true); }}>
+                        <Folder size={16} aria-hidden="true" />
+                        Choisir dans la bibliothèque
+                      </button>
                     </div>
                   </div>
                   <div className="modal-actions">

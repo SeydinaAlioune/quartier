@@ -169,6 +169,24 @@
   margin-top: 0;
 }
 
+.news-page .cover-url-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.news-page .cover-url-row input {
+  flex: 1;
+  min-width: 220px;
+}
+
+@media (max-width: 1024px) {
+  .stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .news-modal-overlay {
   position: fixed;
   inset: 0;
