@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Forum.css';
 import api from '../../services/api';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
+import { emitToast } from '../../utils/toast';
 
 const Annonces = () => {
   const navigate = useNavigate();
@@ -100,9 +101,9 @@ const Annonces = () => {
       setNewAnnonce({ type: 'vends', titre: '', description: '', prix: '', imageUrl: '', images: [] });
       await fetchAds();
       if (localStorage.getItem('token')) { await fetchMyAds(); }
-      alert("Annonce envoyée pour approbation par un administrateur.");
+      emitToast("Annonce envoyée pour approbation par un administrateur.");
     } catch (err) {
-      alert("Publication impossible (connexion requise).");
+      emitToast("Publication impossible (connexion requise).");
     }
   };
 
@@ -126,7 +127,7 @@ const Annonces = () => {
     try {
       const urls = [];
       for (const f of files) {
-        try { const u = await uploadImage(f); if (u) urls.push(u); } catch (err) { alert(err.message || "Échec d'upload pour " + f.name); }
+        try { const u = await uploadImage(f); if (u) urls.push(u); } catch (err) { emitToast(err.message || "Échec d'upload pour " + f.name); }
       }
       if (urls.length) {
         setNewAnnonce(prev => {
@@ -145,7 +146,7 @@ const Annonces = () => {
     try {
       const urls = [];
       for (const f of files) {
-        try { const u = await uploadImage(f); if (u) urls.push(u); } catch (err) { alert(err.message || "Échec d'upload pour " + f.name); }
+        try { const u = await uploadImage(f); if (u) urls.push(u); } catch (err) { emitToast(err.message || "Échec d'upload pour " + f.name); }
       }
       if (urls.length) setEditAd(prev => {
         const nextImages = [...(prev.images||[]), ...urls];
@@ -179,9 +180,9 @@ const Annonces = () => {
     if (!reason) return;
     try {
       await api.post('/api/forum/reports', { targetType: 'ad', targetId: ad.id, reason });
-      alert('Signalement envoyé. Merci.');
+      emitToast('Signalement envoyé. Merci.');
     } catch (e) {
-      alert('Signalement impossible.');
+      emitToast('Signalement impossible.');
     }
   };
 
@@ -225,8 +226,8 @@ const Annonces = () => {
                         await api.delete(`/api/forum/ads/mine/${ad.id}`);
                         await fetchMyAds();
                         await fetchAds();
-                        alert('Annonce supprimée');
-                      } catch (e) { alert('Suppression impossible.'); }
+                        emitToast('Annonce supprimée');
+                      } catch (e) { emitToast('Suppression impossible.'); }
                     }}>Supprimer</button>
                   </div>
                 </div>
@@ -452,9 +453,9 @@ const Annonces = () => {
                 setShowEditModal(false);
                 await fetchMyAds();
                 await fetchAds();
-                alert("Modifications enregistrées (l'annonce repasse en attente d'approbation).");
+                emitToast("Modifications enregistrées (l'annonce repasse en attente d'approbation).");
               } catch (err) {
-                alert('Mise à jour impossible.');
+                emitToast('Mise à jour impossible.');
               }
             }}>
               <div className="form-group">

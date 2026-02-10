@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Forum.css';
 import api from '../../services/api';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
+import { emitToast } from '../../utils/toast';
 
 const BoiteIdees = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const BoiteIdees = () => {
       setNewIdea({ titre: '', description: '' });
       await fetchIdeas();
     } catch (err) {
-      alert('Publication impossible (connexion requise).');
+      emitToast('Publication impossible (connexion requise).');
     }
   };
 
@@ -79,7 +80,7 @@ const BoiteIdees = () => {
       const votes = typeof r?.data?.votes === 'number' ? r.data.votes : idea.votes;
       setIdees(prev => prev.map(i => i.id === idea.id ? { ...i, votes } : i));
     } catch (e) {
-      alert('Vote impossible.');
+      emitToast('Vote impossible.');
     }
   };
 
@@ -90,9 +91,9 @@ const BoiteIdees = () => {
     if (!reason) return;
     try {
       await api.post('/api/forum/reports', { targetType: 'idea', targetId: idea.id, reason });
-      alert('Signalement envoyé. Merci.');
+      emitToast('Signalement envoyé. Merci.');
     } catch (e) {
-      alert('Signalement impossible.');
+      emitToast('Signalement impossible.');
     }
   };
 

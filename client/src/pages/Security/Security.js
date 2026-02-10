@@ -5,6 +5,7 @@ import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import useSeo from '../../hooks/useSeo';
+import { emitToast } from '../../utils/toast';
 
 const Security = () => {
   useSeo({
@@ -40,11 +41,11 @@ const Security = () => {
       const typeStr = (data.type || '').trim();
       const descStr = (data.description || '').trim();
       const locStr = (data.location || '').trim();
-      if (!typeStr) { alert('Le type est requis.'); return; }
-      if (!descStr) { alert('La description est requise.'); return; }
-      if (typeStr.length > 100) { alert('Le type est trop long (max 100 caractères).'); return; }
-      if (descStr.length > 2000) { alert('La description est trop longue (max 2000 caractères).'); return; }
-      if (locStr.length > 300) { alert('Le lieu est trop long (max 300 caractères).'); return; }
+      if (!typeStr) { emitToast('Le type est requis.'); return; }
+      if (!descStr) { emitToast('La description est requise.'); return; }
+      if (typeStr.length > 100) { emitToast('Le type est trop long (max 100 caractères).'); return; }
+      if (descStr.length > 2000) { emitToast('La description est trop longue (max 2000 caractères).'); return; }
+      if (locStr.length > 300) { emitToast('Le lieu est trop long (max 300 caractères).'); return; }
       const occurredAt = data.date ? new Date(`${data.date}${data.time ? 'T' + data.time : ''}`) : undefined;
       // Upload attachments if any
       let attachments = [];
@@ -78,7 +79,7 @@ const Security = () => {
       // recharger incidents
       await fetchIncidents();
     } catch (e) {
-      alert("Échec de l'envoi. Réessayez plus tard.");
+      emitToast("Échec de l'envoi. Réessayez plus tard.");
     }
   };
 

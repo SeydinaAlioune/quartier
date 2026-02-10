@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import './Forum.css';
 import useSeo from '../../hooks/useSeo';
+import { emitToast } from '../../utils/toast';
 
 const Topic = () => {
   const { id } = useParams();
@@ -49,7 +50,7 @@ const Topic = () => {
       setReply('');
       await load();
     } catch (err) {
-      alert("Réponse impossible (vérifiez votre connexion). ");
+      emitToast("Réponse impossible (vérifiez votre connexion).");
     } finally {
       setSending(false);
     }

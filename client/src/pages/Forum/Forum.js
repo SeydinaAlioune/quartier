@@ -6,6 +6,7 @@ import './Forum.css';
 import api from '../../services/api';
 import useAuth from '../../hooks/useAuth';
 import useSeo from '../../hooks/useSeo';
+import { emitToast } from '../../utils/toast';
 
 const Forum = () => {
   useSeo({
@@ -139,7 +140,7 @@ const Forum = () => {
       const title = (newDiscussion.title || '').trim();
       const content = (newDiscussion.content || '').trim();
       if (!title || !newDiscussion.categoryId || !content) {
-        alert('Titre, catégorie et contenu requis.');
+        emitToast('Titre, catégorie et contenu requis.');
         return;
       }
 
@@ -155,7 +156,7 @@ const Forum = () => {
       const topicsRes = await api.get('/api/forum/topics/recent');
       setTopics(Array.isArray(topicsRes.data) ? topicsRes.data : []);
     } catch (err) {
-      alert("Impossible de créer la discussion (connexion requise).");
+      emitToast("Impossible de créer la discussion (connexion requise).");
     }
   };
 

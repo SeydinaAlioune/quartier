@@ -73,6 +73,17 @@ function AppLayout() {
     return () => window.clearTimeout(t);
   }, [flashFromState]);
 
+  useEffect(() => {
+    const onToast = (e) => {
+      const msg = e?.detail?.message;
+      if (typeof msg !== 'string' || !msg.trim()) return;
+      setToast(msg);
+      window.setTimeout(() => setToast(''), 3200);
+    };
+    window.addEventListener('qc_toast', onToast);
+    return () => window.removeEventListener('qc_toast', onToast);
+  }, []);
+
   return (
     <div className="App">
       {toast && (
