@@ -26,9 +26,7 @@ const AdminNews = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(10);
-  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
-  const [showComments, setShowComments] = useState(false);
-  const [showAnnouncements, setShowAnnouncements] = useState(false);
+  const [activeTab, setActiveTab] = useState('articles'); // articles|media|comments|announcements
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -71,6 +69,11 @@ const AdminNews = () => {
   // Modal sélecteur de média (au-dessus des autres modales)
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const pickerFileRef = useRef(null);
+
+  const isArticlesTab = activeTab === 'articles';
+  const isMediaTab = activeTab === 'media';
+  const isCommentsTab = activeTab === 'comments';
+  const isAnnouncementsTab = activeTab === 'announcements';
 
   // Appliquer l'URL donnée en tant que couverture, selon la cible (create/edit)
   const applyMediaAsCover = (url) => {
@@ -271,19 +274,19 @@ const AdminNews = () => {
     fetchMedia();
   }, [fetchMedia]);
   useEffect(() => {
-    if (showMediaLibrary) fetchMedia();
-  }, [fetchMedia, showMediaLibrary]);
+    if (isMediaTab) fetchMedia();
+  }, [fetchMedia, isMediaTab]);
   // Rafraîchir quand le type change
   useEffect(() => {
-    if (showMediaLibrary) fetchMedia();
-  }, [fetchMedia, mediaTypeFilter, showMediaLibrary]);
+    if (isMediaTab) fetchMedia();
+  }, [fetchMedia, mediaTypeFilter, isMediaTab]);
   useEffect(() => {
-    if (showComments) fetchComments();
-  }, [fetchComments, showComments]);
+    if (isCommentsTab) fetchComments();
+  }, [fetchComments, isCommentsTab]);
   // Charger les annonces importantes quand la section est ouverte
   useEffect(() => {
-    if (showAnnouncements) fetchAnnouncements();
-  }, [fetchAnnouncements, showAnnouncements]);
+    if (isAnnouncementsTab) fetchAnnouncements();
+  }, [fetchAnnouncements, isAnnouncementsTab]);
 
   // Compteur temps réel des annonces actives/inactives
   useEffect(() => {
@@ -374,7 +377,7 @@ const AdminNews = () => {
     try {
       await api.post(`/api/posts/${postId}/comments`, { content });
       emitToast('Réponse publiée');
-      if (showComments) fetchComments();
+      if (isCommentsTab) fetchComments();
     } catch (e) {
       emitToast("Impossible de répondre (connexion requise).");
     }
@@ -888,41 +891,44 @@ const AdminNews = () => {
               <h1>Articles</h1>
               <p className="header-subtitle">Gérez vos articles, médias et commentaires</p>
             </div>
-            <div className="header-actions">
+            <div className="header-actions" role="tablist" aria-label="Sections actualités">
               <button
-                className="media-btn"
                 type="button"
-                onClick={() => {
-                  setShowMediaLibrary((v) => !v);
-                  setShowComments(false);
-                  setShowAnnouncements(false);
-                }}
+                className={isArticlesTab ? 'news-tab is-active' : 'news-tab'}
+                onClick={() => setActiveTab('articles')}
+                role="tab"
+                aria-selected={isArticlesTab}
+              >
+                <span>Articles</span>
+              </button>
+              <button
+                type="button"
+                className={isMediaTab ? 'news-tab is-active' : 'news-tab'}
+                onClick={() => setActiveTab('media')}
+                role="tab"
+                aria-selected={isMediaTab}
               >
                 <Folder size={18} aria-hidden="true" />
                 <span>Médias</span>
                 <span className="count-badge">{mediaTotal}</span>
               </button>
               <button
-                className="comments-btn"
                 type="button"
-                onClick={() => {
-                  setShowComments((v) => !v);
-                  setShowMediaLibrary(false);
-                  setShowAnnouncements(false);
-                }}
+                className={isCommentsTab ? 'news-tab is-active' : 'news-tab'}
+                onClick={() => setActiveTab('comments')}
+                role="tab"
+                aria-selected={isCommentsTab}
               >
                 <MessageSquare size={18} aria-hidden="true" />
                 <span>Commentaires</span>
                 <span className="count-badge">{commentsTotal || '—'}</span>
               </button>
               <button
-                className="comments-btn"
                 type="button"
-                onClick={() => {
-                  setShowAnnouncements((v) => !v);
-                  setShowMediaLibrary(false);
-                  setShowComments(false);
-                }}
+                className={isAnnouncementsTab ? 'news-tab is-active' : 'news-tab'}
+                onClick={() => setActiveTab('announcements')}
+                role="tab"
+                aria-selected={isAnnouncementsTab}
               >
                 <Megaphone size={18} aria-hidden="true" />
                 <span>Annonces</span>
@@ -931,16 +937,42 @@ const AdminNews = () => {
                   <span className={`count-badge ${annInactiveCount>0?'inactive':''}`} title="Inactives à modérer">{annInactiveCount}</span>
                 )}
               </button>
-              <button className="add-news-btn" type="button" onClick={() => setShowAddModal(true)}>
-                <Plus size={18} aria-hidden="true" />
-                <span>Créer un article</span>
-              </button>
             </div>
           </div>
 
-          {showMediaLibrary && renderMediaLibrary()}
-          {showComments && <CommentsSection />}
-          {showAnnouncements && renderAnnouncementsSection()}
+          <div className="news-shortcuts" role="region" aria-label="Raccourcis">
+            <div className="news-shortcuts__label">Raccourcis</div>
+            <div className="news-shortcuts__actions">
+              {isArticlesTab && (
+                <button className="add-news-btn" type="button" onClick={() => setShowAddModal(true)}>
+                  <Plus size={18} aria-hidden="true" />
+                  <span>Créer un article</span>
+                </button>
+              )}
+              {isMediaTab && (
+                <button className="add-news-btn" type="button" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+                  <Plus size={18} aria-hidden="true" />
+                  <span>Importer des médias</span>
+                </button>
+              )}
+              {isAnnouncementsTab && (
+                <button className="add-news-btn" type="button" onClick={openCreateAnn}>
+                  <Plus size={18} aria-hidden="true" />
+                  <span>Nouvelle annonce</span>
+                </button>
+              )}
+              {isCommentsTab && (
+                <button className="btn-secondary" type="button" onClick={fetchComments}>
+                  <RefreshCw size={16} aria-hidden="true" />
+                  Rafraîchir
+                </button>
+              )}
+            </div>
+          </div>
+
+          {isMediaTab && renderMediaLibrary()}
+          {isCommentsTab && <CommentsSection />}
+          {isAnnouncementsTab && renderAnnouncementsSection()}
           <MediaPicker />
           <MediaViewer />
 
@@ -976,7 +1008,7 @@ const AdminNews = () => {
                         onChange={(e) => setEditing({ ...editing, coverUrl: e.target.value })}
                         placeholder="/uploads/monfichier.jpg"
                       />
-                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'edit', id: editing.id }); setShowMediaLibrary(false); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
+                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'edit', id: editing.id }); setActiveTab('media'); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
                     </div>
                   </div>
                   <div className="modal-actions">
@@ -1020,7 +1052,7 @@ const AdminNews = () => {
                         onChange={(e) => setNewPost({ ...newPost, coverUrl: e.target.value })}
                         placeholder="/uploads/monfichier.jpg"
                       />
-                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'create' }); setShowMediaLibrary(false); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
+                      <button type="button" onClick={() => { setChooseCoverFor({ mode: 'create' }); setActiveTab('media'); setShowMediaPicker(true); }}>Choisir dans la bibliothèque</button>
                     </div>
                   </div>
                   <div className="modal-actions">
@@ -1032,6 +1064,7 @@ const AdminNews = () => {
             </div>
           )}
 
+          {isArticlesTab && (
           <div className="stats-section">
             <div className="stats-grid">
               <div className="stats-card">
@@ -1088,7 +1121,9 @@ const AdminNews = () => {
               </div>
             </div>
           </div>
+          )}
 
+          {isArticlesTab && (
           <div className="articles-section">
             <div className="articles-header">
               <h2>Liste des Articles</h2>
@@ -1271,6 +1306,7 @@ const AdminNews = () => {
               <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>{'>'}</button>
             </div>
           </div>
+          )}
       </div>
     </AdminLayout>
   );
