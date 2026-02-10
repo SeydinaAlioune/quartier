@@ -381,29 +381,35 @@ const AdminForum = () => {
       <div className="stats-row">
         <div className="stats-card trending">
           <h3>Catégories les plus actives</h3>
-          <div className="trending-categories">
-            {(forumStats?.topCategories || []).map((category, index) => (
+          <div className="trending-categories" aria-label="Top catégories">
+            {(forumStats?.topCategories || []).slice(0, 5).map((category, index) => (
               <div key={index} className="trending-item">
-                <div className="trending-info">
-                  <span className="trending-name">{category.name}</span>
-                  <span className="trending-posts">{category.posts} posts</span>
+                <div className="trending-row">
+                  <div className="trending-left">
+                    <span className="trending-rank">#{index + 1}</span>
+                    <span className="trending-name">{category.name}</span>
+                  </div>
+                  <span className="trending-count">{category.posts} messages</span>
                 </div>
-                <div className="progress-bar">
-                  <div 
+                <div className="progress-bar" aria-hidden="true">
+                  <div
                     className="progress-fill"
-                    style={{ width: `${category.percentage}%` }}
+                    style={{ width: `${Math.max(0, Math.min(100, Number(category.percentage) || 0))}%` }}
                   />
                 </div>
               </div>
             ))}
+            {(forumStats?.topCategories || []).length === 0 && (
+              <div className="empty-muted">Aucune donnée.</div>
+            )}
           </div>
         </div>
         <div className="stats-card activity">
           <h3>Activité récente</h3>
           <div className="activity-list">
-            {(forumStats?.recentActivity || []).map((activity, index) => (
+            {(forumStats?.recentActivity || []).slice(0, 6).map((activity, index) => (
               <div key={index} className="activity-item">
-                <div className={`activity-icon ${activity.type}`}>
+                <div className={`activity-icon ${activity.type}`} aria-hidden="true">
                   {activity.type === 'topic' ? (
                     <FileText size={16} aria-hidden="true" />
                   ) : activity.type === 'reply' ? (
@@ -413,13 +419,18 @@ const AdminForum = () => {
                   )}
                 </div>
                 <div className="activity-details">
-                  <p className="activity-text">
-                    <strong>{activity.user}</strong> {activity.action} {activity.content}
-                  </p>
-                  <span className="activity-time">{activity.time}</span>
+                  <div className="activity-line">
+                    <span className="activity-user">{activity.user}</span>
+                    <span className="activity-action">{activity.action}</span>
+                    <span className="activity-content">{activity.content}</span>
+                  </div>
+                  <div className="activity-time">{activity.time}</div>
                 </div>
               </div>
             ))}
+            {(forumStats?.recentActivity || []).length === 0 && (
+              <div className="empty-muted">Aucune activité récente.</div>
+            )}
           </div>
         </div>
       </div>
