@@ -302,14 +302,14 @@
 }
 
 /* Vue d'ensemble améliorée */
-.stats-overview {
+.forum-page .stats-overview {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   padding: 1rem;
 }
 
-.stat-item {
+.forum-page .stat-item {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
@@ -318,9 +318,10 @@
   border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
-.stat-item::before {
+.forum-page .stat-item::before {
   content: '';
   position: absolute;
   top: 0;
@@ -332,16 +333,16 @@
   transition: opacity 0.3s ease;
 }
 
-.stat-item:hover::before {
+.forum-page .stat-item:hover::before {
   opacity: 1;
 }
 
-.stat-item:hover {
+.forum-page .stat-item:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-.stat-value {
+.forum-page .stat-value {
   font-size: 2.5rem;
   font-weight: 700;
   color: #2d3748;
@@ -349,11 +350,24 @@
   line-height: 1;
 }
 
-.stat-label {
+.forum-page .stat-label {
   color: #718096;
   font-size: 0.875rem;
   text-transform: none;
   letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+}
+
+.forum-page .report-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.85rem;
 }
 
 /* Headers de section (Catégories / Sujets / Modération) */
@@ -907,14 +921,16 @@ tr:hover td {
     word-break: normal;
   }
   
-  .forum-tabs {
+  .forum-page .forum-tabs {
     overflow-x: auto;
     padding: 0.5rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scroll-padding: 10px;
   }
 
-  .forum-tabs::-webkit-scrollbar {
+  .forum-page .forum-tabs::-webkit-scrollbar {
     display: none;
   }
   
@@ -923,6 +939,7 @@ tr:hover td {
     white-space: nowrap;
     flex: 0 0 auto;
     font-size: 0.9rem;
+    scroll-snap-align: start;
   }
 
   .section-header {

@@ -520,8 +520,14 @@ const ModerationTab = ({
               )}
             </div>
             <div className="report-meta">
-              <span>Signalé par: {report.reporter}</span>
-              <span>Date: {report.createdAt ? new Date(report.createdAt).toLocaleString('fr-FR') : ''}</span>
+              <div>
+                <span>Signalé par: </span>
+                <span>{report.reporter}</span>
+              </div>
+              <div>
+                <span>Date: </span>
+                <span>{report.createdAt ? new Date(report.createdAt).toLocaleString('fr-FR') : ''}</span>
+              </div>
             </div>
             <div className="report-actions">
               {(report.targetType === 'idea' || report.targetType === 'ad') && (
