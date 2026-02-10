@@ -348,6 +348,7 @@
   color: #2d3748;
   margin-bottom: 0.5rem;
   line-height: 1;
+  display: block;
 }
 
 .forum-page .stat-label {
@@ -359,6 +360,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: keep-all;
+  display: block;
+  max-width: 100%;
 }
 
 .forum-page .report-meta {
@@ -896,7 +899,7 @@ tr:hover td {
     justify-content: center;
   }
   
-  .stats-overview {
+  .forum-page .stats-overview {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     padding: 0.5rem;
@@ -906,19 +909,24 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
 
-  .stat-item {
+  .forum-page .stat-item {
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 96px;
   }
 
-  .stat-value {
+  .forum-page .stat-value {
     font-size: 2rem;
   }
 
-  .stat-label {
+  .forum-page .stat-label {
     text-transform: none;
     letter-spacing: 0;
-    white-space: normal;
-    word-break: normal;
+    white-space: nowrap;
+    word-break: keep-all;
   }
   
   .forum-page .forum-tabs {
@@ -1063,15 +1071,15 @@ tr:hover td {
 }
 
 @media (max-width: 420px) {
-  .stats-overview {
+  .forum-page .stats-overview {
     grid-template-columns: 1fr;
   }
 
-  .stat-value {
+  .forum-page .stat-value {
     font-size: 1.8rem;
   }
 
-  .stat-label {
+  .forum-page .stat-label {
     font-size: 0.85rem;
     overflow-wrap: anywhere;
   }
