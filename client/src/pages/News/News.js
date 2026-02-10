@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import api from '../../services/api';
 import { Link } from 'react-router-dom';
+import { Megaphone } from 'lucide-react';
 import AnimatedSection from '../../components/AnimatedSection/AnimatedSection';
 import useSeo from '../../hooks/useSeo';
 
@@ -102,8 +103,8 @@ const News = () => {
         const res = await api.get('/api/announcements');
         if (!mounted) return;
         const list = Array.isArray(res.data) ? res.data : [];
-        setAnnouncements(list.map(a => ({
-          id: a.id,
+        setAnnouncements(list.map((a, idx) => ({
+          id: a.id || a._id || `${idx}`,
           type: a.title,
           description: a.description,
           buttonText: a.buttonText || '',
@@ -349,10 +350,10 @@ const News = () => {
           </div>
           <div className={`announcements-grid ${announcements.length === 1 ? 'announcements-grid--single' : ''}`}>
             {announcements.map((announcement, idx) => (
-              <AnimatedSection key={announcement.id} delay={idx} animation="scale">
+              <AnimatedSection key={announcement.id || idx} delay={idx} animation="scale">
                 <div className="announcement-card">
                 <h3>
-                  <span className="announcement-icon" aria-hidden="true">📢</span>
+                  <span className="announcement-icon" aria-hidden="true"><Megaphone size={18} /></span>
                   {announcement.type}
                 </h3>
                 <p className={expandedAnnouncements[announcement.id] ? 'announcement-desc is-expanded' : 'announcement-desc'}>
