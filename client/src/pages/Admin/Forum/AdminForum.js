@@ -1,8 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminForum.css';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Eye,
+  FileText,
+  FolderPlus,
+  Pencil,
+  Globe,
+  Lock,
+  MessageCircle,
+  Pin,
+  Trash2,
+  Wrench,
+  XCircle,
+} from 'lucide-react';
 
 const AdminForum = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -31,6 +46,33 @@ const AdminForum = () => {
   const [newTopic, setNewTopic] = useState({ title: '', categoryId: '' });
   const [showTopicDetail, setShowTopicDetail] = useState(false);
   const [topicDetail, setTopicDetail] = useState({ topic: null, posts: [], loading: false, error: '', newPost: '' });
+
+  const topicStatusMeta = (s) => {
+    const v = String(s || '').toLowerCase();
+    if (v === 'pinned') return { key: 'pinned', label: 'Épinglé' };
+    if (v === 'closed') return { key: 'closed', label: 'Fermé' };
+    if (v === 'active') return { key: 'active', label: 'Actif' };
+    return { key: 'unknown', label: String(s || '—') };
+  };
+
+  const filteredTopics = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return (Array.isArray(recentTopics) ? recentTopics : [])
+      .filter((t) => {
+        if (categoryFilter === 'all') return true;
+        const c = (t?.categoryName || t?.category?.name || t?.category || '').toString();
+        return c.toLowerCase() === String(categoryFilter).toLowerCase();
+      })
+      .filter((t) => {
+        if (statusFilter === 'all') return true;
+        return String(t?.status || '').toLowerCase() === String(statusFilter).toLowerCase();
+      })
+      .filter((t) => {
+        if (!q) return true;
+        const hay = `${t?.title || ''} ${t?.author || ''} ${t?.categoryName || t?.category?.name || t?.category || ''}`.toLowerCase();
+        return hay.includes(q);
+      });
+  }, [recentTopics, categoryFilter, statusFilter, searchQuery]);
 
   useEffect(() => {
     const loadForum = async () => {
@@ -341,7 +383,13 @@ const AdminForum = () => {
             {(forumStats?.recentActivity || []).map((activity, index) => (
               <div key={index} className="activity-item">
                 <div className={`activity-icon ${activity.type}`}>
-                  {activity.type === 'topic' ? '📝' : activity.type === 'reply' ? '💬' : '🔧'}
+                  {activity.type === 'topic' ? (
+                    <FileText size={16} aria-hidden="true" />
+                  ) : activity.type === 'reply' ? (
+                    <MessageCircle size={16} aria-hidden="true" />
+                  ) : (
+                    <Wrench size={16} aria-hidden="true" />
+                  )}
                 </div>
                 <div className="activity-details">
                   <p className="activity-text">
@@ -434,7 +482,7 @@ const AdminForum = () => {
                 className="reports-btn" 
                 onClick={() => setActiveTab('moderation')}
               >
-                <span>🚨</span>
+                <AlertTriangle size={18} aria-hidden="true" />
                 <span>Signalements</span>
                 <span className="count-badge">{forumStats?.reportedContent || 0}</span>
               </button>
@@ -442,7 +490,7 @@ const AdminForum = () => {
                 className="category-btn"
                 onClick={handleOpenCreateCategory}
               >
-                <span>📁</span>
+                <FolderPlus size={18} aria-hidden="true" />
                 <span>Nouvelle catégorie</span>
               </button>
             </div>
@@ -535,8 +583,12 @@ const AdminForum = () => {
                         <td>{category.posts}</td>
                         <td>{category.lastActivity ? new Date(category.lastActivity).toLocaleDateString('fr-FR') : '—'}</td>
                         <td className="actions-cell">
-                          <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEditCategory(category)}>✏️</button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteCategory(category.id)}>🗑️</button>
+                          <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEditCategory(category)} aria-label="Modifier">
+                            <Pencil size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteCategory(category.id)} aria-label="Supprimer">
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -564,8 +616,9 @@ const AdminForum = () => {
                     className="filter-select"
                   >
                     <option value="all">Toutes les catégories</option>
-                    <option value="events">Événements</option>
-                    <option value="projects">Projets</option>
+                    {categories.map((c) => (
+                      <option key={c.id || c.name} value={c.name}>{c.name}</option>
+                    ))}
                   </select>
                   <select
                     value={statusFilter}
@@ -573,9 +626,9 @@ const AdminForum = () => {
                     className="filter-select"
                   >
                     <option value="all">Tous les statuts</option>
-                    <option value="active">Actifs</option>
-                    <option value="pinned">Épinglés</option>
-                    <option value="closed">Fermés</option>
+                    <option value="active">Actif</option>
+                    <option value="pinned">Épinglé</option>
+                    <option value="closed">Fermé</option>
                   </select>
                 </div>
                 <div>
@@ -598,9 +651,7 @@ const AdminForum = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentTopics
-                      .filter(t => categoryFilter === 'all' || t.category?.toLowerCase().includes(categoryFilter.toLowerCase()))
-                      .map(topic => (
+                    {filteredTopics.map(topic => (
                       <tr key={topic.id}>
                         <td>{topic.title}</td>
                         <td>
@@ -610,17 +661,30 @@ const AdminForum = () => {
                         <td>{topic.replies}</td>
                         <td>{topic.views}</td>
                         <td>
-                          <span className={`status-badge ${topic.status}`}>
-                            {topic.status}
-                          </span>
+                          {(() => {
+                            const st = topicStatusMeta(topic.status);
+                            return (
+                              <span className={`status-badge status-${st.key}`}>
+                                {st.label}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td>{topic.created ? new Date(topic.created).toLocaleDateString('fr-FR') : '—'}</td>
                         <td>{topic.lastReply ? new Date(topic.lastReply).toLocaleDateString('fr-FR') : '—'}</td>
                         <td className="actions-cell">
-                          <button className="action-btn view" title="Voir" onClick={() => handleOpenTopicDetail(topic)}>👁️</button>
-                          <button className="action-btn pin" title="Épingler" onClick={() => handleTogglePin(topic)}>📌</button>
-                          <button className="action-btn close" title="Fermer" onClick={() => handleToggleClose(topic)}>🔒</button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteTopic(topic)}>🗑️</button>
+                          <button className="action-btn view" title="Voir" onClick={() => handleOpenTopicDetail(topic)} aria-label="Voir">
+                            <Eye size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn pin" title="Épingler" onClick={() => handleTogglePin(topic)} aria-label="Épingler">
+                            <Pin size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn close" title="Fermer" onClick={() => handleToggleClose(topic)} aria-label="Fermer">
+                            <Lock size={16} aria-hidden="true" />
+                          </button>
+                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteTopic(topic)} aria-label="Supprimer">
+                            <Trash2 size={16} aria-hidden="true" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -670,10 +734,22 @@ const AdminForum = () => {
                           <div style={{ color: '#718096', fontSize: '0.9rem' }}>Par {ad.author || '—'} • {ad.createdAt ? new Date(ad.createdAt).toLocaleString('fr-FR') : ''}</div>
                         </div>
                         <div className="report-actions" style={{ display: 'flex', gap: '8px' }}>
-                          <button className="action-btn approve" title="Approuver" onClick={() => handleApproveAd(ad)}>✅ Approuver</button>
-                          <button className="action-btn reject" title="Rejeter" onClick={() => handleRejectAd(ad)}>⛔ Rejeter</button>
-                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteAd(ad)}>🗑️ Supprimer</button>
-                          <a className="action-btn view" href={`/forum?hlType=ad&hlId=${ad.id}`} target="_blank" rel="noreferrer">🌐 Ouvrir côté public</a>
+                          <button className="action-btn approve" title="Approuver" onClick={() => handleApproveAd(ad)}>
+                            <CheckCircle2 size={16} aria-hidden="true" />
+                            Approuver
+                          </button>
+                          <button className="action-btn reject" title="Rejeter" onClick={() => handleRejectAd(ad)}>
+                            <XCircle size={16} aria-hidden="true" />
+                            Rejeter
+                          </button>
+                          <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteAd(ad)}>
+                            <Trash2 size={16} aria-hidden="true" />
+                            Supprimer
+                          </button>
+                          <a className="action-btn view" href={`/forum?hlType=ad&hlId=${ad.id}`} target="_blank" rel="noreferrer">
+                            <Globe size={16} aria-hidden="true" />
+                            Ouvrir côté public
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -713,15 +789,24 @@ const AdminForum = () => {
                     <div className="report-actions">
                       {(report.targetType === 'idea' || report.targetType === 'ad') && (
                         <>
-                          <button className="action-btn view" onClick={() => handleOpenReportPreview(report)}>👁️ Voir</button>
-                          <button className="action-btn delete" onClick={() => handleDeleteTarget(report)}>🗑️ Supprimer l'élément</button>
+                          <button className="action-btn view" onClick={() => handleOpenReportPreview(report)}>
+                            <Eye size={16} aria-hidden="true" />
+                            Voir
+                          </button>
+                          <button className="action-btn delete" onClick={() => handleDeleteTarget(report)}>
+                            <Trash2 size={16} aria-hidden="true" />
+                            Supprimer l'élément
+                          </button>
                           <a
                             className="action-btn view"
                             href={`/forum?hlType=${report.targetType}&hlId=${report.targetId}`}
                             target="_blank"
                             rel="noreferrer"
                             title="Ouvrir côté public"
-                          >🌐 Ouvrir côté public</a>
+                          >
+                            <Globe size={16} aria-hidden="true" />
+                            Ouvrir côté public
+                          </a>
                           {report.targetType === 'ad' && (
                             <>
                               <button className="action-btn approve" title="Approuver l'annonce" onClick={async () => {
@@ -731,14 +816,20 @@ const AdminForum = () => {
                                   // mettre à jour l'état affiché
                                   setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'approved' } : r));
                                 } catch (e) { emitToast('Action impossible.'); }
-                              }}>✅ Approuver</button>
+                              }}>
+                                <CheckCircle2 size={16} aria-hidden="true" />
+                                Approuver
+                              </button>
                               <button className="action-btn reject" title="Rejeter l'annonce" onClick={async () => {
                                 try {
                                   await api.put(`/api/forum/ads/${report.targetId}/status`, { status: 'rejected' });
                                   emitToast('Annonce rejetée');
                                   setReportedContent(prev => prev.map(r => r.id === report.id ? { ...r, targetStatus: 'rejected' } : r));
                                 } catch (e) { emitToast('Action impossible.'); }
-                              }}>⛔ Rejeter</button>
+                              }}>
+                                <XCircle size={16} aria-hidden="true" />
+                                Rejeter
+                              </button>
                             </>
                           )}
                         </>

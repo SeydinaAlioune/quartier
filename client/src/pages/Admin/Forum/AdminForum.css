@@ -192,13 +192,13 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-table {
+.forum-page table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-th {
+.forum-page th {
   background-color: #f8fafc;
   padding: 1rem 1.5rem;
   font-weight: 600;
@@ -208,7 +208,7 @@ th {
   letter-spacing: 0.5px;
 }
 
-td {
+.forum-page td {
   padding: 1rem 1.5rem;
   color: #2d3748;
   border-bottom: 1px solid #e2e8f0;
@@ -230,6 +230,21 @@ tr:hover td {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.status-badge.status-active {
+  background-color: #c6f6d5;
+  color: #2f855a;
+}
+
+.status-badge.status-pinned {
+  background-color: #fefcbf;
+  color: #975a16;
+}
+
+.status-badge.status-closed {
+  background-color: #fed7d7;
+  color: #c53030;
 }
 
 .status-badge.actif {
@@ -326,7 +341,7 @@ tr:hover td {
 }
 
 /* Modales */
-.modal-overlay {
+.forum-page .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -339,7 +354,7 @@ tr:hover td {
   z-index: 1000;
 }
 
-.modal-content {
+.forum-page .modal-content {
   background: white;
   border-radius: 12px;
   padding: 2rem;
@@ -385,7 +400,24 @@ tr:hover td {
   }
   
   .stats-overview {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .stat-item {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .stat-label {
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: normal;
+    word-break: normal;
   }
   
   .forum-tabs {
