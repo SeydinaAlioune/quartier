@@ -51,7 +51,7 @@
   text-transform: uppercase;
   font-size: 0.78rem;
   padding: 0.35rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--qc-radius-pill, 999px);
   border: 1px solid rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.08);
   width: fit-content;
@@ -176,10 +176,10 @@
 }
 
 .security-chip {
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(15, 23, 42, 0.02);
-  color: #0f172a;
-  border-radius: 999px;
+  border: 1px solid var(--qc-color-border, rgba(15, 23, 42, 0.12));
+  background: var(--qc-color-surface-softer, rgba(15, 23, 42, 0.02));
+  color: var(--qc-color-text, #0f172a);
+  border-radius: var(--qc-radius-pill, 999px);
   padding: 0.55rem 0.85rem;
   font-weight: 900;
   cursor: pointer;
@@ -192,8 +192,8 @@
 
 .security-chip:focus-visible,
 .security-hero-btn:focus-visible {
-  outline: 3px solid rgba(0, 166, 81, 0.35);
-  outline-offset: 2px;
+  outline: var(--qc-focus-ring, 3px solid rgba(0, 166, 81, 0.35));
+  outline-offset: var(--qc-focus-ring-offset, 2px);
 }
 
 .security-chip.active {
@@ -229,11 +229,11 @@
 
 .security-results {
   font-weight: 900;
-  color: #0f172a;
-  background: rgba(15, 23, 42, 0.04);
-  border: 1px solid rgba(15, 23, 42, 0.10);
+  color: var(--qc-color-text, #0f172a);
+  background: var(--qc-color-surface-strong, rgba(15, 23, 42, 0.04));
+  border: 1px solid var(--qc-color-border-soft, rgba(15, 23, 42, 0.10));
   padding: 0.45rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--qc-radius-pill, 999px);
 }
 
 .security-urgent {

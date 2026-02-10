@@ -36,7 +36,7 @@
   text-transform: uppercase;
   font-size: 0.78rem;
   padding: 0.35rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--qc-radius-pill, 999px);
   border: 1px solid rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.08);
   width: fit-content;
@@ -138,10 +138,10 @@
 }
 
 .directory-chip {
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(15, 23, 42, 0.02);
-  color: #0f172a;
-  border-radius: 999px;
+  border: 1px solid var(--qc-color-border, rgba(15, 23, 42, 0.12));
+  background: var(--qc-color-surface-softer, rgba(15, 23, 42, 0.02));
+  color: var(--qc-color-text, #0f172a);
+  border-radius: var(--qc-radius-pill, 999px);
   padding: 0.55rem 0.85rem;
   font-weight: 900;
   cursor: pointer;
@@ -185,19 +185,19 @@
 
 .directory-results {
   font-weight: 900;
-  color: #0f172a;
-  background: rgba(15, 23, 42, 0.04);
-  border: 1px solid rgba(15, 23, 42, 0.10);
+  color: var(--qc-color-text, #0f172a);
+  background: var(--qc-color-surface-strong, rgba(15, 23, 42, 0.04));
+  border: 1px solid var(--qc-color-border-soft, rgba(15, 23, 42, 0.10));
   padding: 0.45rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--qc-radius-pill, 999px);
 }
 
 .directory-reset {
-  border: 1px solid rgba(15, 23, 42, 0.14);
+  border: 1px solid var(--qc-color-border-strong, rgba(15, 23, 42, 0.14));
   background: transparent;
-  color: #0f172a;
+  color: var(--qc-color-text, #0f172a);
   padding: 0.55rem 0.8rem;
-  border-radius: 12px;
+  border-radius: var(--qc-radius-sm, 12px);
   font-weight: 900;
   cursor: pointer;
 }
@@ -209,8 +209,8 @@
 
 .directory-toolbar {
   margin: 0 1rem;
-  background: rgba(15, 23, 42, 0.03);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: var(--qc-color-surface-soft, rgba(15, 23, 42, 0.03));
+  border: 1px solid var(--qc-color-border-softer, rgba(15, 23, 42, 0.08));
   border-radius: 16px;
   padding: 0.9rem;
 }

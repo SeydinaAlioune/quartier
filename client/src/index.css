@@ -10,10 +10,15 @@
 
   --qc-color-border: rgba(15, 23, 42, 0.12);
   --qc-color-border-soft: rgba(15, 23, 42, 0.10);
+  --qc-color-border-softer: rgba(15, 23, 42, 0.08);
+  --qc-color-border-strong: rgba(15, 23, 42, 0.14);
   --qc-color-surface-soft: rgba(15, 23, 42, 0.03);
+  --qc-color-surface-softer: rgba(15, 23, 42, 0.02);
+  --qc-color-surface-strong: rgba(15, 23, 42, 0.04);
 
   --qc-radius-md: 16px;
   --qc-radius-lg: 18px;
+  --qc-radius-sm: 12px;
   --qc-radius-pill: 999px;
 
   --qc-shadow-card: 0 18px 60px rgba(15, 23, 42, 0.06);
