@@ -3,6 +3,8 @@ const router = express.Router();
 const mediaController = require('../controllers/media.controller');
 const { auth, checkRole } = require('../middleware/auth.middleware');
 const { upload, handleUploadError } = require('../middleware/upload.middleware');
+const { rateLimit } = require('../middleware/rateLimit.middleware');
+const { validateMediaUploadMeta } = require('../middleware/contentValidation.middleware');
 
 // Routes publiques
 router.get('/', mediaController.getMedia);
@@ -12,7 +14,7 @@ router.get('/:id', mediaController.getOneMedia);
 router.use(auth);
 
 // Routes pour la gestion des médias
-router.post('/', upload.single('media'), handleUploadError, mediaController.uploadMedia);
+router.post('/', rateLimit({ windowMs: 60_000, max: 10 }), validateMediaUploadMeta, upload.single('media'), handleUploadError, mediaController.uploadMedia);
 router.put('/:id', mediaController.updateMedia);
 router.delete('/:id', mediaController.deleteMedia);
 

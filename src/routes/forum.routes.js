@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 const forumController = require('../controllers/forum.controller');
 const { auth, checkRole } = require('../middleware/auth.middleware');
+const { rateLimit } = require('../middleware/rateLimit.middleware');
+const {
+  validateForumTopicCreate,
+  validateForumPostCreate,
+  validateForumAdCreate,
+  validateForumIdeaCreate,
+  validateForumReportCreate,
+} = require('../middleware/contentValidation.middleware');
 
 // Public forum analytics/listing endpoints
 router.get('/stats', forumController.getStats);
@@ -22,28 +30,28 @@ router.put('/categories/:id', checkRole(['admin']), forumController.updateCatego
 router.delete('/categories/:id', checkRole(['admin']), forumController.deleteCategory);
 
 // Topics (create: any authenticated; moderation: admin)
-router.post('/topics', forumController.createTopic);
+router.post('/topics', rateLimit({ windowMs: 60_000, max: 8 }), validateForumTopicCreate, forumController.createTopic);
 router.put('/topics/:id/pin', checkRole(['admin']), forumController.pinTopic);
 router.put('/topics/:id/close', checkRole(['admin']), forumController.closeTopic);
 router.delete('/topics/:id', checkRole(['admin']), forumController.deleteTopic);
 
 // Posts
-router.post('/posts', forumController.createPost);
+router.post('/posts', rateLimit({ windowMs: 60_000, max: 20 }), validateForumPostCreate, forumController.createPost);
 router.put('/posts/:id/hide', checkRole(['admin']), forumController.hidePost);
 router.delete('/posts/:id', checkRole(['admin']), forumController.deletePost);
 
 // Ads (auth to create)
 router.get('/ads/mine', forumController.getMyAds);
-router.post('/ads', forumController.createAd);
+router.post('/ads', rateLimit({ windowMs: 60_000, max: 6 }), validateForumAdCreate, forumController.createAd);
 router.put('/ads/mine/:id', forumController.updateMyAd);
 router.delete('/ads/mine/:id', forumController.deleteMyAd);
 
 // Ideas (auth to create/vote)
-router.post('/ideas', forumController.createIdea);
+router.post('/ideas', rateLimit({ windowMs: 60_000, max: 6 }), validateForumIdeaCreate, forumController.createIdea);
 router.post('/ideas/:id/vote', forumController.voteIdea);
 
 // Reports (auth to create, admin to list/update)
-router.post('/reports', forumController.createReport);
+router.post('/reports', rateLimit({ windowMs: 60_000, max: 8 }), validateForumReportCreate, forumController.createReport);
 router.get('/reports', checkRole(['admin']), forumController.getReports);
 router.put('/reports/:id/status', checkRole(['admin']), forumController.updateReportStatus);
 

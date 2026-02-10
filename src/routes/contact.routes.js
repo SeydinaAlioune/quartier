@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const contactController = require('../controllers/contact.controller');
 const { auth, checkRole } = require('../middleware/auth.middleware');
+const { rateLimit } = require('../middleware/rateLimit.middleware');
+const { validateContactSubmit } = require('../middleware/contentValidation.middleware');
 
 // Routes publiques
-router.post('/submit', contactController.submitContact);
+router.post('/submit', rateLimit({ windowMs: 60_000, max: 5 }), validateContactSubmit, contactController.submitContact);
 router.get('/emergency', contactController.getEmergencyContacts);
 
 // Routes nécessitant une authentification et des droits admin
