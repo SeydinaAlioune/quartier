@@ -49,7 +49,6 @@ const Footer = () => {
       
       <div className="footer-bottom">
         <p>© 2023 QuartierConnect. Tous droits réservés.</p>
-        <Link to="/admin" className="admin-link">Administration</Link>
       </div>
     </footer>
   );
