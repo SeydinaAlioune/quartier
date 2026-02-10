@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
-import AdminDirectory from './Directory/AdminDirectory';
-import AdminNews from './News/AdminNews';
-import AdminSecurity from './Security/AdminSecurity';
-import AdminProjects from './Projects/AdminProjects';
-import AdminDonations from './Donations/AdminDonations';
 import api from '../../services/api';
 import AdminLayout from '../../components/AdminLayout/AdminLayout';
+import { Link } from 'react-router-dom';
+import {
+  Users,
+  Newspaper,
+  MessagesSquare,
+  HeartHandshake,
+  Pencil,
+  Trash2,
+  Eye,
+  Check
+} from 'lucide-react';
 
 const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState('users');
@@ -20,7 +26,8 @@ const Dashboard = () => {
     utilisateurs: { total: 0, nouveaux: '—' },
     actualites: { total: 0, enAttente: '—' },
     forum: { total: '—', nouveaux: '—' },
-    dons: { total: '—', evolution: '—' }
+    dons: { total: '—', evolution: '—' },
+    projets: { total: '—' }
   });
   const [securityReports, setSecurityReports] = useState([]);
 
@@ -77,7 +84,8 @@ const Dashboard = () => {
           utilisateurs: { total: Number(adminStats.users || 0), nouveaux: '—' },
           actualites: { total: Number(adminStats.posts || 0), enAttente: draftsTotal ? `${draftsTotal} en attente de validation` : '—' },
           forum: { total: typeof forumStats.posts === 'number' ? forumStats.posts : '—', nouveaux: typeof forumStats.postsLastWeek === 'number' ? `${forumStats.postsLastWeek} cette semaine` : '—' },
-          dons: { total: donationsSum ? donationsSum.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) : '—', evolution: '—' }
+          dons: { total: donationsSum ? donationsSum.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) : '—', evolution: '—' },
+          projets: { total: Number(adminStats.projects || 0) || '—' }
         });
       } catch (e) {
         // En cas d'erreur, conserver les valeurs par défaut
@@ -116,27 +124,36 @@ const Dashboard = () => {
 
   return (
     <AdminLayout title="Tableau de Bord Administration" notificationsCount={securityReports.length || 0}>
+      <div className="dashboard-page">
         <div className="stats-grid">
           <div className="stat-card">
-            <div className="stat-icon users-icon">👥</div>
+            <div className="stat-icon users-icon" aria-hidden="true">
+              <Users size={18} />
+            </div>
             <h3>Utilisateurs</h3>
             <div className="stat-number">{dashStats.utilisateurs.total}</div>
             <div className="stat-detail">{dashStats.utilisateurs.nouveaux}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon news-icon">📰</div>
+            <div className="stat-icon news-icon" aria-hidden="true">
+              <Newspaper size={18} />
+            </div>
             <h3>Actualités</h3>
             <div className="stat-number">{dashStats.actualites.total}</div>
             <div className="stat-detail">{dashStats.actualites.enAttente}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon forum-icon">💬</div>
+            <div className="stat-icon forum-icon" aria-hidden="true">
+              <MessagesSquare size={18} />
+            </div>
             <h3>Messages Forum</h3>
             <div className="stat-number">{dashStats.forum.total}</div>
             <div className="stat-detail">{dashStats.forum.nouveaux}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon donations-icon">💝</div>
+            <div className="stat-icon donations-icon" aria-hidden="true">
+              <HeartHandshake size={18} />
+            </div>
             <h3>Dons Reçus</h3>
             <div className="stat-number">{dashStats.dons.total}</div>
             <div className="stat-detail">{dashStats.dons.evolution}</div>
@@ -144,29 +161,43 @@ const Dashboard = () => {
         </div>
 
         <div className="recent-activity">
-          <h2>Activité Récente</h2>
-          <div className="activity-tabs">
+          <div className="section-header">
+            <h2>Activité Récente</h2>
+          </div>
+          <div className="activity-tabs" role="tablist" aria-label="Activité récente">
             <button
+              type="button"
               className={selectedTab === 'users' ? 'active' : ''}
               onClick={() => setSelectedTab('users')}
+              role="tab"
+              aria-selected={selectedTab === 'users'}
             >
               Utilisateurs
             </button>
             <button
+              type="button"
               className={selectedTab === 'actualites' ? 'active' : ''}
               onClick={() => setSelectedTab('actualites')}
+              role="tab"
+              aria-selected={selectedTab === 'actualites'}
             >
               Contenus
             </button>
             <button
+              type="button"
               className={selectedTab === 'projets' ? 'active' : ''}
               onClick={() => setSelectedTab('projets')}
+              role="tab"
+              aria-selected={selectedTab === 'projets'}
             >
               Projets
             </button>
             <button
+              type="button"
               className={selectedTab === 'dons' ? 'active' : ''}
               onClick={() => setSelectedTab('dons')}
+              role="tab"
+              aria-selected={selectedTab === 'dons'}
             >
               Dons
             </button>
@@ -188,129 +219,198 @@ const Dashboard = () => {
                   <option value="pending">En attente</option>
                   <option value="inactive">Inactif</option>
                 </select>
+                <Link className="link-btn" to="/admin/users">Voir tout</Link>
               </div>
 
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Date d'inscription</th>
-                    <th>Statut</th>
-                    <th>Rôle</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersLoading && (
+              <div className="table-scroll" role="region" aria-label="Aperçu utilisateurs">
+                <table>
+                  <thead>
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td>
+                      <th>Nom</th>
+                      <th>Email</th>
+                      <th>Date d'inscription</th>
+                      <th>Statut</th>
+                      <th>Rôle</th>
+                      <th>Actions</th>
                     </tr>
-                  )}
-                  {!usersLoading && usersData
-                    .filter(u => userStatusFilter === 'all' || u.statut.toLowerCase() === (userStatusFilter === 'pending' ? 'en attente' : userStatusFilter))
-                    .filter(u => {
-                      const q = userSearch.trim().toLowerCase();
-                      return q === '' || u.nom.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-                    })
-                    .slice(0, 5)
-                    .map((user, index) => (
-                      <tr key={index}>
-                        <td>{user.nom}</td>
-                        <td>{user.email}</td>
-                        <td>{user.dateInscription}</td>
-                        <td>
-                          <span className={`status-badge ${user.statut.toLowerCase()}`}>
-                            {user.statut}
-                          </span>
-                        </td>
-                        <td>{user.role}</td>
-                        <td>
-                          <button className="action-btn edit" disabled>✏️</button>
-                          <button className="action-btn delete" disabled>🗑️</button>
-                        </td>
+                  </thead>
+                  <tbody>
+                    {usersLoading && (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td>
                       </tr>
-                    ))}
-                  {!usersLoading && !usersError && usersData.length === 0 && (
-                    <tr>
-                      <td colSpan="6" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
-                    </tr>
-                  )}
-                  {!usersLoading && usersError && (
-                    <tr>
-                      <td colSpan="6" style={{ textAlign: 'center' }}>{usersError}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                    {!usersLoading && usersData
+                      .filter(u => userStatusFilter === 'all' || u.statut.toLowerCase() === (userStatusFilter === 'pending' ? 'en attente' : userStatusFilter))
+                      .filter(u => {
+                        const q = userSearch.trim().toLowerCase();
+                        return q === '' || u.nom.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+                      })
+                      .slice(0, 5)
+                      .map((user, index) => (
+                        <tr key={index}>
+                          <td>{user.nom}</td>
+                          <td>{user.email}</td>
+                          <td>{user.dateInscription}</td>
+                          <td>
+                            <span className={`status-badge ${user.statut.toLowerCase()}`}>
+                              {user.statut}
+                            </span>
+                          </td>
+                          <td>{user.role}</td>
+                          <td>
+                            <button type="button" className="action-btn edit" aria-label="Modifier (indisponible)" title="Indisponible" disabled>
+                              <Pencil size={16} aria-hidden="true" />
+                            </button>
+                            <button type="button" className="action-btn delete" aria-label="Supprimer (indisponible)" title="Indisponible" disabled>
+                              <Trash2 size={16} aria-hidden="true" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    {!usersLoading && !usersError && usersData.length === 0 && (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
+                      </tr>
+                    )}
+                    {!usersLoading && usersError && (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>{usersError}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-              <div className="pagination">
-                <button className="active">1</button>
-                <button>2</button>
-                <button>3</button>
+              <div className="pagination" aria-hidden="true">
+                <button className="active" type="button">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
                 <span>...</span>
-                <button>10</button>
+                <button type="button">10</button>
               </div>
             </div>
           )}
 
-          {selectedTab === 'actualites' && <AdminNews />}
-          {selectedTab === 'annuaire' && <AdminDirectory />}
-          {selectedTab === 'securite' && <AdminSecurity />}
-          {selectedTab === 'projets' && <AdminProjects />}
-          {selectedTab === 'dons' && <AdminDonations />}
+          {selectedTab === 'actualites' && (
+            <div className="preview-panel">
+              <div className="preview-meta">
+                <div>
+                  <div className="preview-title">Actualités</div>
+                  <div className="preview-subtitle">Aperçu des contenus et validation</div>
+                </div>
+                <Link className="link-btn" to="/admin/news">Gérer</Link>
+              </div>
+              <div className="preview-grid">
+                <div className="preview-card">
+                  <div className="preview-label">Total</div>
+                  <div className="preview-value">{dashStats.actualites.total}</div>
+                </div>
+                <div className="preview-card">
+                  <div className="preview-label">Brouillons</div>
+                  <div className="preview-value">{dashStats.actualites.enAttente}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedTab === 'projets' && (
+            <div className="preview-panel">
+              <div className="preview-meta">
+                <div>
+                  <div className="preview-title">Projets</div>
+                  <div className="preview-subtitle">Suivi des projets et mises à jour</div>
+                </div>
+                <Link className="link-btn" to="/admin/projects">Gérer</Link>
+              </div>
+              <div className="preview-grid">
+                <div className="preview-card">
+                  <div className="preview-label">Total</div>
+                  <div className="preview-value">{dashStats.projets.total}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedTab === 'dons' && (
+            <div className="preview-panel">
+              <div className="preview-meta">
+                <div>
+                  <div className="preview-title">Dons</div>
+                  <div className="preview-subtitle">Campagnes et collecte</div>
+                </div>
+                <Link className="link-btn" to="/admin/donations">Gérer</Link>
+              </div>
+              <div className="preview-grid">
+                <div className="preview-card">
+                  <div className="preview-label">Total collecté</div>
+                  <div className="preview-value">{dashStats.dons.total}</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="reports-section">
-          <h2>Derniers Rapports</h2>
-          <div className="reports-tabs">
-            <button className={reportsTab === 'securite' ? 'active' : ''} onClick={() => setReportsTab('securite')}>Sécurité</button>
-            <button className={reportsTab === 'activite' ? 'active' : ''} onClick={() => setReportsTab('activite')}>Activité</button>
-            <button className={reportsTab === 'systeme' ? 'active' : ''} onClick={() => setReportsTab('systeme')}>Système</button>
+          <div className="section-header">
+            <h2>Derniers Rapports</h2>
+          </div>
+          <div className="reports-tabs" role="tablist" aria-label="Derniers rapports">
+            <button type="button" className={reportsTab === 'securite' ? 'active' : ''} onClick={() => setReportsTab('securite')} role="tab" aria-selected={reportsTab === 'securite'}>Sécurité</button>
+            <button type="button" className={reportsTab === 'activite' ? 'active' : ''} onClick={() => setReportsTab('activite')} role="tab" aria-selected={reportsTab === 'activite'}>Activité</button>
+            <button type="button" className={reportsTab === 'systeme' ? 'active' : ''} onClick={() => setReportsTab('systeme')} role="tab" aria-selected={reportsTab === 'systeme'}>Système</button>
+            <Link className="link-btn" to="/admin/security">Voir tout</Link>
           </div>
 
-          <table className="reports-table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleReports.length === 0 ? (
+          <div className="table-scroll" role="region" aria-label="Aperçu rapports">
+            <table className="reports-table">
+              <thead>
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '12px 0' }}>
-                    Aucun rapport pour cet onglet.
-                  </td>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
                 </tr>
-              ) : (
-                visibleReports.map((report, index) => {
-                  const dateStr = report.date || report.createdAt;
-                  const statut = report.severity === 'high' ? 'Urgent' : (report.severity === 'medium' ? 'À examiner' : 'Info');
-                  return (
-                    <tr key={index}>
-                      <td>{report.type || 'Alerte'}</td>
-                      <td>{report.message || report.description || '—'}</td>
-                      <td>{dateStr ? new Date(dateStr).toLocaleString('fr-FR') : '—'}</td>
-                      <td>
-                        <span className={`status-badge ${statut.toLowerCase().replace(' ', '-')}`}>
-                          {statut}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="action-btn view">👁️</button>
-                        <button className="action-btn resolve">✓</button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {visibleReports.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '12px 0' }}>
+                      Aucun rapport pour cet onglet.
+                    </td>
+                  </tr>
+                ) : (
+                  visibleReports.map((report, index) => {
+                    const dateStr = report.date || report.createdAt;
+                    const statut = report.severity === 'high' ? 'Urgent' : (report.severity === 'medium' ? 'À examiner' : 'Info');
+                    return (
+                      <tr key={index}>
+                        <td>{report.type || 'Alerte'}</td>
+                        <td>{report.message || report.description || '—'}</td>
+                        <td>{dateStr ? new Date(dateStr).toLocaleString('fr-FR') : '—'}</td>
+                        <td>
+                          <span className={`status-badge ${statut.toLowerCase().replace(' ', '-')}`}>
+                            {statut}
+                          </span>
+                        </td>
+                        <td>
+                          <button type="button" className="action-btn view" aria-label="Voir (indisponible)" title="Indisponible" disabled>
+                            <Eye size={16} aria-hidden="true" />
+                          </button>
+                          <button type="button" className="action-btn resolve" aria-label="Résoudre (indisponible)" title="Indisponible" disabled>
+                            <Check size={16} aria-hidden="true" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+      </div>
     </AdminLayout>
   );
 };
