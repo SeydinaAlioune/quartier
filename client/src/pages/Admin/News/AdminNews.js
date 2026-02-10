@@ -1138,7 +1138,7 @@ const AdminNews = () => {
           {isArticlesTab && (
           <div className="stats-section">
             <div className="stats-grid">
-              <div className="stats-card">
+              <div className="stats-card stats-card--overview">
                 <h3>Vue d'ensemble</h3>
                 <div className="stats-overview">
                   <div className="stat-item">
