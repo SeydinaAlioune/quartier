@@ -221,11 +221,7 @@
   }
 }
 
-@media (max-width: 1024px) {
-  .stats-overview {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
+
 
 .news-modal-overlay {
   position: fixed;
@@ -853,6 +849,20 @@
   display: block;
   color: #718096;
   font-size: 0.875rem;
+  white-space: normal;
+  word-break: break-word;
+}
+
+@media (max-width: 1024px) {
+  .stats-card--overview .stats-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stats-card--overview .stat-item {
+    padding: 0.85rem;
+  }
+  .stats-card--overview .stat-label {
+    font-size: 0.82rem;
+  }
 }
 
 /* Graphique des catégories */

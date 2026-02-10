@@ -277,3 +277,12 @@
     max-width: none;
   }
 }
+
+@media (max-width: 1024px) {
+  .notif-dropdown {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+  }
+}

@@ -84,7 +84,7 @@ const Dashboard = () => {
           utilisateurs: { total: Number(adminStats.users || 0), nouveaux: '—' },
           actualites: { total: Number(adminStats.posts || 0), enAttente: draftsTotal ? `${draftsTotal} en attente de validation` : '—' },
           forum: { total: typeof forumStats.posts === 'number' ? forumStats.posts : '—', nouveaux: typeof forumStats.postsLastWeek === 'number' ? `${forumStats.postsLastWeek} cette semaine` : '—' },
-          dons: { total: donationsSum ? donationsSum.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) : '—', evolution: '—' },
+          dons: { total: donationsSum ? `${Math.round(donationsSum).toLocaleString('fr-FR')} FCFA` : '—', evolution: '—' },
           projets: { total: Number(adminStats.projects || 0) || '—' }
         });
       } catch (e) {
