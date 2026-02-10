@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminPaymentsConfig.css';
+import { emitToast } from '../../../utils/toast';
 
 const SecretField = ({ label, maskedValue, revealedValue, onReveal, onCopy, onEditChange, isEditing }) => {
   const display = revealedValue != null && revealedValue !== '' ? revealedValue : (maskedValue || '—');
@@ -101,12 +102,12 @@ const AdminPaymentsConfig = () => {
         liveToken: d.liveToken || '',
       });
     } catch {
-      alert("Impossible d'afficher les clés (droits admin requis)");
+      emitToast("Impossible d'afficher les clés (droits admin requis)");
     }
   };
 
   const copyText = async (txt) => {
-    try { await navigator.clipboard.writeText(txt); alert('Copié'); } catch {}
+    try { await navigator.clipboard.writeText(txt); emitToast('Copié'); } catch {}
   };
 
   const save = async () => {
@@ -124,10 +125,10 @@ const AdminPaymentsConfig = () => {
         if (typeof v === 'string' && v.trim() !== '') payload[k] = v.trim();
       });
       await api.put('/api/payments/config', payload);
-      alert('Configuration mise à jour');
+      emitToast('Configuration mise à jour');
       await fetchConfig();
     } catch {
-      alert('Échec de la mise à jour');
+      emitToast('Échec de la mise à jour');
     } finally {
       setSaving(false);
     }

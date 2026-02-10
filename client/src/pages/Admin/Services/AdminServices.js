@@ -3,6 +3,7 @@ import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminServices.css';
 import SERVICE_CATEGORIES from '../../../constants/serviceCategories';
+import { emitToast } from '../../../utils/toast';
 
 const AdminServices = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,7 +139,7 @@ const AdminServices = () => {
       await fetchServices();
     } catch (err) {
       const msg = err?.response?.data?.message || 'Validation impossible.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -149,7 +150,7 @@ const AdminServices = () => {
       await fetchServices();
     } catch (err) {
       const msg = err?.response?.data?.message || 'Rejet impossible.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -160,7 +161,7 @@ const AdminServices = () => {
       await fetchServices();
     } catch (err) {
       const msg = err?.response?.data?.message || 'Suppression impossible. Vérifiez vos droits admin.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -172,7 +173,7 @@ const AdminServices = () => {
       await fetchServices();
     } catch (err) {
       const msg = err?.response?.data?.message || 'Changement de statut impossible.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
@@ -180,11 +181,11 @@ const AdminServices = () => {
     e.preventDefault();
     try {
       if (!isValidHttpsUrl(newService.providerWebsite)) {
-        alert('Le site web du fournisseur doit commencer par https://');
+        emitToast('Le site web du fournisseur doit commencer par https://');
         return;
       }
       if (!isValidPhone(newService.providerPhone)) {
-        alert('Numéro de téléphone invalide. Utilisez des chiffres, espaces, +, -, . (min 6 caractères).');
+        emitToast('Numéro de téléphone invalide. Utilisez des chiffres, espaces, +, -, . (min 6 caractères).');
         return;
       }
       await api.post('/api/services', {
@@ -207,7 +208,7 @@ const AdminServices = () => {
       setNewService({ name: '', description: '', category: 'Municipal', providerName: '', providerEmail: '', providerPhone: '', providerWebsite: '', locationAddress: '' });
       fetchServices();
     } catch (err) {
-      alert("Création de service impossible. Vérifiez vos droits admin.");
+      emitToast("Création de service impossible. Vérifiez vos droits admin.");
     }
   };
 
@@ -232,11 +233,11 @@ const AdminServices = () => {
     if (!editService) return;
     try {
       if (!isValidHttpsUrl(editService.providerWebsite)) {
-        alert('Le site web du fournisseur doit commencer par https://');
+        emitToast('Le site web du fournisseur doit commencer par https://');
         return;
       }
       if (!isValidPhone(editService.providerPhone)) {
-        alert('Numéro de téléphone invalide. Utilisez des chiffres, espaces, +, -, . (min 6 caractères).');
+        emitToast('Numéro de téléphone invalide. Utilisez des chiffres, espaces, +, -, . (min 6 caractères).');
         return;
       }
       const payload = {
@@ -262,7 +263,7 @@ const AdminServices = () => {
       await fetchServices();
     } catch (err) {
       const msg = err?.response?.data?.message || 'Mise à jour impossible.';
-      alert(msg);
+      emitToast(msg);
     }
   };
 
