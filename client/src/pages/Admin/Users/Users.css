@@ -9,12 +9,15 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .users-header h1 {
   font-size: 1.8rem;
   color: #2d3748;
   margin: 0;
+  min-width: 0;
 }
 
 .add-user-btn {
@@ -34,11 +37,6 @@
 .add-user-btn:hover {
   background-color: #008f45;
   transform: translateY(-1px);
-}
-
-.add-user-btn span {
-  font-size: 1.2rem;
-  font-weight: bold;
 }
 
 .users-section {
@@ -63,7 +61,7 @@
   gap: 1rem;
 }
 
-.search-input {
+.users-page .search-input {
   flex: 1;
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
@@ -72,17 +70,17 @@
   transition: border-color 0.2s ease;
 }
 
-.search-input:focus {
+.users-page .search-input:focus {
   outline: none;
   border-color: #00a651;
 }
 
-.filter-group {
+.users-page .filter-group {
   display: flex;
   gap: 1rem;
 }
 
-.filter-select {
+.users-page .filter-select {
   padding: 0.75rem 2rem 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -97,17 +95,69 @@
   background-size: 1em;
 }
 
-.users-table {
+.users-page .table-scroll {
+  width: 100%;
   overflow-x: auto;
 }
 
-table {
+.users-page .users-cards {
+  display: none;
+}
+
+.users-page .mobile-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.9rem;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.users-page .mobile-card--empty {
+  color: #64748b;
+  text-align: center;
+}
+
+.users-page .mobile-card__row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.users-page .mobile-card__row:last-child {
+  border-bottom: none;
+}
+
+.users-page .mobile-card__label {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.users-page .mobile-card__value {
+  color: #0f172a;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.users-page .mobile-card__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  align-items: center;
+}
+
+.users-page table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-th {
+.users-page th {
   background-color: #f8fafc;
   color: #4a5568;
   font-weight: 600;
@@ -116,44 +166,44 @@ th {
   border-bottom: 2px solid #e2e8f0;
 }
 
-td {
+.users-page td {
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   color: #2d3748;
 }
 
-tr:hover {
+.users-page tr:hover {
   background-color: #f8fafc;
 }
 
-.status-badge {
+.users-page .status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
 }
 
-.status-badge.actif {
+.users-page .status-badge.actif {
   background-color: #c6f6d5;
   color: #2f855a;
 }
 
-.status-badge.en-attente {
+.users-page .status-badge.en-attente {
   background-color: #feebc8;
   color: #c05621;
 }
 
-.status-badge.inactif {
+.users-page .status-badge.inactif {
   background-color: #e2e8f0;
   color: #4a5568;
 }
 
-.actions-cell {
+.users-page .actions-cell {
   display: flex;
   gap: 0.5rem;
 }
 
-.action-btn {
+.users-page .action-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -162,19 +212,19 @@ tr:hover {
   transition: all 0.2s ease;
 }
 
-.action-btn:hover {
+.users-page .action-btn:hover {
   background-color: #f7fafc;
   transform: scale(1.1);
 }
 
-.pagination {
+.users-page .pagination {
   display: flex;
   justify-content: center;
   gap: 0.5rem;
   margin-top: 1.5rem;
 }
 
-.pagination button {
+.users-page .pagination button {
   padding: 0.5rem 1rem;
   border: 1px solid #e2e8f0;
   background: white;
@@ -184,12 +234,12 @@ tr:hover {
   transition: all 0.2s ease;
 }
 
-.pagination button:hover {
+.users-page .pagination button:hover {
   border-color: #00a651;
   color: #00a651;
 }
 
-.pagination button.active {
+.users-page .pagination button.active {
   background-color: #00a651;
   color: white;
   border-color: #00a651;
@@ -333,4 +383,42 @@ tr:hover {
 .signup-date {
   color: #718096;
   font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .users-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .users-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .add-user-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .users-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    flex-direction: column;
+  }
+
+  .users-page .table-scroll {
+    display: none;
+  }
+
+  .users-page .users-cards {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .users-page .mobile-card__row {
+    grid-template-columns: 90px 1fr;
+  }
 }

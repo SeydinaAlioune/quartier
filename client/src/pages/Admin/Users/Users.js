@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './Users.css';
 import api from '../../../services/api';
+import { emitToast } from '../../../utils/toast';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 const Users = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,7 +22,7 @@ const Users = () => {
       await api.put(`/api/admin/users/${user.id}/role`, { role: newRole });
       await reloadUsers();
     } catch (err) {
-      alert("Impossible de modifier le rôle. Vérifiez vos droits.");
+      emitToast("Impossible de modifier le rôle. Vérifiez vos droits.", 'error');
     }
   };
 
@@ -31,7 +33,7 @@ const Users = () => {
       await api.put(`/api/admin/users/${user.id}/status`, { status: nextStatus });
       await reloadUsers();
     } catch (err) {
-      alert("Impossible de modifier le statut. Vérifiez vos droits.");
+      emitToast("Impossible de modifier le statut. Vérifiez vos droits.", 'error');
     }
   };
 
@@ -126,10 +128,32 @@ const Users = () => {
       await reloadUsers();
       setShowAddModal(false);
       setNewUser({ name: '', email: '', password: '', role: 'user' });
+      emitToast("Utilisateur créé.", 'success');
     } catch (err) {
-      alert("Impossible de créer l'utilisateur. Vérifiez vos droits admin et réessayez.");
+      emitToast("Impossible de créer l'utilisateur. Vérifiez vos droits admin et réessayez.", 'error');
     }
   };
+
+  const filteredUsers = usersData
+    .filter((u) => {
+      if (statusFilter === 'all') return true;
+      if (statusFilter === 'active') return u.statusCode === 'active';
+      if (statusFilter === 'inactive') return u.statusCode === 'inactive';
+      if (statusFilter === 'pending') return u.statusCode === 'pending';
+      return true;
+    })
+    .filter((u) => {
+      if (roleFilter === 'all') return true;
+      if (roleFilter === 'admin') return u.roleCode === 'admin';
+      if (roleFilter === 'moderator') return u.roleCode === 'moderator';
+      if (roleFilter === 'member') return u.roleCode === 'user';
+      return true;
+    })
+    .filter((u) => {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return true;
+      return (u.nom || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+    });
 
   // Statistiques dynamiques dérivées de usersData
   const computeStats = () => {
@@ -173,8 +197,9 @@ const Users = () => {
       <div className="users-page">
           <div className="users-header">
             <h1>Gestion des Utilisateurs</h1>
-            <button className="add-user-btn" onClick={() => setShowAddModal(true)}>
-              <span>+</span> Ajouter un utilisateur
+            <button className="add-user-btn" type="button" onClick={() => setShowAddModal(true)}>
+              <Plus size={18} aria-hidden="true" />
+              Ajouter un utilisateur
             </button>
           </div>
 
@@ -267,68 +292,134 @@ const Users = () => {
             </div>
 
             <div className="users-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Date d'inscription</th>
-                    <th>Statut</th>
-                    <th>Rôle</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersData.map((user, index) => (
-                    <tr key={index}>
-                      <td>{user.nom}</td>
-                      <td>{user.email}</td>
-                      <td>{user.telephone}</td>
-                      <td>{user.dateInscription}</td>
-                      <td>
-                        <span className={`status-badge ${user.statut.toLowerCase()}`}>
-                          {user.statut}
-                        </span>
-                      </td>
-                      <td>{user.role}</td>
-                      <td className="actions-cell">
-                        {user.id ? (
-                          <>
-                            <button
-                              className="action-btn"
-                              title={user.statusCode === 'active' ? 'Désactiver' : 'Activer'}
-                              onClick={() => handleToggleStatus(user)}
-                            >
-                              {user.statusCode === 'active' ? 'Désactiver' : 'Activer'}
-                            </button>
-                            <select
-                              className="filter-select"
-                              value={user.roleCode}
-                              onChange={(e) => handleChangeRole(user, e.target.value)}
-                              title="Changer le rôle"
-                            >
-                              <option value="user">Membre</option>
-                              <option value="moderator">Modérateur</option>
-                              <option value="admin">Administrateur</option>
-                            </select>
-                          </>
-                        ) : (
-                          <>
-                            <button className="action-btn edit" title="Modifier" disabled>✏️</button>
-                            <button className="action-btn delete" title="Supprimer" disabled>🗑️</button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {!loading && !error && usersData.length === 0 && (
+              <div className="table-scroll" role="region" aria-label="Liste des utilisateurs">
+                <table>
+                  <thead>
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
+                      <th>Nom</th>
+                      <th>Email</th>
+                      <th>Téléphone</th>
+                      <th>Date d'inscription</th>
+                      <th>Statut</th>
+                      <th>Rôle</th>
+                      <th>Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user, index) => (
+                      <tr key={index}>
+                        <td>{user.nom}</td>
+                        <td>{user.email}</td>
+                        <td>{user.telephone}</td>
+                        <td>{user.dateInscription}</td>
+                        <td>
+                          <span className={`status-badge ${user.statut.toLowerCase()}`}>
+                            {user.statut}
+                          </span>
+                        </td>
+                        <td>{user.role}</td>
+                        <td className="actions-cell">
+                          {user.id ? (
+                            <>
+                              <button
+                                type="button"
+                                className="action-btn"
+                                title={user.statusCode === 'active' ? 'Désactiver' : 'Activer'}
+                                aria-label={user.statusCode === 'active' ? 'Désactiver' : 'Activer'}
+                                onClick={() => handleToggleStatus(user)}
+                              >
+                                {user.statusCode === 'active' ? 'Désactiver' : 'Activer'}
+                              </button>
+                              <select
+                                className="filter-select"
+                                value={user.roleCode}
+                                onChange={(e) => handleChangeRole(user, e.target.value)}
+                                title="Changer le rôle"
+                                aria-label="Changer le rôle"
+                              >
+                                <option value="user">Membre</option>
+                                <option value="moderator">Modérateur</option>
+                                <option value="admin">Administrateur</option>
+                              </select>
+                            </>
+                          ) : (
+                            <>
+                              <button type="button" className="action-btn edit" aria-label="Modifier (indisponible)" title="Indisponible" disabled>
+                                <Pencil size={16} aria-hidden="true" />
+                              </button>
+                              <button type="button" className="action-btn delete" aria-label="Supprimer (indisponible)" title="Indisponible" disabled>
+                                <Trash2 size={16} aria-hidden="true" />
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {!loading && !error && filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="users-cards" aria-label="Liste des utilisateurs (mobile)">
+                {filteredUsers.map((user, index) => (
+                  <div key={index} className="mobile-card">
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Nom</div>
+                      <div className="mobile-card__value">{user.nom}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Email</div>
+                      <div className="mobile-card__value">{user.email}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Téléphone</div>
+                      <div className="mobile-card__value">{user.telephone}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Inscription</div>
+                      <div className="mobile-card__value">{user.dateInscription}</div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Statut</div>
+                      <div className="mobile-card__value">
+                        <span className={`status-badge ${user.statut.toLowerCase()}`}>{user.statut}</span>
+                      </div>
+                    </div>
+                    <div className="mobile-card__row">
+                      <div className="mobile-card__label">Rôle</div>
+                      <div className="mobile-card__value">{user.role}</div>
+                    </div>
+                    {user.id && (
+                      <div className="mobile-card__actions">
+                        <button
+                          type="button"
+                          className="action-btn"
+                          onClick={() => handleToggleStatus(user)}
+                        >
+                          {user.statusCode === 'active' ? 'Désactiver' : 'Activer'}
+                        </button>
+                        <select
+                          className="filter-select"
+                          value={user.roleCode}
+                          onChange={(e) => handleChangeRole(user, e.target.value)}
+                          aria-label="Changer le rôle"
+                        >
+                          <option value="user">Membre</option>
+                          <option value="moderator">Modérateur</option>
+                          <option value="admin">Administrateur</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {!loading && !error && filteredUsers.length === 0 && (
+                  <div className="mobile-card mobile-card--empty">Aucun utilisateur</div>
+                )}
+              </div>
             </div>
 
             <div className="pagination">
