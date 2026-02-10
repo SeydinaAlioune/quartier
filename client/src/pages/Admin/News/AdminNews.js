@@ -709,20 +709,30 @@ const AdminNews = () => {
                 </div>
               </div>
               <div className="news-mobile-card__actions" aria-label="Actions">
-                <button className="action-btn edit" type="button" title="Modifier" aria-label="Modifier" onClick={() => openEditAnn(a)}>
+                <button className="media-action-btn" type="button" onClick={() => openEditAnn(a)}>
                   <Pencil size={16} aria-hidden="true" />
+                  Modifier
                 </button>
                 <button
-                  className="action-btn"
+                  className={a.status === 'active' ? 'media-action-btn is-reject' : 'media-action-btn is-approve'}
                   type="button"
-                  title={a.status==='active'?'Désactiver':'Activer'}
-                  aria-label={a.status==='active'?'Désactiver':'Activer'}
                   onClick={() => toggleAnnStatus(a)}
                 >
-                  {a.status==='active' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                  {a.status === 'active' ? (
+                    <>
+                      <Pause size={16} aria-hidden="true" />
+                      Désactiver
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} aria-hidden="true" />
+                      Activer
+                    </>
+                  )}
                 </button>
-                <button className="action-btn delete" type="button" title="Supprimer" aria-label="Supprimer" onClick={() => deleteAnn(a)}>
+                <button className="media-action-btn is-danger" type="button" onClick={() => deleteAnn(a)}>
                   <Trash2 size={16} aria-hidden="true" />
+                  Supprimer
                 </button>
               </div>
             </div>
