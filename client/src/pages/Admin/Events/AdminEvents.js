@@ -3,7 +3,7 @@ import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import './AdminEvents.css';
 import { emitToast } from '../../../utils/toast';
-import { MoreVertical, Plus, X } from 'lucide-react';
+import { MoreVertical, Pencil, Plus, Trash2, X } from 'lucide-react';
 
 const AdminEvents = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -288,10 +288,13 @@ const AdminEvents = () => {
                     {openMenuId === ev._id && (
                       <div className="action-menu" role="menu">
                         <button type="button" className="action-menu__item" onClick={() => { setOpenMenuId(null); handleOpenEdit(ev); }}>
-                          Modifier
+                          <Pencil size={16} aria-hidden="true" />
+                          <span>Modifier</span>
                         </button>
+                        <div className="action-menu__divider" role="separator" />
                         <button type="button" className="action-menu__item is-danger" onClick={() => { setOpenMenuId(null); handleDeleteEvent(ev); }}>
-                          Supprimer
+                          <Trash2 size={16} aria-hidden="true" />
+                          <span>Supprimer</span>
                         </button>
                       </div>
                     )}

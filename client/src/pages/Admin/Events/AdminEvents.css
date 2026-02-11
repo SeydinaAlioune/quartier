@@ -1,5 +1,7 @@
 .events-page {
   padding: 16px;
+  max-width: 980px;
+  margin: 0 auto;
 }
 
 .events-page .events-header {
@@ -178,6 +180,7 @@
   padding: 16px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   border: 1px solid #e2e8f0;
+  width: 100%;
 }
 
 .events-page .event-header {
@@ -267,7 +270,7 @@
   box-shadow: 0 16px 30px rgba(0,0,0,0.12);
   overflow: hidden;
   min-width: 180px;
-  z-index: 20;
+  z-index: 200;
 }
 
 .events-page .action-menu__item {
@@ -279,6 +282,14 @@
   cursor: pointer;
   font-weight: 900;
   color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.events-page .action-menu__divider {
+  height: 1px;
+  background: #eef2f7;
 }
 
 .events-page .action-menu__item:hover {
