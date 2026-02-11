@@ -347,6 +347,10 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.directory-page .business-list.useful-list {
+  overflow: visible;
+}
+
 .directory-page .business-item {
   display: flex;
   align-items: center;
@@ -616,6 +620,11 @@
 
   .directory-page .search-input, .directory-page .filter-select {
     width: 100%;
+    min-width: 0;
+  }
+
+  .directory-page .action-btn:hover {
+    transform: none;
   }
 }
 
