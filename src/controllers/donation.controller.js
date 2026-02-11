@@ -359,6 +359,30 @@ exports.updateCampaign = async (req, res) => {
     }
 };
 
+// Supprimer une campagne
+exports.deleteCampaign = async (req, res) => {
+    try {
+        const campaign = await DonationCampaign.findById(req.params.id);
+
+        if (!campaign) {
+            return res.status(404).json({ message: 'Campagne non trouvée' });
+        }
+
+        // Vérifier les droits
+        if (campaign.organizer.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Non autorisé' });
+        }
+
+        // Supprimer la campagne. (Les dons liés restent en base; l'UI admin doit en tenir compte.)
+        await DonationCampaign.deleteOne({ _id: campaign._id });
+
+        res.json({ message: 'Campagne supprimée avec succès' });
+    } catch (error) {
+        console.error('Erreur suppression campagne:', error);
+        res.status(500).json({ message: 'Erreur lors de la suppression de la campagne' });
+    }
+};
+
 // Ajouter une mise à jour à la campagne
 exports.addCampaignUpdate = async (req, res) => {
     try {

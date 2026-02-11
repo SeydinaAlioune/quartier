@@ -323,6 +323,75 @@
   background: rgba(15, 23, 42, 0.06);
 }
 
+/* Campaign actions menu */
+.donations-page .campaign-head {
+  align-items: flex-start;
+}
+
+.donations-page .campaign-head-left {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.donations-page .campaign-menu-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(15, 23, 42, 0.03);
+  color: #0f172a;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.donations-page .campaign-menu-btn:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.donations-page .campaign-menu {
+  width: 240px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 30px 120px rgba(0,0,0,0.28);
+  overflow: hidden;
+}
+
+.donations-page .campaign-menu-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.donations-page .campaign-menu-item:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.donations-page .campaign-menu-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.donations-page .campaign-menu-item.is-danger {
+  color: #b91c1c;
+}
+
+.donations-page .campaign-menu-sep {
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);
+}
+
 /* Modal (scoped) */
 .donations-page .donations-modal-overlay {
   position: fixed;
@@ -346,6 +415,10 @@
   box-shadow: 0 40px 140px rgba(0,0,0,0.35);
   display: flex;
   flex-direction: column;
+}
+
+.donations-page .donations-modal.donations-modal--sm {
+  max-width: 520px;
 }
 
 .donations-page .donations-modal__header {

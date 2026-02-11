@@ -26,6 +26,7 @@ router.get('/stats', checkRole(['admin']), donationController.getStats);
 // Routes pour la gestion des campagnes
 router.post('/campaigns', checkRole(['admin']), donationController.createCampaign);
 router.put('/campaigns/:id', checkRole(['admin']), donationController.updateCampaign);
+router.delete('/campaigns/:id', checkRole(['admin']), donationController.deleteCampaign);
 router.post('/campaigns/:id/updates', checkRole(['admin']), donationController.addCampaignUpdate);
 router.get('/campaigns/:id/donations', checkRole(['admin']), donationController.getCampaignDonations);
 

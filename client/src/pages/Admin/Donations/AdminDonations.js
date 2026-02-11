@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
@@ -30,6 +30,26 @@ const AdminDonations = () => {
   const [statsError, setStatsError] = useState('');
   const [stats, setStats] = useState(null);
 
+  const [openMenuCampaignId, setOpenMenuCampaignId] = useState(null);
+  const [menuPos, setMenuPos] = useState(null);
+  const menuRef = useRef(null);
+  const menuButtonRef = useRef(null);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState(null);
+  const [editCampaign, setEditCampaign] = useState({
+    title: '',
+    description: '',
+    goal: '',
+    startDate: '',
+    endDate: '',
+    category: 'project',
+    project: '',
+    status: 'active',
+  });
+
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
   const formatFcfa = (value) => {
     const v = Number(value || 0);
     try {
@@ -40,6 +60,101 @@ const AdminDonations = () => {
       }).format(v);
     } catch (e) {
       return `${v.toLocaleString('fr-FR')} FCFA`;
+    }
+  };
+
+  const closeMenu = () => {
+    setOpenMenuCampaignId(null);
+    setMenuPos(null);
+  };
+
+  const openMenu = (campaign, ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    const btn = ev.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    menuButtonRef.current = btn;
+    setOpenMenuCampaignId(campaign._id);
+    setMenuPos({
+      top: rect.bottom + 8,
+      left: Math.min(rect.left, window.innerWidth - 248),
+    });
+  };
+
+  const startEditCampaign = (campaign) => {
+    closeMenu();
+    setEditingCampaign(campaign);
+    setEditCampaign({
+      title: campaign?.title || '',
+      description: campaign?.description || '',
+      goal: String(campaign?.goal ?? ''),
+      startDate: campaign?.startDate ? String(campaign.startDate).slice(0, 10) : '',
+      endDate: campaign?.endDate ? String(campaign.endDate).slice(0, 10) : '',
+      category: campaign?.category || 'project',
+      project: campaign?.project?._id ? String(campaign.project._id) : (campaign?.project ? String(campaign.project) : ''),
+      status: campaign?.status || 'active',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateCampaign = async (e) => {
+    e.preventDefault();
+    if (!editingCampaign?._id) return;
+    try {
+      const payload = {
+        title: editCampaign.title,
+        description: editCampaign.description,
+        goal: Number(editCampaign.goal || 0),
+        startDate: editCampaign.startDate ? new Date(editCampaign.startDate) : undefined,
+        endDate: editCampaign.endDate ? new Date(editCampaign.endDate) : undefined,
+        category: editCampaign.category,
+        project: editCampaign.category === 'project' && editCampaign.project ? editCampaign.project : undefined,
+        status: editCampaign.status,
+      };
+
+      await api.put(`/api/donations/campaigns/${editingCampaign._id}`, payload);
+      emitToast('Campagne mise à jour.');
+      setShowEditModal(false);
+      setEditingCampaign(null);
+      fetchCampaigns();
+      fetchStats();
+    } catch (err) {
+      emitToast('Mise à jour impossible.');
+    }
+  };
+
+  const updateCampaignStatus = async (campaign, status) => {
+    closeMenu();
+    if (!campaign?._id) return;
+    try {
+      await api.put(`/api/donations/campaigns/${campaign._id}`, { status });
+      emitToast('Statut mis à jour.');
+      fetchCampaigns();
+      fetchStats();
+    } catch (err) {
+      emitToast('Changement de statut impossible.');
+    }
+  };
+
+  const askDeleteCampaign = (campaign) => {
+    closeMenu();
+    setConfirmDelete(campaign);
+  };
+
+  const confirmDeleteCampaign = async () => {
+    if (!confirmDelete?._id) return;
+    try {
+      await api.delete(`/api/donations/campaigns/${confirmDelete._id}`);
+      emitToast('Campagne supprimée.');
+      setConfirmDelete(null);
+      fetchCampaigns();
+      fetchStats();
+      if (selectedCampaign?._id === confirmDelete._id) {
+        setShowDonationsModal(false);
+        setSelectedCampaign(null);
+      }
+    } catch (err) {
+      emitToast('Suppression impossible.');
     }
   };
 
@@ -134,18 +249,50 @@ const AdminDonations = () => {
   }, []);
 
   useEffect(() => {
-    if (!showAddModal && !showDonationsModal) return;
+    if (!showAddModal && !showDonationsModal && !showEditModal && !confirmDelete) return;
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
         setShowAddModal(false);
         setShowDonationsModal(false);
+        setShowEditModal(false);
+        setConfirmDelete(null);
+        closeMenu();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [showAddModal, showDonationsModal]);
+  }, [showAddModal, showDonationsModal, showEditModal, confirmDelete]);
+
+  useEffect(() => {
+    if (!openMenuCampaignId) return;
+
+    const onPointerDown = (e) => {
+      const menuEl = menuRef.current;
+      const btnEl = menuButtonRef.current;
+      if (menuEl && menuEl.contains(e.target)) return;
+      if (btnEl && btnEl.contains(e.target)) return;
+      closeMenu();
+    };
+
+    const onReposition = () => closeMenu();
+
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('scroll', onReposition, true);
+    window.addEventListener('resize', onReposition);
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('scroll', onReposition, true);
+      window.removeEventListener('resize', onReposition);
+    };
+  }, [openMenuCampaignId]);
+
+  const projectsById = useMemo(() => {
+    const map = new Map();
+    for (const p of projectsList) map.set(String(p._id), p);
+    return map;
+  }, [projectsList]);
 
   const fetchStats = async () => {
     try {
@@ -169,8 +316,8 @@ const AdminDonations = () => {
         setProjectsList(list);
       } catch (e) {}
     };
-    if (showAddModal) loadProjects();
-  }, [showAddModal]);
+    if (showAddModal || showEditModal) loadProjects();
+  }, [showAddModal, showEditModal]);
 
   const filtered = campaigns
     .filter(c => (statusFilter === 'all' || c.status === statusFilter))
@@ -290,8 +437,13 @@ const AdminDonations = () => {
               return (
                 <div key={c._id} className="donations-campaign-card">
                   <div className="campaign-head">
-                    <h3 className="campaign-title">{c.title || '—'}</h3>
-                    <span className={`campaign-badge ${statusClass}`}>{statusLabel}</span>
+                    <div className="campaign-head-left">
+                      <h3 className="campaign-title">{c.title || '—'}</h3>
+                      <span className={`campaign-badge ${statusClass}`}>{statusLabel}</span>
+                    </div>
+                    <button type="button" className="campaign-menu-btn" aria-label="Actions" onClick={(e) => openMenu(c, e)}>
+                      …
+                    </button>
                   </div>
 
                   <div className="campaign-amounts">
@@ -454,6 +606,156 @@ const AdminDonations = () => {
               </div>
               <div className="donations-modal__footer">
                 <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowDonationsModal(false)}>Fermer</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {openMenuCampaignId && menuPos && (
+          <div
+            ref={menuRef}
+            className="campaign-menu"
+            style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 1200 }}
+            role="menu"
+          >
+            {(() => {
+              const campaign = campaigns.find((x) => x._id === openMenuCampaignId);
+              if (!campaign) return null;
+              const status = campaign.status;
+              return (
+                <>
+                  <button type="button" className="campaign-menu-item" role="menuitem" onClick={() => startEditCampaign(campaign)}>
+                    Modifier
+                  </button>
+                  <div className="campaign-menu-sep" />
+                  <button
+                    type="button"
+                    className="campaign-menu-item"
+                    role="menuitem"
+                    onClick={() => updateCampaignStatus(campaign, 'active')}
+                    disabled={status === 'active'}
+                  >
+                    Marquer active
+                  </button>
+                  <button
+                    type="button"
+                    className="campaign-menu-item"
+                    role="menuitem"
+                    onClick={() => updateCampaignStatus(campaign, 'completed')}
+                    disabled={status === 'completed'}
+                  >
+                    Marquer terminée
+                  </button>
+                  <button
+                    type="button"
+                    className="campaign-menu-item"
+                    role="menuitem"
+                    onClick={() => updateCampaignStatus(campaign, 'cancelled')}
+                    disabled={status === 'cancelled'}
+                  >
+                    Annuler
+                  </button>
+                  <div className="campaign-menu-sep" />
+                  <button type="button" className="campaign-menu-item is-danger" role="menuitem" onClick={() => askDeleteCampaign(campaign)}>
+                    Supprimer
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {showEditModal && (
+          <div className="donations-modal-overlay" onMouseDown={() => setShowEditModal(false)}>
+            <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
+              <div className="donations-modal__header">
+                <h3>Modifier la campagne</h3>
+                <button type="button" className="donations-icon-btn" aria-label="Fermer" onClick={() => setShowEditModal(false)}>
+                  ×
+                </button>
+              </div>
+              <div className="donations-modal__body">
+                <form onSubmit={handleUpdateCampaign}>
+                  <div className="form-row">
+                    <label>Titre</label>
+                    <input type="text" value={editCampaign.title} onChange={(e) => setEditCampaign({ ...editCampaign, title: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Description</label>
+                    <textarea rows="4" value={editCampaign.description} onChange={(e) => setEditCampaign({ ...editCampaign, description: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Objectif (FCFA)</label>
+                    <input type="number" min="0" value={editCampaign.goal} onChange={(e) => setEditCampaign({ ...editCampaign, goal: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Début</label>
+                    <input type="date" value={editCampaign.startDate} onChange={(e) => setEditCampaign({ ...editCampaign, startDate: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Fin</label>
+                    <input type="date" value={editCampaign.endDate} onChange={(e) => setEditCampaign({ ...editCampaign, endDate: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Statut</label>
+                    <select value={editCampaign.status} onChange={(e) => setEditCampaign({ ...editCampaign, status: e.target.value })}>
+                      <option value="active">Active</option>
+                      <option value="completed">Terminée</option>
+                      <option value="cancelled">Annulée</option>
+                    </select>
+                  </div>
+                  <div className="form-row">
+                    <label>Catégorie</label>
+                    <select value={editCampaign.category} onChange={(e) => setEditCampaign({ ...editCampaign, category: e.target.value })}>
+                      <option value="telethon">Téléthon</option>
+                      <option value="project">Projet</option>
+                      <option value="emergency">Urgence</option>
+                      <option value="community">Communauté</option>
+                      <option value="other">Autre</option>
+                    </select>
+                  </div>
+                  {editCampaign.category === 'project' && (
+                    <div className="form-row">
+                      <label>Projet lié</label>
+                      <select value={editCampaign.project} onChange={(e) => setEditCampaign({ ...editCampaign, project: e.target.value })}>
+                        <option value="">— Sélectionner un projet —</option>
+                        {projectsList.map(p => (
+                          <option key={p._id} value={p._id}>{p.title}</option>
+                        ))}
+                      </select>
+                      {editCampaign.project && !projectsById.has(String(editCampaign.project)) && (
+                        <div style={{ color: '#64748b', fontWeight: 800, marginTop: 6 }}>Projet indisponible</div>
+                      )}
+                    </div>
+                  )}
+                  <div className="donations-modal__footer">
+                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowEditModal(false)}>Annuler</button>
+                    <button type="submit" className="donations-btn donations-btn--primary">Enregistrer</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {confirmDelete && (
+          <div className="donations-modal-overlay" onMouseDown={() => setConfirmDelete(null)}>
+            <div className="donations-modal donations-modal--sm" onMouseDown={(e) => e.stopPropagation()}>
+              <div className="donations-modal__header">
+                <h3>Supprimer la campagne</h3>
+                <button type="button" className="donations-icon-btn" aria-label="Fermer" onClick={() => setConfirmDelete(null)}>
+                  ×
+                </button>
+              </div>
+              <div className="donations-modal__body">
+                <div style={{ color: '#0f172a', fontWeight: 900 }}>Cette action est irréversible.</div>
+                <div style={{ marginTop: 8, color: '#334155', fontWeight: 800 }}>
+                  Campagne: <span style={{ fontWeight: 1000 }}>{confirmDelete.title || '—'}</span>
+                </div>
+              </div>
+              <div className="donations-modal__footer">
+                <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setConfirmDelete(null)}>Annuler</button>
+                <button type="button" className="donations-btn donations-btn--primary" onClick={confirmDeleteCampaign}>Supprimer</button>
               </div>
             </div>
           </div>
