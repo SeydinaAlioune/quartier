@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
@@ -11,6 +12,7 @@ const AdminDonations = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
   const [newCampaign, setNewCampaign] = useState({
     title: '',
     description: '',
@@ -37,6 +39,7 @@ const AdminDonations = () => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
   const [editCampaign, setEditCampaign] = useState({
     title: '',
     description: '',
@@ -49,6 +52,9 @@ const AdminDonations = () => {
   });
 
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const formatFcfa = (value) => {
     const v = Number(value || 0);
@@ -101,6 +107,7 @@ const AdminDonations = () => {
     e.preventDefault();
     if (!editingCampaign?._id) return;
     try {
+      setEditLoading(true);
       const payload = {
         title: editCampaign.title,
         description: editCampaign.description,
@@ -120,6 +127,8 @@ const AdminDonations = () => {
       fetchStats();
     } catch (err) {
       emitToast('Mise à jour impossible.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -144,6 +153,7 @@ const AdminDonations = () => {
   const confirmDeleteCampaign = async () => {
     if (!confirmDelete?._id) return;
     try {
+      setDeleteLoading(true);
       await api.delete(`/api/donations/campaigns/${confirmDelete._id}`);
       emitToast('Campagne supprimée.');
       setConfirmDelete(null);
@@ -155,7 +165,18 @@ const AdminDonations = () => {
       }
     } catch (err) {
       emitToast('Suppression impossible.');
+    } finally {
+      setDeleteLoading(false);
     }
+  };
+
+  const donationsTotal = useMemo(() => {
+    return donations.reduce((sum, d) => sum + Number(d?.amount || 0), 0);
+  }, [donations]);
+
+  const renderPortal = (node) => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(node, document.body);
   };
 
   const getProgressPct = (collected, goal) => {
@@ -330,6 +351,7 @@ const AdminDonations = () => {
   const handleCreateCampaign = async (e) => {
     e.preventDefault();
     try {
+      setCreateLoading(true);
       await api.post('/api/donations/campaigns', {
         title: newCampaign.title,
         description: newCampaign.description,
@@ -342,8 +364,11 @@ const AdminDonations = () => {
       setShowAddModal(false);
       setNewCampaign({ title: '', description: '', goal: '', startDate: '', endDate: '', category: 'project', project: '' });
       fetchCampaigns();
+      fetchStats();
     } catch (err) {
       emitToast("Création de campagne impossible.");
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -400,6 +425,7 @@ const AdminDonations = () => {
           </div>
 
         <div className="donations-filters">
+          <div className="filters-top">
             <input
               type="text"
               placeholder="Rechercher une campagne..."
@@ -407,23 +433,34 @@ const AdminDonations = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
             />
-            <div className="filter-group">
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
-                <option value="all">Tous les statuts</option>
-                <option value="active">Active</option>
-                <option value="completed">Terminée</option>
-                <option value="cancelled">Annulée</option>
-              </select>
-              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="filter-select">
-                <option value="all">Toutes les catégories</option>
-                <option value="telethon">Téléthon</option>
-                <option value="project">Projet</option>
-                <option value="emergency">Urgence</option>
-                <option value="community">Communauté</option>
-                <option value="other">Autre</option>
-              </select>
-            </div>
+            <button type="button" className="filters-toggle" onClick={() => setFiltersOpen(v => !v)}>
+              Filtres
+            </button>
           </div>
+          <div className={`filter-group ${filtersOpen ? 'is-open' : ''}`}>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
+              <option value="all">Tous les statuts</option>
+              <option value="active">Active</option>
+              <option value="completed">Terminée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="filter-select">
+              <option value="all">Toutes les catégories</option>
+              <option value="telethon">Téléthon</option>
+              <option value="project">Projet</option>
+              <option value="emergency">Urgence</option>
+              <option value="community">Communauté</option>
+              <option value="other">Autre</option>
+            </select>
+            <button
+              type="button"
+              className="filters-reset"
+              onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }}
+            >
+              Réinitialiser
+            </button>
+          </div>
+        </div>
 
         <div className="donations-campaigns">
             {loading && <div className="donations-campaign-card">Chargement...</div>}
@@ -479,7 +516,7 @@ const AdminDonations = () => {
             )}
           </div>
 
-        {showAddModal && (
+        {showAddModal && renderPortal(
           <div className="donations-modal-overlay" onMouseDown={() => setShowAddModal(false)}>
             <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
               <div className="donations-modal__header">
@@ -532,8 +569,8 @@ const AdminDonations = () => {
                     </div>
                   )}
                   <div className="donations-modal__footer">
-                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                    <button type="submit" className="donations-btn donations-btn--primary">Créer</button>
+                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowAddModal(false)} disabled={createLoading}>Annuler</button>
+                    <button type="submit" className="donations-btn donations-btn--primary" disabled={createLoading}>{createLoading ? 'Création…' : 'Créer'}</button>
                   </div>
                 </form>
               </div>
@@ -541,7 +578,7 @@ const AdminDonations = () => {
           </div>
         )}
 
-        {showDonationsModal && (
+        {showDonationsModal && renderPortal(
           <div className="donations-modal-overlay" onMouseDown={() => setShowDonationsModal(false)}>
             <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
               <div className="donations-modal__header">
@@ -556,9 +593,22 @@ const AdminDonations = () => {
                 {!donationsLoading && !donationsError && (
                   <>
                     {donations.length === 0 ? (
-                      <div>Aucun don pour cette campagne.</div>
+                      <div className="donations-empty">
+                        <div className="donations-empty__title">Aucun don pour cette campagne</div>
+                        <div className="donations-empty__subtitle">Les dons complétés apparaîtront ici dès réception.</div>
+                      </div>
                     ) : (
                       <>
+                        <div className="donations-summary">
+                          <div className="donations-summary__item">
+                            <span>Total</span>
+                            <strong>{formatFcfa(donationsTotal)}</strong>
+                          </div>
+                          <div className="donations-summary__item">
+                            <span>Dons</span>
+                            <strong>{Number(donations.length || 0).toLocaleString('fr-FR')}</strong>
+                          </div>
+                        </div>
                         <table className="donations-table">
                           <thead>
                             <tr>
@@ -665,7 +715,7 @@ const AdminDonations = () => {
           </div>
         )}
 
-        {showEditModal && (
+        {showEditModal && renderPortal(
           <div className="donations-modal-overlay" onMouseDown={() => setShowEditModal(false)}>
             <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
               <div className="donations-modal__header">
@@ -729,8 +779,8 @@ const AdminDonations = () => {
                     </div>
                   )}
                   <div className="donations-modal__footer">
-                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowEditModal(false)}>Annuler</button>
-                    <button type="submit" className="donations-btn donations-btn--primary">Enregistrer</button>
+                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowEditModal(false)} disabled={editLoading}>Annuler</button>
+                    <button type="submit" className="donations-btn donations-btn--primary" disabled={editLoading}>{editLoading ? 'Enregistrement…' : 'Enregistrer'}</button>
                   </div>
                 </form>
               </div>
@@ -738,7 +788,7 @@ const AdminDonations = () => {
           </div>
         )}
 
-        {confirmDelete && (
+        {confirmDelete && renderPortal(
           <div className="donations-modal-overlay" onMouseDown={() => setConfirmDelete(null)}>
             <div className="donations-modal donations-modal--sm" onMouseDown={(e) => e.stopPropagation()}>
               <div className="donations-modal__header">
@@ -754,8 +804,8 @@ const AdminDonations = () => {
                 </div>
               </div>
               <div className="donations-modal__footer">
-                <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setConfirmDelete(null)}>Annuler</button>
-                <button type="button" className="donations-btn donations-btn--primary" onClick={confirmDeleteCampaign}>Supprimer</button>
+                <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setConfirmDelete(null)} disabled={deleteLoading}>Annuler</button>
+                <button type="button" className="donations-btn donations-btn--primary" onClick={confirmDeleteCampaign} disabled={deleteLoading}>{deleteLoading ? 'Suppression…' : 'Supprimer'}</button>
               </div>
             </div>
           </div>
