@@ -2,6 +2,20 @@
   padding: 2rem;
 }
 
+.directory-page .alert {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.directory-page .alert--error {
+  background: #fff5f5;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
 /* Validation */
 .directory-page .validation-list {
   display: grid;
@@ -289,13 +303,14 @@
 .directory-page .category-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: #4a90e2;
+  border-color: var(--cat-color, #4a90e2);
 }
 
 .directory-page .category-icon {
   width: 48px;
   height: 48px;
-  background-color: #ebf8ff;
+  background-color: color-mix(in srgb, var(--cat-color, #4a90e2) 14%, #ffffff);
+  color: var(--cat-color, #4a90e2);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -303,6 +318,14 @@
   margin-bottom: 1rem;
   font-size: 1.5rem;
 }
+
+.directory-page .category-card--restaurant { --cat-color: #ef4444; }
+.directory-page .category-card--commerce { --cat-color: #f59e0b; }
+.directory-page .category-card--service { --cat-color: #3b82f6; }
+.directory-page .category-card--sante { --cat-color: #22c55e; }
+.directory-page .category-card--education { --cat-color: #8b5cf6; }
+.directory-page .category-card--artisan { --cat-color: #f97316; }
+.directory-page .category-card--autre { --cat-color: #64748b; }
 
 .directory-page .category-name {
   font-size: 1.1rem;
@@ -374,13 +397,6 @@
   color: #718096;
   font-size: 0.875rem;
   margin: 0.5rem 0;
-}
-
-.business-stats {
-  display: flex;
-  gap: 1rem;
-  color: #718096;
-  font-size: 0.875rem;
 }
 
 .directory-page .business-actions {
@@ -616,16 +632,18 @@
 
   .directory-page .business-item {
     flex-direction: column;
-    text-align: center;
+    text-align: left;
+    align-items: flex-start;
   }
 
   .directory-page .business-logo {
-    margin: 0 auto 1rem;
+    margin: 0 0 0.75rem;
   }
 
   .directory-page .business-actions {
     margin-top: 1rem;
-    justify-content: center;
+    justify-content: flex-end;
+    width: 100%;
   }
 }
 

@@ -3,7 +3,19 @@ import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminDirectory.css';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
-import { Building2, Search, Pencil, Trash2 } from 'lucide-react';
+import {
+  Building2,
+  GraduationCap,
+  Hammer,
+  HeartPulse,
+  HelpCircle,
+  Pencil,
+  Search,
+  Settings,
+  ShoppingBag,
+  Trash2,
+  Utensils,
+} from 'lucide-react';
 
 const AdminDirectory = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -186,13 +198,13 @@ const AdminDirectory = () => {
   };
 
   const CATEGORY_META = {
-    restaurant: { label: 'Restaurants', icon: '🍽️', color: '#FF6B6B' },
-    commerce: { label: 'Commerces', icon: '🛍️', color: '#F6AD55' },
-    service: { label: 'Services', icon: '🛠️', color: '#63B3ED' },
-    sante: { label: 'Santé', icon: '🩺', color: '#48BB78' },
-    education: { label: 'Éducation', icon: '🎓', color: '#9F7AEA' },
-    artisan: { label: 'Artisans', icon: '🧰', color: '#ED8936' },
-    autre: { label: 'Autres', icon: '📦', color: '#A0AEC0' },
+    restaurant: { label: 'Restaurants', Icon: Utensils },
+    commerce: { label: 'Commerces', Icon: ShoppingBag },
+    service: { label: 'Services', Icon: Settings },
+    sante: { label: 'Santé', Icon: HeartPulse },
+    education: { label: 'Éducation', Icon: GraduationCap },
+    artisan: { label: 'Artisans', Icon: Hammer },
+    autre: { label: 'Autres', Icon: HelpCircle },
   };
 
   const filteredBusinesses = businesses.filter(b => {
@@ -302,139 +314,11 @@ const AdminDirectory = () => {
   return (
     <AdminLayout title="Gestion de l'Annuaire">
       <div className="directory-page">
-          {error && (
-            <div className="business-item" style={{ color: '#e53e3e', background: '#fff5f5' }}>{error}</div>
-          )}
+        {error && (
+          <div className="alert alert--error">{error}</div>
+        )}
 
-          {activeTab === 'useful' && (
-            <div className="businesses-section">
-              <div className="section-header useful-header">
-                <h2>Contacts utiles</h2>
-                <div className="header-actions">
-                  <button className="business-btn" onClick={seedUsefulDefaults} disabled={ucLoading}>Pré-remplir (France)</button>
-                </div>
-              </div>
-              {ucError && <div className="business-item" style={{ color: '#e53e3e', background: '#fff5f5' }}>{ucError}</div>}
-              <div className="business-list useful-list">
-                <div className="business-item useful-card">
-                  <h3 className="useful-card__title">Nouvelle catégorie</h3>
-                  <div className="search-filters">
-                    <input type="text" placeholder="Titre" className="search-input" value={newCat.title} onChange={(e) => setNewCat(prev => ({ ...prev, title: e.target.value }))} />
-                    <input type="number" placeholder="Ordre (optionnel)" className="filter-select" value={newCat.order} onChange={(e) => setNewCat(prev => ({ ...prev, order: e.target.value }))} />
-                    <button className="btn-primary" onClick={async () => {
-                      try {
-                        await api.post('/api/useful-contacts/categories', { title: newCat.title, order: newCat.order ? Number(newCat.order) : undefined });
-                        setNewCat({ title: '', order: '' });
-                        const r = await api.get('/api/useful-contacts');
-                        setUCats(Array.isArray(r?.data?.categories) ? r.data.categories : []);
-                      } catch {
-                        emitToast('Création de catégorie impossible');
-                      }
-                    }}>Créer</button>
-                  </div>
-                </div>
-
-                {ucLoading && <div className="business-item">Chargement...</div>}
-                {!ucLoading && ucats.length === 0 && (
-                  <div className="business-item">Aucune catégorie</div>
-                )}
-                {!ucLoading && ucats.map(cat => (
-                  <div className="business-item useful-card" key={cat._id}>
-                    <div className="useful-cat-header">
-                      {editingCategory?.catId === cat._id ? (
-                        <div className="useful-cat-edit">
-                          <input
-                            type="text"
-                            className="search-input"
-                            value={editingCategory.title}
-                            onChange={(e) => setEditingCategory(prev => ({ ...prev, title: e.target.value }))}
-                          />
-                          <div className="useful-cat-edit__actions">
-                            <button type="button" className="btn-primary" onClick={saveEditCategory}>Enregistrer</button>
-                            <button type="button" className="btn-secondary" onClick={cancelEditCategory}>Annuler</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <h3 className="business-name useful-cat-title">{cat.title}</h3>
-                      )}
-                      <div className="business-actions">
-                        <button className="action-btn edit" title="Renommer" type="button" onClick={() => startEditCategory(cat)} disabled={editingCategory?.catId === cat._id}>
-                          <Pencil size={16} aria-hidden="true" />
-                        </button>
-                        <button className="action-btn delete" title="Supprimer" onClick={async () => {
-                          if (!window.confirm('Supprimer cette catégorie ?')) return;
-                          try { await api.delete(`/api/useful-contacts/categories/${cat._id}`);
-                            const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                          } catch { emitToast('Suppression impossible'); }
-                        }}>
-                          <Trash2 size={16} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="useful-cat-body">
-                      <h4 className="useful-subtitle">Ajouter un contact</h4>
-                      <div className="search-filters">
-                        <input type="text" placeholder="Nom" className="search-input" value={newContact.catId === cat._id ? newContact.name : ''}
-                          onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, name: e.target.value }))} />
-                        <input type="text" placeholder="Numéro" className="search-input" value={newContact.catId === cat._id ? newContact.number : ''}
-                          onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, number: e.target.value }))} />
-                        <input type="text" placeholder="Note (optionnel)" className="search-input" value={newContact.catId === cat._id ? newContact.note : ''}
-                          onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, note: e.target.value }))} />
-                        <button className="btn-primary" onClick={async () => {
-                          try {
-                            await api.post(`/api/useful-contacts/categories/${cat._id}/contacts`, { name: newContact.name, number: newContact.number, note: newContact.note });
-                            setNewContact({ name: '', number: '', note: '', catId: '' });
-                            const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                          } catch { emitToast('Ajout impossible'); }
-                        }}>Ajouter</button>
-                      </div>
-
-                      <div className="useful-contacts">
-                        {(cat.contacts || []).map(c => (
-                          <div key={c._id} className="useful-contact-row">
-                            {editingContact && editingContact.contactId === c._id ? (
-                              <>
-                                <input type="text" className="search-input" value={editingContact.name} onChange={(e) => setEditingContact(prev => ({ ...prev, name: e.target.value }))} />
-                                <input type="text" className="search-input" value={editingContact.number} onChange={(e) => setEditingContact(prev => ({ ...prev, number: e.target.value }))} />
-                                <input type="text" className="search-input" value={editingContact.note} onChange={(e) => setEditingContact(prev => ({ ...prev, note: e.target.value }))} />
-                                <button className="btn-primary" onClick={async () => {
-                                  try { await api.put(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`, { name: editingContact.name, number: editingContact.number, note: editingContact.note });
-                                    setEditingContact(null);
-                                    const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                                  } catch { emitToast('Mise à jour impossible'); }
-                                }}>Enregistrer</button>
-                                <button className="btn-secondary" onClick={() => setEditingContact(null)}>Annuler</button>
-                              </>
-                            ) : (
-                              <>
-                                <div className="useful-contact-main">
-                                  <strong>{c.name}</strong> — {c.number} {c.note ? `· ${c.note}` : ''}
-                                </div>
-                                <div className="business-actions">
-                                  <button className="action-btn edit" title="Modifier" onClick={() => setEditingContact({ catId: cat._id, contactId: c._id, name: c.name, number: c.number, note: c.note || '' })}>
-                                    <Pencil size={16} aria-hidden="true" />
-                                  </button>
-                                  <button className="action-btn delete" title="Supprimer" onClick={async () => {
-                                    if (!window.confirm('Supprimer ce contact ?')) return;
-                                    try { await api.delete(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`);
-                                      const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                                    } catch { emitToast('Suppression impossible'); }
-                                  }}>
-                                    <Trash2 size={16} aria-hidden="true" />
-                                  </button>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="directory-header">
+        <div className="directory-header">
             <div className="header-title">
               <h1>Gestion de l'Annuaire</h1>
               <p className="header-subtitle">Gérez les entreprises et professionnels du quartier</p>
@@ -574,10 +458,11 @@ const AdminDirectory = () => {
                 )}
                 {Object.entries(categoriesSummary).map(([key, count]) => {
                   const meta = CATEGORY_META[key] || CATEGORY_META.autre;
+                  const Icon = meta.Icon || HelpCircle;
                   return (
-                    <div className="category-card" key={key} style={{ borderColor: meta.color }}>
-                      <div className="category-icon" style={{ backgroundColor: `${meta.color}20` }}>
-                        {meta.icon}
+                    <div className={`category-card category-card--${key}`} key={key}>
+                      <div className="category-icon" aria-hidden="true">
+                        <Icon size={22} />
                       </div>
                       <h3 className="category-name">{meta.label}</h3>
                       <span className="category-count">{count} {count > 1 ? 'entreprises' : 'entreprise'}</span>
@@ -615,6 +500,156 @@ const AdminDirectory = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'useful' && (
+            <div className="businesses-section">
+              <div className="section-header useful-header">
+                <h2>Contacts utiles</h2>
+                <div className="header-actions">
+                  <button className="business-btn" onClick={seedUsefulDefaults} disabled={ucLoading}>Pré-remplir (France)</button>
+                </div>
+              </div>
+
+              {ucError && <div className="alert alert--error">{ucError}</div>}
+
+              <div className="business-list useful-list">
+                <div className="business-item useful-card">
+                  <h3 className="useful-card__title">Nouvelle catégorie</h3>
+                  <div className="search-filters">
+                    <input type="text" placeholder="Titre" className="search-input" value={newCat.title} onChange={(e) => setNewCat(prev => ({ ...prev, title: e.target.value }))} />
+                    <input type="number" placeholder="Ordre (optionnel)" className="filter-select" value={newCat.order} onChange={(e) => setNewCat(prev => ({ ...prev, order: e.target.value }))} />
+                    <button className="btn-primary" onClick={async () => {
+                      try {
+                        await api.post('/api/useful-contacts/categories', { title: newCat.title, order: newCat.order ? Number(newCat.order) : undefined });
+                        setNewCat({ title: '', order: '' });
+                        const r = await api.get('/api/useful-contacts');
+                        setUCats(Array.isArray(r?.data?.categories) ? r.data.categories : []);
+                      } catch {
+                        emitToast('Création de catégorie impossible');
+                      }
+                    }}>Créer</button>
+                  </div>
+                </div>
+
+                {ucLoading && <div className="business-item">Chargement...</div>}
+                {!ucLoading && ucats.length === 0 && (
+                  <div className="business-item">Aucune catégorie</div>
+                )}
+
+                {!ucLoading && ucats.map(cat => (
+                  <div className="business-item useful-card" key={cat._id}>
+                    <div className="useful-cat-header">
+                      {editingCategory?.catId === cat._id ? (
+                        <div className="useful-cat-edit">
+                          <input
+                            type="text"
+                            className="search-input"
+                            value={editingCategory.title}
+                            onChange={(e) => setEditingCategory(prev => ({ ...prev, title: e.target.value }))}
+                          />
+                          <div className="useful-cat-edit__actions">
+                            <button type="button" className="btn-primary" onClick={saveEditCategory}>Enregistrer</button>
+                            <button type="button" className="btn-secondary" onClick={cancelEditCategory}>Annuler</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <h3 className="business-name useful-cat-title">{cat.title}</h3>
+                      )}
+
+                      <div className="business-actions">
+                        <button className="action-btn edit" title="Renommer" type="button" onClick={() => startEditCategory(cat)} disabled={editingCategory?.catId === cat._id}>
+                          <Pencil size={16} aria-hidden="true" />
+                        </button>
+                        <button className="action-btn delete" title="Supprimer" onClick={async () => {
+                          if (!window.confirm('Supprimer cette catégorie ?')) return;
+                          try {
+                            await api.delete(`/api/useful-contacts/categories/${cat._id}`);
+                            const r = await api.get('/api/useful-contacts');
+                            setUCats(r?.data?.categories || []);
+                          } catch {
+                            emitToast('Suppression impossible');
+                          }
+                        }}>
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="useful-cat-body">
+                      <h4 className="useful-subtitle">Ajouter un contact</h4>
+                      <div className="search-filters">
+                        <input type="text" placeholder="Nom" className="search-input" value={newContact.catId === cat._id ? newContact.name : ''}
+                          onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, name: e.target.value }))} />
+                        <input type="text" placeholder="Numéro" className="search-input" value={newContact.catId === cat._id ? newContact.number : ''}
+                          onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, number: e.target.value }))} />
+                        <input type="text" placeholder="Note (optionnel)" className="search-input" value={newContact.catId === cat._id ? newContact.note : ''}
+                          onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, note: e.target.value }))} />
+                        <button className="btn-primary" onClick={async () => {
+                          try {
+                            await api.post(`/api/useful-contacts/categories/${cat._id}/contacts`, { name: newContact.name, number: newContact.number, note: newContact.note });
+                            setNewContact({ name: '', number: '', note: '', catId: '' });
+                            const r = await api.get('/api/useful-contacts');
+                            setUCats(r?.data?.categories || []);
+                          } catch {
+                            emitToast('Ajout impossible');
+                          }
+                        }}>Ajouter</button>
+                      </div>
+
+                      <div className="useful-contacts">
+                        {(cat.contacts || []).map(c => (
+                          <div key={c._id} className="useful-contact-row">
+                            {editingContact && editingContact.contactId === c._id ? (
+                              <>
+                                <input type="text" className="search-input" value={editingContact.name} onChange={(e) => setEditingContact(prev => ({ ...prev, name: e.target.value }))} />
+                                <input type="text" className="search-input" value={editingContact.number} onChange={(e) => setEditingContact(prev => ({ ...prev, number: e.target.value }))} />
+                                <input type="text" className="search-input" value={editingContact.note} onChange={(e) => setEditingContact(prev => ({ ...prev, note: e.target.value }))} />
+                                <button className="btn-primary" onClick={async () => {
+                                  try {
+                                    await api.put(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`, { name: editingContact.name, number: editingContact.number, note: editingContact.note });
+                                    setEditingContact(null);
+                                    const r = await api.get('/api/useful-contacts');
+                                    setUCats(r?.data?.categories || []);
+                                  } catch {
+                                    emitToast('Mise à jour impossible');
+                                  }
+                                }}>Enregistrer</button>
+                                <button className="btn-secondary" onClick={() => setEditingContact(null)}>Annuler</button>
+                              </>
+                            ) : (
+                              <>
+                                <div className="useful-contact-main">
+                                  <strong>{c.name}</strong> — {c.number} {c.note ? `· ${c.note}` : ''}
+                                </div>
+                                <div className="business-actions">
+                                  <button className="action-btn edit" title="Modifier" onClick={() => setEditingContact({ catId: cat._id, contactId: c._id, name: c.name, number: c.number, note: c.note || '' })}>
+                                    <Pencil size={16} aria-hidden="true" />
+                                  </button>
+                                  <button className="action-btn delete" title="Supprimer" onClick={async () => {
+                                    if (!window.confirm('Supprimer ce contact ?')) return;
+                                    try {
+                                      await api.delete(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`);
+                                      const r = await api.get('/api/useful-contacts');
+                                      setUCats(r?.data?.categories || []);
+                                    } catch {
+                                      emitToast('Suppression impossible');
+                                    }
+                                  }}>
+                                    <Trash2 size={16} aria-hidden="true" />
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {showAddModal && (
             <div className="modal-overlay">
               <div className="modal">
