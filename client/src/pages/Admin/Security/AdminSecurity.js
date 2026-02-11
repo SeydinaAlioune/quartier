@@ -27,6 +27,7 @@ const AdminSecurity = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [openIncidentMenuId, setOpenIncidentMenuId] = useState(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState('Confirmer');
@@ -109,6 +110,7 @@ const AdminSecurity = () => {
   };
 
   const closeMenu = () => setOpenMenuId(null);
+  const closeIncidentMenu = () => setOpenIncidentMenuId(null);
 
   const statusLabel = (v) => {
     if (v === 'en_cours') return 'En cours';
@@ -167,6 +169,10 @@ const AdminSecurity = () => {
         closeMenu();
         return;
       }
+      if (openIncidentMenuId) {
+        closeIncidentMenu();
+        return;
+      }
       if (confirmOpen) {
         closeConfirm();
         return;
@@ -190,7 +196,7 @@ const AdminSecurity = () => {
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [confirmOpen, openMenuId, showAlertModal, showConfig, showMap, viewerOpen]);
+  }, [confirmOpen, openIncidentMenuId, openMenuId, showAlertModal, showConfig, showMap, viewerOpen]);
 
   useEffect(() => {
     const onMouseDown = (e) => {
@@ -202,6 +208,28 @@ const AdminSecurity = () => {
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, [openMenuId]);
+
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (!openIncidentMenuId) return;
+      const el = e.target;
+      if (el && typeof el.closest === 'function' && el.closest('.incident-header__right')) return;
+      setOpenIncidentMenuId(null);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [openIncidentMenuId]);
+
+  const handleDeleteIncident = async (id) => {
+    openConfirm({
+      title: 'Supprimer l\'incident',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/security/incidents/${id}`);
+        setIncidents(prev => prev.filter(i => i._id !== id));
+      }
+    });
+  };
 
   // Initialize Leaflet map when modal opens
   useEffect(() => {
@@ -481,6 +509,22 @@ const AdminSecurity = () => {
                     <div className="incident-header__right">
                       <span className="incident-date">{incident.date ? new Date(incident.date).toLocaleDateString('fr-FR') : ''}</span>
                       <span className={`incident-status-badge status-${incident.status || 'nouveau'}`}>{statusLabel(incident.status)}</span>
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        aria-label="Actions"
+                        aria-haspopup="menu"
+                        aria-expanded={openIncidentMenuId === incident._id}
+                        onClick={() => setOpenIncidentMenuId(openIncidentMenuId === incident._id ? null : incident._id)}
+                      >
+                        <MoreVertical size={16} aria-hidden="true" />
+                      </button>
+
+                      {openIncidentMenuId === incident._id && (
+                        <div className="action-menu" role="menu">
+                          <button type="button" className="action-menu__item is-danger" onClick={() => { closeIncidentMenu(); handleDeleteIncident(incident._id); }}>Supprimer</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="incident-content">
@@ -551,74 +595,82 @@ const AdminSecurity = () => {
       </div>
       {showConfig && (
         <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowConfig(false))}>
-          <div className="modal">
-            <h3>Configuration Sécurité</h3>
-            {configLoading && <div>Chargement...</div>}
-            {configError && <div className="error-banner">{configError}</div>}
-            {!configLoading && (
-              <form onSubmit={saveConfig}>
-                <div className="form-row">
-                  <label>Titre (Patrouilles de Police)</label>
-                  <input type="text" value={configForm.policeInfo.title} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, title: e.target.value } }))} />
-                </div>
-                <div className="form-row">
-                  <label>Message</label>
-                  <textarea rows="3" value={configForm.policeInfo.message} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, message: e.target.value } }))} />
-                </div>
-                <div className="form-row">
-                  <label>Contact</label>
-                  <input type="text" value={configForm.policeInfo.contact} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, contact: e.target.value } }))} />
-                </div>
+          <div className="modal security-config-modal">
+            <div className="modal__header">
+              <h3>Configuration Sécurité</h3>
+              <button type="button" className="icon-close" onClick={() => setShowConfig(false)} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
 
-                <div className="form-row">
-                  <label>Conseils (catégories)</label>
-                </div>
-                {configForm.tips.map((t, idx) => (
-                  <div className="form-row" key={idx}>
-                    <input type="text" placeholder="Titre (ex: Protection du Domicile)" value={t.title} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, title: e.target.value } : x) }))} />
-                    <div className="tip-add-row">
-                      <input type="text" placeholder="Ajouter un conseil" value={t.newItem || ''} onChange={(e)=> setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, newItem: e.target.value } : x) }))} />
-                      <button type="button" className="btn-secondary" onClick={() => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, itemsText: (x.itemsText? x.itemsText+"\n" : '') + (x.newItem||'').trim(), newItem: '' } : x) }))}>Ajouter</button>
-                    </div>
-                    {t.itemsText && (
-                      <ul className="tip-items">
-                        {t.itemsText.split('\n').filter(s=>s.trim()).map((line, li) => (
-                          <li key={li} className="tip-item">
-                            <span>{line}</span>
-                            <button
-                              type="button"
-                              className="tip-remove"
-                              onClick={() => setConfigForm(prev => ({
-                                ...prev,
-                                tips: prev.tips.map((x, i) => {
-                                  if (i !== idx) return x;
-                                  const next = (x.itemsText || '').split('\n').map(s => s.trim()).filter(Boolean).filter((_, k) => k !== li);
-                                  return { ...x, itemsText: next.join('\n') };
-                                })
-                              }))}
-                              aria-label="Supprimer"
-                            >
-                              <X size={14} aria-hidden="true" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <div>
-                      <button type="button" className="btn-secondary" onClick={() => removeTipCategory(idx)}>Supprimer cette catégorie</button>
-                    </div>
+            <div className="modal__body">
+              {configLoading && <div>Chargement...</div>}
+              {configError && <div className="error-banner">{configError}</div>}
+              {!configLoading && (
+                <form id="security-config-form" onSubmit={saveConfig}>
+                  <div className="form-row">
+                    <label>Titre (Patrouilles de Police)</label>
+                    <input type="text" value={configForm.policeInfo.title} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, title: e.target.value } }))} />
                   </div>
-                ))}
-                <div className="form-row">
-                  <button type="button" className="btn-secondary" onClick={addTipCategory}>Ajouter une catégorie</button>
-                </div>
+                  <div className="form-row">
+                    <label>Message</label>
+                    <textarea rows="3" value={configForm.policeInfo.message} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, message: e.target.value } }))} />
+                  </div>
+                  <div className="form-row">
+                    <label>Contact</label>
+                    <input type="text" value={configForm.policeInfo.contact} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, contact: e.target.value } }))} />
+                  </div>
 
-                <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setShowConfig(false)}>Annuler</button>
-                  <button type="submit" className="btn-primary">Enregistrer</button>
-                </div>
-              </form>
-            )}
+                  <div className="form-row">
+                    <label>Conseils (catégories)</label>
+                  </div>
+                  {configForm.tips.map((t, idx) => (
+                    <div className="form-row" key={idx}>
+                      <input type="text" placeholder="Titre (ex: Protection du Domicile)" value={t.title} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, title: e.target.value } : x) }))} />
+                      <div className="tip-add-row">
+                        <input type="text" placeholder="Ajouter un conseil" value={t.newItem || ''} onChange={(e)=> setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, newItem: e.target.value } : x) }))} />
+                        <button type="button" className="btn-secondary" onClick={() => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, itemsText: (x.itemsText? x.itemsText+"\n" : '') + (x.newItem||'').trim(), newItem: '' } : x) }))}>Ajouter</button>
+                      </div>
+                      {t.itemsText && (
+                        <ul className="tip-items">
+                          {t.itemsText.split('\n').filter(s=>s.trim()).map((line, li) => (
+                            <li key={li} className="tip-item">
+                              <span>{line}</span>
+                              <button
+                                type="button"
+                                className="tip-remove"
+                                onClick={() => setConfigForm(prev => ({
+                                  ...prev,
+                                  tips: prev.tips.map((x, i) => {
+                                    if (i !== idx) return x;
+                                    const next = (x.itemsText || '').split('\n').map(s => s.trim()).filter(Boolean).filter((_, k) => k !== li);
+                                    return { ...x, itemsText: next.join('\n') };
+                                  })
+                                }))}
+                                aria-label="Supprimer"
+                              >
+                                <X size={14} aria-hidden="true" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div>
+                        <button type="button" className="btn-secondary" onClick={() => removeTipCategory(idx)}>Supprimer cette catégorie</button>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="form-row">
+                    <button type="button" className="btn-secondary" onClick={addTipCategory}>Ajouter une catégorie</button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            <div className="modal__footer">
+              <button type="button" className="btn-secondary" onClick={() => setShowConfig(false)}>Annuler</button>
+              <button type="submit" className="btn-primary" form="security-config-form">Enregistrer</button>
+            </div>
           </div>
         </div>
       )}
