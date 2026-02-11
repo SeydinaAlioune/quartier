@@ -20,7 +20,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
-.header-title h1 {
+.forum-page .header-title h1 {
   font-size: 2rem;
   margin: 0;
   font-weight: 600;
@@ -32,13 +32,13 @@
   text-shadow: none;
 }
 
-.header-subtitle {
+.forum-page .header-subtitle {
   color: #718096;
   font-size: 0.95rem;
   margin-top: 0.5rem;
 }
 
-.header-actions {
+.forum-page .header-actions {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
@@ -46,7 +46,7 @@
 }
 
 /* Boutons d'action améliorés */
-.reports-btn, .category-btn {
+.forum-page .reports-btn, .forum-page .category-btn {
   padding: 0.6rem 0.9rem;
   border-radius: 10px;
   border: 1px solid #e2e8f0;
@@ -62,29 +62,29 @@
   min-height: 42px;
 }
 
-.reports-btn {
+.forum-page .reports-btn {
   background-color: #fff;
   color: #b91c1c;
 }
 
-.reports-btn:hover {
+.forum-page .reports-btn:hover {
   background-color: #fff5f5;
   transform: translateY(-1px);
 }
 
-.category-btn {
+.forum-page .category-btn {
   background-color: #00a651;
   color: #fff;
   border-color: #00a651;
 }
 
-.category-btn:hover {
+.forum-page .category-btn:hover {
   background-color: #00834f;
   border-color: #00834f;
   transform: translateY(-1px);
 }
 
-.count-badge {
+.forum-page .count-badge {
   margin-left: 6px;
   background: rgba(185, 28, 28, 0.1);
   color: #b91c1c;
@@ -136,7 +136,7 @@
 }
 
 /* Cards avec effet de survol */
-.stats-card {
+.forum-page .stats-card {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -145,7 +145,7 @@
   border: 1px solid transparent;
 }
 
-.stats-card:hover {
+.forum-page .stats-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   border-color: #00a651;
@@ -221,7 +221,7 @@
   white-space: nowrap;
 }
 
-.progress-bar {
+.forum-page .progress-bar {
   height: 6px;
   border-radius: 9999px;
   background: #edf2f7;
@@ -229,20 +229,20 @@
   margin-top: 8px;
 }
 
-.progress-fill {
+.forum-page .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #00a651, #34d399);
   border-radius: 9999px;
 }
 
 /* Activity feed */
-.activity-list {
+.forum-page .activity-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.activity-item {
+.forum-page .activity-item {
   display: flex;
   gap: 10px;
   align-items: flex-start;
@@ -252,7 +252,7 @@
   background: #fff;
 }
 
-.activity-icon {
+.forum-page .activity-icon {
   width: 34px;
   height: 34px;
   border-radius: 10px;
@@ -265,28 +265,28 @@
   color: #1a202c;
 }
 
-.activity-details {
+.forum-page .activity-details {
   min-width: 0;
 }
 
-.activity-line {
+.forum-page .activity-line {
   display: block;
   color: #1a202c;
   font-size: 0.95rem;
   line-height: 1.25;
 }
 
-.activity-user {
+.forum-page .activity-user {
   font-weight: 800;
   margin-right: 6px;
 }
 
-.activity-action {
+.forum-page .activity-action {
   color: #4a5568;
   margin-right: 6px;
 }
 
-.activity-content {
+.forum-page .activity-content {
   font-weight: 600;
   color: #1a202c;
   overflow: hidden;
@@ -297,7 +297,7 @@
   -webkit-box-orient: vertical;
 }
 
-.activity-time {
+.forum-page .activity-time {
   margin-top: 6px;
   color: #718096;
   font-size: 0.85rem;
@@ -376,7 +376,7 @@
 }
 
 /* Headers de section (Catégories / Sujets / Modération) */
-.section-header {
+.forum-page .section-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -384,7 +384,7 @@
   margin-bottom: 12px;
 }
 
-.section-header h2 {
+.forum-page .section-header h2 {
   margin: 0;
   color: #1a202c;
   font-size: 1.25rem;

@@ -7,14 +7,14 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.header-left {
+.admin-header .header-left {
   display: flex;
   align-items: center;
   gap: 1rem;
   min-width: 0;
 }
 
-.header-left h1 {
+.admin-header .header-left h1 {
   font-size: 1.8rem;
   color: #2d3748;
   margin: 0;
@@ -23,7 +23,7 @@
   flex: 1 1 auto;
 }
 
-.toggle-sidebar-btn {
+.admin-header .toggle-sidebar-btn {
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -36,7 +36,7 @@
   transition: color 0.2s ease;
 }
 
-.toggle-sidebar-btn:hover {
+.admin-header .toggle-sidebar-btn:hover {
   color: #00a651;
 }
 

@@ -30,13 +30,13 @@
   margin-right: 0;
 }
 
-.sidebar-header {
+.admin-sidebar .sidebar-header {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.close-sidebar-btn {
+.admin-sidebar .close-sidebar-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -50,14 +50,14 @@
   cursor: pointer;
 }
 
-.header-content {
+.admin-sidebar .header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
 }
 
-.sidebar-header h2 {
+.admin-sidebar .sidebar-header h2 {
   font-size: 1.2rem;
   font-weight: 600;
   color: #fff;
@@ -68,7 +68,7 @@
   flex: 1;
 }
 
-.toggle-btn {
+.admin-sidebar .toggle-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
@@ -83,7 +83,7 @@
   transition: all 0.3s ease;
 }
 
-.toggle-icon {
+.admin-sidebar .toggle-icon {
   font-size: 1.25rem;
   line-height: 1;
   display: flex;
@@ -91,13 +91,13 @@
   justify-content: center;
 }
 
-.toggle-btn:hover {
+.admin-sidebar .toggle-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
 }
 
 /* Mobile backdrop under the sidebar; appears only when sidebar is open */
-.sidebar-backdrop {
+.admin-shell .sidebar-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.35);
@@ -105,15 +105,15 @@
   display: none;
 }
 
-.sidebar-nav {
+.admin-sidebar .sidebar-nav {
   padding: 1rem 0;
 }
 
-.nav-group {
+.admin-sidebar .nav-group {
   margin: 0.75rem 0;
 }
 
-.nav-group__label {
+.admin-sidebar .nav-group__label {
   font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -125,7 +125,7 @@
   display: none;
 }
 
-.nav-item {
+.admin-sidebar .nav-item {
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -143,18 +143,18 @@
   margin: 0.25rem 0.5rem;
 }
 
-.nav-item:hover {
+.admin-sidebar .nav-item:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   transform: translateX(5px);
 }
 
-.nav-item.active {
+.admin-sidebar .nav-item.active {
   background: #00a651;
   color: #fff;
 }
 
-.nav-item.active::before {
+.admin-sidebar .nav-item.active::before {
   content: '';
   position: absolute;
   left: -1rem;
@@ -166,7 +166,7 @@
   border-radius: 0 4px 4px 0;
 }
 
-.nav-icon {
+.admin-sidebar .nav-icon {
   width: 24px;
   height: 24px;
   margin-right: 1rem;
@@ -178,7 +178,7 @@
   padding: 0.5rem;
 }
 
-.nav-text {
+.admin-sidebar .nav-text {
   white-space: nowrap;
   overflow: hidden;
   opacity: 1;
