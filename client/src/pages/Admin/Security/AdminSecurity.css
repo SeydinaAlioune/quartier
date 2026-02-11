@@ -1,18 +1,20 @@
-.admin-security {
-  background-color: #ffffff;
-}
+ .admin-security {
+  padding: 0;
+  background: transparent;
+ }
 
-.security-topbar {
+ .admin-security .security-topbar {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 1rem;
 }
 
-.alerts-section {
-  padding: 2rem;
-}
+ .admin-security .alerts-section,
+ .admin-security .incidents-section {
+  padding: 0;
+ }
 
-.security-tabs {
+ .admin-security .security-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
@@ -21,7 +23,7 @@
   clear: both;
 }
 
-.tab-btn {
+ .admin-security .tab-btn {
   padding: 0.5rem 1.25rem;
   border: none;
   border-radius: 4px;
@@ -33,22 +35,30 @@
   font-size: 0.9rem;
 }
 
-.tab-btn:hover {
+ .admin-security .tab-btn:hover,
+ .admin-security .tab-btn.active {
   background-color: #00a651;
   color: white;
-}
+ }
 
-.tab-btn.active {
-  background-color: #00a651;
-  color: white;
-}
+ .admin-security .config-btn {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+ }
 
-/* Header actions (e.g., Configurer) */
-.header-actions { display: flex; gap: 0.5rem; align-items: center; }
-.config-btn { background-color: #0dcaf0; color: #fff; border: none; border-radius: 4px; padding: 0.5rem 1rem; cursor: pointer; }
-.config-btn:hover { background-color: #0bb5da; }
+ .admin-security .config-btn:hover {
+  background: #f8fafc;
+ }
 
-.section-header {
+ .admin-security .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -57,50 +67,47 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.section-header h3 {
-  font-size: 1.4rem;
-  color: #2d3748;
+ .admin-security .section-header h3 {
+  font-size: 1.35rem;
+  color: #0f172a;
   margin: 0;
-}
+ }
 
-.section-header h3 {
-  font-size: 1.4rem;
-  color: #2d3748;
-}
-
-.add-btn {
+ .admin-security .add-btn {
   padding: 0.5rem 1.25rem;
   background-color: #00a651;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 800;
   transition: all 0.2s ease;
   font-size: 0.9rem;
-  float: right;
-  margin-bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .add-btn:hover {
   background-color: #008c44;
 }
 
-.alerts-list, .incidents-list {
+ .admin-security .alerts-list,
+ .admin-security .incidents-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
 }
 
-.alerts-list {
+ .admin-security .alerts-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.alert-card {
+ .admin-security .alert-card {
   background: white;
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border-left: 4px solid transparent;
@@ -108,49 +115,49 @@
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid #e2e8f0;
 }
 
-.alert-card.severity-high {
+ .admin-security .alert-card.severity-high {
   border-left: 4px solid #dc3545;
 }
 
-.alert-card.severity-medium {
+ .admin-security .alert-card.severity-medium {
   border-left: 4px solid #ffc107;
 }
 
-.alert-card.severity-low {
+ .admin-security .alert-card.severity-low {
   border-left: 4px solid #28a745;
 }
 
-.alert-header {
+ .admin-security .alert-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.alert-type {
+ .admin-security .alert-type {
   font-weight: 600;
   color: #212529;
   font-size: 1.2rem;
 }
 
-.alert-date {
+ .admin-security .alert-date {
   color: #6c757d;
   font-size: 0.9rem;
 }
 
-.alert-content {
+ .admin-security .alert-content {
   color: #495057;
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
-.alert-message {
+ .admin-security .alert-message {
   margin-bottom: 0.75rem;
 }
 
-.alert-zone {
+ .admin-security .alert-zone {
   display: inline-block;
   padding: 0.35rem 0.75rem;
   background-color: #f8f9fa;
@@ -160,46 +167,223 @@
   border: 1px solid #dee2e6;
 }
 
-.alert-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.alert-actions {
+ .admin-security .alert-actions {
   display: flex;
   gap: 0.5rem;
-}
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+ }
 
-.edit-btn, .delete-btn {
+ .admin-security .edit-btn,
+ .admin-security .delete-btn {
   padding: 0.35rem 0.75rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 800;
   transition: all 0.2s ease;
   font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
-.edit-btn {
-  background-color: #0dcaf0;
-  color: white;
-}
+ .admin-security .edit-btn {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+ }
 
-.edit-btn:hover {
-  background-color: #0bb5da;
-}
+ .admin-security .edit-btn:hover {
+  background: #f8fafc;
+ }
 
-.delete-btn {
-  background-color: #dc3545;
-  color: white;
-}
+ .admin-security .delete-btn {
+  background: rgba(239, 68, 68, 0.14);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+ }
 
-.delete-btn:hover {
-  background-color: #bb2d3b;
-}
+ .admin-security .delete-btn:hover {
+  background: rgba(239, 68, 68, 0.20);
+ }
 
-.incident-status select {
+ .admin-security .filters-toolbar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+ }
+
+ .admin-security .filters-toggle {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  font-weight: 800;
+ }
+
+ .admin-security .filters {
+  display: none;
+  margin-top: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+ }
+
+ .admin-security .filters.is-open {
+  display: flex;
+ }
+
+ .admin-security .filters input,
+ .admin-security .filters select {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+ }
+
+ .admin-security .incident-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  display: grid;
+  gap: 0.6rem;
+ }
+
+ .admin-security .incident-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+ }
+
+ .admin-security .incident-type {
+  font-weight: 900;
+  color: #0f172a;
+ }
+
+ .admin-security .incident-date {
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.9rem;
+ }
+
+ .admin-security .incident-description {
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.45;
+ }
+
+ .admin-security .incident-attachments {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+ }
+
+ .admin-security .attachment-item {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+ }
+
+ .admin-security .attachment-item img {
+  width: 96px;
+  height: 72px;
+  object-fit: cover;
+  display: block;
+ }
+
+ .admin-security .attachment-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  font-weight: 800;
+  color: #0f172a;
+ }
+
+ .admin-security .incident-map-action { margin-top: 0.25rem; }
+
+ .admin-security .tip-add-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+ }
+
+ .admin-security .tip-items {
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+ }
+
+ .admin-security .tip-items li {
+  font-size: 0.95rem;
+ }
+
+ .admin-security .security-map-modal {
+  max-width: 720px;
+ }
+
+ .admin-security .security-map-container {
+  height: 380px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+ }
+
+ .admin-security .security-viewer-modal {
+  max-width: 900px;
+ }
+
+ .admin-security .viewer-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+ }
+
+ .admin-security .viewer-title {
+  font-weight: 900;
+  color: #0f172a;
+ }
+
+ .admin-security .icon-close {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+ }
+
+ .admin-security .viewer-body {
+  display: grid;
+  place-items: center;
+ }
+
+ .admin-security .viewer-image {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+ }
+
+ .admin-security .incident-status select {
   width: 100%;
   padding: 0.5rem;
   border: 1px solid #e2e8f0;
@@ -209,7 +393,7 @@
   font-size: 0.9rem;
 }
 
-.incident-reporter {
+ .admin-security .incident-reporter {
   display: block;
   color: #718096;
   font-size: 0.9rem;
@@ -217,7 +401,7 @@
 }
 
 /* Modal */
-.modal-overlay {
+ .admin-security .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
@@ -228,7 +412,7 @@
   padding: 1rem;
 }
 
-.modal {
+ .admin-security .modal {
   width: 100%;
   max-width: 720px;
   max-height: calc(100vh - 120px);
@@ -239,29 +423,31 @@
   padding: 1.25rem 1.25rem 1rem;
 }
 
-.modal h3 { margin: 0 0 0.75rem 0; font-size: 1.25rem; }
-.form-row { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.85rem; }
-.form-row label { font-weight: 600; color: #2d3748; }
-.form-row input, .form-row select, .form-row textarea {
+ .admin-security .modal h3 { margin: 0 0 0.75rem 0; font-size: 1.25rem; }
+ .admin-security .modal-subtitle { color: #64748b; font-weight: 700; margin-top: -0.25rem; margin-bottom: 0.85rem; }
+ .admin-security .form-row { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.85rem; }
+ .admin-security .form-row label { font-weight: 800; color: #0f172a; }
+ .admin-security .form-row input, .admin-security .form-row select, .admin-security .form-row textarea {
   padding: 0.75rem 0.9rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   font-size: 0.95rem;
 }
-.form-row textarea { min-height: 110px; }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-.modal-actions { margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: flex-end; }
-.btn-primary, .btn-secondary { padding: 0.75rem 1.25rem; border-radius: 8px; border: none; cursor: pointer; }
-.btn-primary { background: #00843D; color: #fff; }
-.btn-secondary { background: #edf2f7; color: #2d3748; }
+ .admin-security .form-row textarea { min-height: 110px; }
+ .admin-security .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+ .admin-security .modal-actions { margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap; }
+ .admin-security .btn-primary, .admin-security .btn-secondary { padding: 0.75rem 1.25rem; border-radius: 10px; border: 1px solid transparent; cursor: pointer; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; }
+ .admin-security .btn-primary { background: #00a651; color: #fff; border-color: #009349; }
+ .admin-security .btn-secondary { background: #ffffff; color: #0f172a; border-color: #e2e8f0; }
 
 @media (max-width: 600px) {
-  .two-col { grid-template-columns: 1fr; }
-  .modal { max-width: 92vw; max-height: calc(100vh - 80px); }
+  .admin-security .two-col { grid-template-columns: 1fr; }
+  .admin-security .modal { max-width: 92vw; max-height: calc(100vh - 80px); }
+  .admin-security .tip-add-row { flex-direction: column; align-items: stretch; }
 }
 
 /* Error banner */
-.error-banner {
+ .admin-security .error-banner {
   background: #fed7d7;
   color: #742a2a;
   border: 1px solid #feb2b2;
@@ -271,19 +457,16 @@
 }
 
 @media (max-width: 768px) {
-  .admin-security {
-    padding: 1rem;
-  }
-
-  .alerts-list, .incidents-list {
+  .admin-security .alerts-list,
+  .admin-security .incidents-list {
     grid-template-columns: 1fr;
   }
 
-  .security-tabs {
+  .admin-security .security-tabs {
     flex-direction: column;
   }
 
-  .tab-btn {
+  .admin-security .tab-btn {
     width: 100%;
   }
 }

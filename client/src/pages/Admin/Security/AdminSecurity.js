@@ -4,6 +4,7 @@ import './AdminSecurity.css';
 import api from '../../../services/api';
 import loadLeaflet from '../../../utils/loadLeaflet';
 import { emitToast } from '../../../utils/toast';
+import { MapPin, Paperclip, Plus, Settings, Trash2, X } from 'lucide-react';
 
 const AdminSecurity = () => {
   const [activeTab, setActiveTab] = useState('alertes');
@@ -22,6 +23,16 @@ const AdminSecurity = () => {
   const [incidentStatusFilter, setIncidentStatusFilter] = useState('');
   const [incidentFrom, setIncidentFrom] = useState('');
   const [incidentTo, setIncidentTo] = useState('');
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState('Confirmer');
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const confirmActionRef = useRef(null);
+
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerItem, setViewerItem] = useState(null); // {type, url, title}
 
   // Map modal state
   const [showMap, setShowMap] = useState(false);
@@ -44,6 +55,56 @@ const AdminSecurity = () => {
   const [alertEditingId, setAlertEditingId] = useState(null);
   const [alertError, setAlertError] = useState('');
   const [alertForm, setAlertForm] = useState({ type: '', message: '', zone: '', severity: 'low', date: '' });
+
+  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+
+  const toAbsoluteUrl = (url = '') => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith('/')) return `${API_BASE}${url}`;
+    return url;
+  };
+
+  const handleOverlayMouseDown = (e, onClose) => {
+    if (e.target !== e.currentTarget) return;
+    onClose();
+  };
+
+  const openConfirm = ({ title = 'Confirmer', message = '', onConfirm }) => {
+    confirmActionRef.current = typeof onConfirm === 'function' ? onConfirm : null;
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setConfirmTitle('Confirmer');
+    setConfirmMessage('');
+    confirmActionRef.current = null;
+  };
+
+  const handleConfirmSubmit = async () => {
+    const fn = confirmActionRef.current;
+    closeConfirm();
+    if (!fn) return;
+    try {
+      await fn();
+    } catch (e) {
+      emitToast('Action impossible.');
+    }
+  };
+
+  const openViewer = (item) => {
+    if (!item?.url) return;
+    setViewerItem(item);
+    setViewerOpen(true);
+  };
+
+  const closeViewer = () => {
+    setViewerOpen(false);
+    setViewerItem(null);
+  };
 
   useEffect(() => {
     const fetchSecurity = async () => {
@@ -87,6 +148,35 @@ const AdminSecurity = () => {
     });
     return () => { mounted = false; alertsSrc.close(); incidentsSrc.close(); };
   }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+
+      if (confirmOpen) {
+        closeConfirm();
+        return;
+      }
+      if (viewerOpen) {
+        closeViewer();
+        return;
+      }
+      if (showMap) {
+        setShowMap(false);
+        return;
+      }
+      if (showAlertModal) {
+        setShowAlertModal(false);
+        return;
+      }
+      if (showConfig) {
+        setShowConfig(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [confirmOpen, showAlertModal, showConfig, showMap, viewerOpen]);
 
   // Initialize Leaflet map when modal opens
   useEffect(() => {
@@ -166,13 +256,14 @@ const AdminSecurity = () => {
   };
 
   const handleDeleteAlert = async (id) => {
-    if (!window.confirm('Supprimer cette alerte ?')) return;
-    try {
-      await api.delete(`/api/security/alerts/${id}`);
-      setAlerts(prev => prev.filter(a => a._id !== id));
-    } catch (e) {
-      emitToast("Suppression impossible (droit administrateur requis).");
-    }
+    openConfirm({
+      title: 'Supprimer l\'alerte',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/security/alerts/${id}`);
+        setAlerts(prev => prev.filter(a => a._id !== id));
+      }
+    });
   };
 
   const handleUpdateIncidentStatus = async (id, newStatus) => {
@@ -240,7 +331,10 @@ const AdminSecurity = () => {
     <AdminLayout title="Gestion de la Sécurité">
       <div className="admin-security">
         <div className="security-topbar">
-          <button className="config-btn" onClick={openConfig}>Configurer</button>
+          <button className="config-btn" onClick={openConfig} type="button">
+            <Settings size={16} aria-hidden="true" />
+            <span>Configurer</span>
+          </button>
         </div>
 
         <div className="security-tabs">
@@ -262,17 +356,25 @@ const AdminSecurity = () => {
           <div className="alerts-section">
             <div className="section-header">
               <h3>Alertes de Sécurité</h3>
-              <button className="add-btn" onClick={openNewAlert}>Nouvelle Alerte</button>
+              <button className="add-btn" onClick={openNewAlert} type="button">
+                <Plus size={16} aria-hidden="true" />
+                <span>Nouvelle Alerte</span>
+              </button>
             </div>
-            <div className="filters" style={{display:'flex', gap:'.5rem', flexWrap:'wrap', marginBottom:'1rem'}}>
-              <input type="text" placeholder="Type" value={alertTypeFilter} onChange={(e)=>setAlertTypeFilter(e.target.value)} />
-              <select value={alertSeverityFilter} onChange={(e)=>setAlertSeverityFilter(e.target.value)}>
-                <option value="">Sévérité (toutes)</option>
-                <option value="low">Faible</option>
-                <option value="medium">Moyenne</option>
-                <option value="high">Élevée</option>
-              </select>
-              <input type="text" placeholder="Zone" value={alertZoneFilter} onChange={(e)=>setAlertZoneFilter(e.target.value)} />
+            <div className="filters-toolbar">
+              <button type="button" className="filters-toggle" onClick={() => setFiltersOpen(v => !v)} aria-expanded={filtersOpen}>
+                Filtres
+              </button>
+              <div className={`filters ${filtersOpen ? 'is-open' : ''}`}>
+                <input type="text" placeholder="Type" value={alertTypeFilter} onChange={(e)=>setAlertTypeFilter(e.target.value)} />
+                <select value={alertSeverityFilter} onChange={(e)=>setAlertSeverityFilter(e.target.value)}>
+                  <option value="">Sévérité (toutes)</option>
+                  <option value="low">Faible</option>
+                  <option value="medium">Moyenne</option>
+                  <option value="high">Élevée</option>
+                </select>
+                <input type="text" placeholder="Zone" value={alertZoneFilter} onChange={(e)=>setAlertZoneFilter(e.target.value)} />
+              </div>
             </div>
             <div className="alerts-list">
               {loading && <div>Chargement...</div>}
@@ -291,8 +393,11 @@ const AdminSecurity = () => {
                     <span className="alert-zone">Zone: {alert.zone}</span>
                   </div>
                   <div className="alert-actions">
-                    <button className="edit-btn" onClick={() => openEditAlert(alert)}>Modifier</button>
-                    <button className="delete-btn" onClick={() => handleDeleteAlert(alert._id)}>Supprimer</button>
+                    <button className="edit-btn" onClick={() => openEditAlert(alert)} type="button">Modifier</button>
+                    <button className="delete-btn" onClick={() => handleDeleteAlert(alert._id)} type="button">
+                      <Trash2 size={16} aria-hidden="true" />
+                      <span>Supprimer</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -305,16 +410,21 @@ const AdminSecurity = () => {
             <div className="section-header">
               <h3>Incidents Signalés</h3>
             </div>
-            <div className="filters" style={{display:'flex', gap:'.5rem', flexWrap:'wrap', marginBottom:'1rem'}}>
-              <input type="text" placeholder="Type" value={incidentTypeFilter} onChange={(e)=>setIncidentTypeFilter(e.target.value)} />
-              <select value={incidentStatusFilter} onChange={(e)=>setIncidentStatusFilter(e.target.value)}>
-                <option value="">Statut (tous)</option>
-                <option value="nouveau">Nouveau</option>
-                <option value="en_cours">En cours</option>
-                <option value="resolu">Résolu</option>
-              </select>
-              <input type="date" value={incidentFrom} onChange={(e)=>setIncidentFrom(e.target.value)} />
-              <input type="date" value={incidentTo} onChange={(e)=>setIncidentTo(e.target.value)} />
+            <div className="filters-toolbar">
+              <button type="button" className="filters-toggle" onClick={() => setFiltersOpen(v => !v)} aria-expanded={filtersOpen}>
+                Filtres
+              </button>
+              <div className={`filters ${filtersOpen ? 'is-open' : ''}`}>
+                <input type="text" placeholder="Type" value={incidentTypeFilter} onChange={(e)=>setIncidentTypeFilter(e.target.value)} />
+                <select value={incidentStatusFilter} onChange={(e)=>setIncidentStatusFilter(e.target.value)}>
+                  <option value="">Statut (tous)</option>
+                  <option value="nouveau">Nouveau</option>
+                  <option value="en_cours">En cours</option>
+                  <option value="resolu">Résolu</option>
+                </select>
+                <input type="date" value={incidentFrom} onChange={(e)=>setIncidentFrom(e.target.value)} />
+                <input type="date" value={incidentTo} onChange={(e)=>setIncidentTo(e.target.value)} />
+              </div>
             </div>
             <div className="incidents-list">
               {loading && <div>Chargement...</div>}
@@ -339,21 +449,46 @@ const AdminSecurity = () => {
                     {incident.contact && <span className="incident-reporter">Contact: {incident.contact}</span>}
                     {incident.anonymous && <span className="incident-reporter">Signalement anonyme</span>}
                     {Array.isArray(incident.attachments) && incident.attachments.length > 0 && (
-                      <div style={{marginTop: '.5rem', display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
-                        {incident.attachments.map((att, idx) => (
-                          <a key={idx} href={att.url} target="_blank" rel="noreferrer">
-                            {att.type === 'image' ? (
-                              <img src={att.url} alt="pièce jointe" style={{width: 96, height: 72, objectFit: 'cover', borderRadius: 6, border:'1px solid #eee'}} />
-                            ) : (
-                              <span>Fichier</span>
-                            )}
-                          </a>
-                        ))}
+                      <div className="incident-attachments" aria-label="Pièces jointes">
+                        {incident.attachments.map((att, idx) => {
+                          const abs = toAbsoluteUrl(att?.url || '');
+                          const title = att?.name || att?.filename || 'Pièce jointe';
+                          const type = att?.type || '';
+                          const isImg = type === 'image' || /\.(png|jpe?g|webp|gif)$/i.test(abs);
+                          if (!abs) return null;
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              className="attachment-item"
+                              onClick={() => {
+                                if (isImg) {
+                                  openViewer({ type: 'image', url: abs, title });
+                                } else {
+                                  window.open(abs, '_blank', 'noopener,noreferrer');
+                                }
+                              }}
+                            >
+                              {isImg ? (
+                                <img src={abs} alt={title} />
+                              ) : (
+                                <span className="attachment-file">
+                                  <Paperclip size={16} aria-hidden="true" />
+                                  <span>Fichier</span>
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                     {incident.locationCoords && typeof incident.locationCoords.lat === 'number' && typeof incident.locationCoords.lng === 'number' && (
-                      <div style={{marginTop: '.5rem'}}>
-                        <button className="btn-secondary" type="button" onClick={() => openMapForIncident(incident)}>Voir sur la carte</button>
+                      <div className="incident-map-action">
+                        <button className="btn-secondary" type="button" onClick={() => openMapForIncident(incident)}>
+                          <MapPin size={16} aria-hidden="true" />
+                          Voir sur la carte
+                        </button>
                       </div>
                     )}
                     <span className="incident-reporter">Signalé par: {incident.reporter || '—'}</span>
@@ -375,7 +510,7 @@ const AdminSecurity = () => {
         )}
       </div>
       {showConfig && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowConfig(false))}>
           <div className="modal">
             <h3>Configuration Sécurité</h3>
             {configLoading && <div>Chargement...</div>}
@@ -402,14 +537,14 @@ const AdminSecurity = () => {
                   <div className="form-row" key={idx}>
                     <input type="text" placeholder="Titre (ex: Protection du Domicile)" value={t.title} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, title: e.target.value } : x) }))} />
                     <textarea rows="4" placeholder={'Un conseil par ligne'} value={t.itemsText} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, itemsText: e.target.value } : x) }))} />
-                    <div style={{display:'flex', gap:'.5rem', alignItems:'center'}}>
+                    <div className="tip-add-row">
                       <input type="text" placeholder="Ajouter un conseil" value={t.newItem || ''} onChange={(e)=> setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, newItem: e.target.value } : x) }))} />
                       <button type="button" className="btn-secondary" onClick={() => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, itemsText: (x.itemsText? x.itemsText+"\n" : '') + (x.newItem||'').trim(), newItem: '' } : x) }))}>Ajouter</button>
                     </div>
                     {t.itemsText && (
-                      <ul style={{marginTop:'.5rem', paddingLeft:'1rem'}}>
+                      <ul className="tip-items">
                         {t.itemsText.split('\n').filter(s=>s.trim()).map((line, li) => (
-                          <li key={li} style={{fontSize:'.95rem'}}>{line}</li>
+                          <li key={li}>{line}</li>
                         ))}
                       </ul>
                     )}
@@ -432,7 +567,7 @@ const AdminSecurity = () => {
         </div>
       )}
       {showAlertModal && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowAlertModal(false))}>
           <div className="modal">
             <h3>{alertEditingId ? 'Modifier une alerte' : 'Nouvelle alerte'}</h3>
             {alertError && <div className="error-banner">{alertError}</div>}
@@ -466,12 +601,48 @@ const AdminSecurity = () => {
         </div>
       )}
       {showMap && (
-        <div className="modal-overlay">
-          <div className="modal" style={{width:'min(720px, 92vw)'}}>
+        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowMap(false))}>
+          <div className="modal security-map-modal">
             <h3>Localisation de l'incident</h3>
-            <div ref={mapContainerRef} style={{height: '380px', borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e7eb'}} />
+            <div ref={mapContainerRef} className="security-map-container" />
             <div className="modal-actions">
               <button type="button" className="btn-secondary" onClick={() => setShowMap(false)}>Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmOpen && (
+        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeConfirm)}>
+          <div className="modal">
+            <h3>{confirmTitle}</h3>
+            <div className="modal-subtitle">{confirmMessage}</div>
+            <div className="modal-actions">
+              <button type="button" className="btn-secondary" onClick={closeConfirm}>Annuler</button>
+              <button type="button" className="btn-primary" onClick={handleConfirmSubmit}>Confirmer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewerOpen && viewerItem && (
+        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeViewer)}>
+          <div className="modal security-viewer-modal">
+            <div className="viewer-topbar">
+              <div className="viewer-title">{viewerItem.title || 'Pièce jointe'}</div>
+              <button type="button" className="icon-close" onClick={closeViewer} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="viewer-body">
+              {viewerItem.type === 'image' ? (
+                <img className="viewer-image" src={viewerItem.url} alt={viewerItem.title || 'pièce jointe'} />
+              ) : (
+                <div className="viewer-file">
+                  <Paperclip size={18} aria-hidden="true" />
+                  <a href={viewerItem.url} target="_blank" rel="noreferrer">Ouvrir le fichier</a>
+                </div>
+              )}
             </div>
           </div>
         </div>
