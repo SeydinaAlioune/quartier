@@ -112,14 +112,19 @@ exports.forgotPassword = async (req, res) => {
             return res.status(400).json({ message: "Email requis" });
         }
 
+        console.log('[forgotPassword] request', { email });
+
         let user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
         if (!user) {
             const rx = new RegExp(`^${escapeRegExp(email)}$`, 'i');
             user = await User.findOne({ email: rx });
         }
         if (!user) {
+            console.log('[forgotPassword] user not found', { email });
             return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
         }
+
+        console.log('[forgotPassword] user found', { email, userId: String(user._id) });
 
         const rawToken = crypto.randomBytes(32).toString('hex');
         const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -142,7 +147,7 @@ exports.forgotPassword = async (req, res) => {
 
         const fromEmail = (process.env.FROM_EMAIL || 'onboarding@resend.dev').trim();
 
-        await resend.emails.send({
+        const sendRes = await resend.emails.send({
             from: fromEmail,
             to: email,
             subject: 'Réinitialisation du mot de passe — QuartierConnect',
@@ -161,6 +166,8 @@ exports.forgotPassword = async (req, res) => {
                 </div>
             `
         });
+
+        console.log('[forgotPassword] resend send ok', { email, sendRes });
 
         return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
     } catch (error) {
