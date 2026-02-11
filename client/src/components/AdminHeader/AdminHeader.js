@@ -18,7 +18,6 @@ const AdminHeader = ({
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifItems, setNotifItems] = useState([]);
-  const [notifTotal, setNotifTotal] = useState(0);
   const notifWrapRef = useRef(null);
   const navigate = useNavigate();
 
@@ -62,12 +61,10 @@ const AdminHeader = ({
         const total = Number(r?.data?.total || 0);
         if (!cancelled) {
           setNotifCount(total);
-          setNotifTotal(total);
         }
       } catch {
         if (!cancelled) {
           setNotifCount(0);
-          setNotifTotal(0);
         }
       }
     };
@@ -88,16 +85,15 @@ const AdminHeader = ({
         const arr = Array.isArray(res?.data?.contacts)
           ? res.data.contacts
           : (Array.isArray(res?.data) ? res.data : []);
-        const total = Number(res?.data?.total || arr.length || 0);
+        const apiTotal = Number(res?.data?.total || 0);
+        const total = arr.length === 0 ? 0 : (apiTotal || arr.length || 0);
         if (!cancelled) {
           setNotifItems(arr);
-          setNotifTotal(total);
           setNotifCount(total);
         }
       } catch {
         if (!cancelled) {
           setNotifItems([]);
-          setNotifTotal(0);
           setNotifCount(0);
         }
       } finally {
@@ -171,9 +167,7 @@ const AdminHeader = ({
                 {notifLoading && <div className="notif-dropdown__empty">Chargement…</div>}
                 {!notifLoading && notifItems.length === 0 && (
                   <div className="notif-dropdown__empty">
-                    {notifTotal > 0
-                      ? `Vous avez ${notifTotal} nouveau(x) message(s).`
-                      : 'Aucun nouveau message'}
+                    Aucun nouveau message
                   </div>
                 )}
                 {!notifLoading && notifItems.map((m) => (

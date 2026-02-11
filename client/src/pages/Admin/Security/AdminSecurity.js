@@ -65,7 +65,7 @@ const AdminSecurity = () => {
     if (!url) return '';
     if (/^https?:\/\//i.test(url)) return url;
     if (url.startsWith('/')) return `${API_BASE}${url}`;
-    return url;
+    return `${API_BASE}/${url}`;
   };
 
   const handleOverlayMouseDown = (e, onClose) => {
