@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
+import { emitToast } from '../../../utils/toast';
+import './AdminDonations.css';
 
 const AdminDonations = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +29,28 @@ const AdminDonations = () => {
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState('');
   const [stats, setStats] = useState(null);
+
+  const formatFcfa = (value) => {
+    const v = Number(value || 0);
+    try {
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'XOF',
+        maximumFractionDigits: 0,
+      }).format(v);
+    } catch (e) {
+      return `${v.toLocaleString('fr-FR')} FCFA`;
+    }
+  };
+
+  const getProgressPct = (collected, goal) => {
+    const g = Number(goal || 0);
+    if (!g) return 0;
+    const c = Number(collected || 0);
+    const pct = (c / g) * 100;
+    if (!Number.isFinite(pct)) return 0;
+    return Math.max(0, Math.min(100, pct));
+  };
 
   const fetchCampaigns = async () => {
     try {
@@ -110,7 +134,7 @@ const AdminDonations = () => {
       setNewCampaign({ title: '', description: '', goal: '', startDate: '', endDate: '', category: 'project', project: '' });
       fetchCampaigns();
     } catch (err) {
-      alert("Création de campagne impossible. Vérifiez vos droits admin.");
+      emitToast("Création de campagne impossible.");
     }
   };
 
@@ -123,40 +147,43 @@ const AdminDonations = () => {
               <p className="header-subtitle">Gérez les campagnes et suivez les contributions</p>
             </div>
             <div className="header-actions">
-              <button className="add-campaign-btn" onClick={() => setShowAddModal(true)}>
-                <span>+</span>
+              <button type="button" className="donations-btn donations-btn--primary" onClick={() => setShowAddModal(true)}>
                 <span>Nouvelle campagne</span>
               </button>
             </div>
           </div>
 
           {/* Tableau de bord */}
-          <div style={{marginTop:'8px'}}>
-            {statsLoading && <div style={{background:'#fff', borderRadius:8, padding:'12px 14px', boxShadow:'0 1px 3px rgba(0,0,0,.08)'}}>Chargement des statistiques...</div>}
-            {statsError && <div style={{background:'#fff3f3', border:'1px solid #ffd5d5', color:'#7a1f1f', borderRadius:8, padding:'10px 12px'}}>{statsError}</div>}
+          <div className="donations-dashboard">
+            {statsLoading && (
+              <div className="dashboard-card">Chargement des statistiques...</div>
+            )}
+            {statsError && (
+              <div className="dashboard-card" style={{ background: '#fff3f3', borderColor: '#ffd5d5', color: '#7a1f1f' }}>{statsError}</div>
+            )}
             {(!statsLoading && !statsError && stats) && (
-              <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:'12px', margin:'8px 0 18px'}}>
-                <div style={{background:'#fff', borderRadius:8, padding:'12px 14px', boxShadow:'0 1px 3px rgba(0,0,0,.08)'}}>
-                  <div style={{fontSize:'.9rem', color:'#6b7280'}}>Total collecté</div>
-                  <div style={{fontSize:'1.4rem', fontWeight:700}}>{Number(stats.totalCollected||0).toLocaleString('fr-FR')} €</div>
+              <div className="dashboard-grid">
+                <div className="dashboard-card">
+                  <div className="dashboard-label">Total collecté</div>
+                  <div className="dashboard-value">{formatFcfa(stats.totalCollected || 0)}</div>
                 </div>
-                <div style={{background:'#fff', borderRadius:8, padding:'12px 14px', boxShadow:'0 1px 3px rgba(0,0,0,.08)'}}>
-                  <div style={{fontSize:'.9rem', color:'#6b7280'}}>Nombre de dons</div>
-                  <div style={{fontSize:'1.4rem', fontWeight:700}}>{Number(stats.donationsCount||0).toLocaleString('fr-FR')}</div>
+                <div className="dashboard-card">
+                  <div className="dashboard-label">Nombre de dons</div>
+                  <div className="dashboard-value">{Number(stats.donationsCount || 0).toLocaleString('fr-FR')}</div>
                 </div>
-                <div style={{background:'#fff', borderRadius:8, padding:'12px 14px', boxShadow:'0 1px 3px rgba(0,0,0,.08)'}}>
-                  <div style={{fontSize:'.9rem', color:'#6b7280', marginBottom:6}}>Top campagnes</div>
-                  {Array.isArray(stats.topCampaigns) && stats.topCampaigns.length>0 ? (
-                    <div style={{display:'grid', gap:6}}>
-                      {stats.topCampaigns.slice(0,3).map((t)=> (
-                        <div key={t._id||t.id} style={{display:'flex', justifyContent:'space-between', gap:8}}>
-                          <span style={{color:'#374151', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}} title={t.title}>{t.title}</span>
-                          <span style={{color:'#111827', fontWeight:600}}>{Number(t.collected||0).toLocaleString('fr-FR')} €</span>
+                <div className="dashboard-card">
+                  <div className="dashboard-label">Top campagnes</div>
+                  {Array.isArray(stats.topCampaigns) && stats.topCampaigns.length > 0 ? (
+                    <div className="top-campaigns">
+                      {stats.topCampaigns.slice(0, 3).map((t) => (
+                        <div key={t._id || t.id} className="top-campaign">
+                          <span className="top-campaign__title" title={t.title}>{t.title}</span>
+                          <span className="top-campaign__value">{formatFcfa(t.collected || 0)}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div style={{color:'#6b7280'}}>—</div>
+                    <div style={{ color: '#64748b', fontWeight: 800, marginTop: 6 }}>—</div>
                   )}
                 </div>
               </div>
@@ -189,60 +216,64 @@ const AdminDonations = () => {
             </div>
           </div>
 
-          <div className="campaigns-list">
-            {loading && <div className="campaign-card">Chargement...</div>}
-            {!loading && filtered.map(c => (
-              <div key={c._id} className="campaign-card">
-                <div className="campaign-header">
-                  <h3>{c.title}</h3>
-                  <span className={`status-badge ${c.status}`}>{c.status === 'active' ? 'Active' : (c.status === 'completed' ? 'Terminée' : 'Annulée')}</span>
-                </div>
-                <div className="campaign-info">
-                  <div className="info-group">
-                    <span className="label">Catégorie:</span>
-                    <span className="value">{c.category}</span>
+          <div className="donations-campaigns">
+            {loading && <div className="donations-campaign-card">Chargement...</div>}
+            {!loading && filtered.map(c => {
+              const isActive = c.status === 'active';
+              const isCompleted = c.status === 'completed';
+              const isCancelled = c.status === 'cancelled';
+              const pct = getProgressPct(c.collected, c.goal);
+              const statusLabel = isActive ? 'Active' : (isCompleted ? 'Terminée' : 'Annulée');
+              const statusClass = isActive ? 'is-active' : (isCompleted ? 'is-completed' : (isCancelled ? 'is-cancelled' : ''));
+              return (
+                <div key={c._id} className="donations-campaign-card">
+                  <div className="campaign-head">
+                    <h3 className="campaign-title">{c.title || '—'}</h3>
+                    <span className={`campaign-badge ${statusClass}`}>{statusLabel}</span>
                   </div>
-                  {c.project && (
-                    <div className="info-group">
-                      <span className="label">Projet lié:</span>
-                      <span className="value">{c.project?.title || c.project}</span>
+
+                  <div className="campaign-amounts">
+                    <div className="campaign-amount-line">
+                      <span className="campaign-amount-label">Collecté</span>
+                      <span className="campaign-amount-value">{formatFcfa(c.collected || 0)}</span>
                     </div>
-                  )}
-                  <div className="info-group">
-                    <span className="label">Objectif:</span>
-                    <span className="value">{c.goal} €</span>
+                    <div className="campaign-amount-line">
+                      <span className="campaign-amount-label">Objectif</span>
+                      <span className="campaign-amount-value">{formatFcfa(c.goal || 0)}</span>
+                    </div>
                   </div>
-                  <div className="info-group">
-                    <span className="label">Collecté:</span>
-                    <span className="value">{c.collected} €</span>
+
+                  <div className="campaign-progress" aria-label="Progression">
+                    <div className="campaign-progress__bar" style={{ width: `${pct}%` }} />
+                  </div>
+
+                  <div className="campaign-meta">
+                    <div className="campaign-meta-line">Catégorie: {c.category || '—'}</div>
+                    {c.project && <div className="campaign-meta-line">Projet lié: {c.project?.title || c.project}</div>}
+                    <div className="campaign-meta-line">Début: {c.startDate ? new Date(c.startDate).toLocaleDateString('fr-FR') : '—'}</div>
+                    <div className="campaign-meta-line">Fin: {c.endDate ? new Date(c.endDate).toLocaleDateString('fr-FR') : '—'}</div>
+                  </div>
+
+                  <div className="campaign-actions">
+                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => openDonations(c)}>Voir dons</button>
                   </div>
                 </div>
-                <div className="campaign-dates">
-                  <div className="date-group">
-                    <span className="label">Début:</span>
-                    <span className="value">{c.startDate ? new Date(c.startDate).toLocaleDateString('fr-FR') : '—'}</span>
-                  </div>
-                  <div className="date-group">
-                    <span className="label">Fin:</span>
-                    <span className="value">{c.endDate ? new Date(c.endDate).toLocaleDateString('fr-FR') : '—'}</span>
-                  </div>
-                </div>
-                <div style={{display:'flex', gap:'8px', marginTop:'8px'}}>
-                  <button className="btn-secondary" onClick={() => openDonations(c)}>Voir dons</button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {!loading && filtered.length === 0 && (
-              <div className="campaign-card">Aucune campagne</div>
+              <div className="donations-campaign-card">Aucune campagne</div>
             )}
           </div>
         </div>
 
         {showAddModal && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>Nouvelle campagne</h3>
-              <form onSubmit={handleCreateCampaign}>
+          <div className="donations-modal-overlay" onMouseDown={() => setShowAddModal(false)}>
+            <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
+              <div className="donations-modal__header">
+                <h3>Nouvelle campagne</h3>
+              </div>
+              <div className="donations-modal__body">
+                <form onSubmit={handleCreateCampaign}>
                 <div className="form-row">
                   <label>Titre</label>
                   <input type="text" value={newCampaign.title} onChange={(e) => setNewCampaign({ ...newCampaign, title: e.target.value })} required />
@@ -252,7 +283,7 @@ const AdminDonations = () => {
                   <textarea rows="4" value={newCampaign.description} onChange={(e) => setNewCampaign({ ...newCampaign, description: e.target.value })} required />
                 </div>
                 <div className="form-row">
-                  <label>Objectif (€)</label>
+                  <label>Objectif (FCFA)</label>
                   <input type="number" min="0" value={newCampaign.goal} onChange={(e) => setNewCampaign({ ...newCampaign, goal: e.target.value })} required />
                 </div>
                 <div className="form-row">
@@ -284,52 +315,77 @@ const AdminDonations = () => {
                     </select>
                   </div>
                 )}
-                <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                  <button type="submit" className="btn-primary">Créer</button>
+                <div className="donations-modal__footer">
+                  <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
+                  <button type="submit" className="donations-btn donations-btn--primary">Créer</button>
                 </div>
               </form>
+              </div>
             </div>
           </div>
         )}
         {showDonationsModal && (
-          <div className="modal-overlay">
-            <div className="modal" style={{width:'min(820px,95vw)'}}>
-              <h3>Dons — {selectedCampaign?.title || ''}</h3>
-              {donationsLoading && <div>Chargement...</div>}
-              {donationsError && <div style={{color:'crimson'}}>{donationsError}</div>}
-              {!donationsLoading && !donationsError && (
-                <div style={{maxHeight:'60vh', overflow:'auto'}}>
-                  {donations.length === 0 ? (
-                    <div>Aucun don pour cette campagne.</div>
-                  ) : (
-                    <table style={{width:'100%', borderCollapse:'collapse'}}>
-                      <thead>
-                        <tr>
-                          <th style={{textAlign:'left', padding:'8px'}}>Date</th>
-                          <th style={{textAlign:'left', padding:'8px'}}>Donateur</th>
-                          <th style={{textAlign:'right', padding:'8px'}}>Montant (€)</th>
-                          <th style={{textAlign:'left', padding:'8px'}}>Méthode</th>
-                          <th style={{textAlign:'left', padding:'8px'}}>Statut</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {donations.map((d)=> (
-                          <tr key={d._id} style={{borderTop:'1px solid #eee'}}>
-                            <td style={{padding:'8px'}}>{d.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''}</td>
-                            <td style={{padding:'8px'}}>{d.anonymous ? 'Anonyme' : (d.donor?.name || '—')}</td>
-                            <td style={{padding:'8px', textAlign:'right'}}>{Number(d.amount||0).toLocaleString('fr-FR')}</td>
-                            <td style={{padding:'8px'}}>{d.paymentMethod}</td>
-                            <td style={{padding:'8px'}}>{d.status}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-              )}
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={()=>setShowDonationsModal(false)}>Fermer</button>
+          <div className="donations-modal-overlay" onMouseDown={() => setShowDonationsModal(false)}>
+            <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
+              <div className="donations-modal__header">
+                <h3>Dons — {selectedCampaign?.title || ''}</h3>
+              </div>
+              <div className="donations-modal__body">
+                {donationsLoading && <div>Chargement...</div>}
+                {donationsError && <div style={{ color: 'crimson', fontWeight: 800 }}>{donationsError}</div>}
+                {!donationsLoading && !donationsError && (
+                  <>
+                    {donations.length === 0 ? (
+                      <div>Aucun don pour cette campagne.</div>
+                    ) : (
+                      <>
+                        <table className="donations-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Donateur</th>
+                              <th className="amount">Montant (FCFA)</th>
+                              <th>Méthode</th>
+                              <th>Statut</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {donations.map((d) => (
+                              <tr key={d._id}>
+                                <td>{d.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''}</td>
+                                <td>{d.anonymous ? 'Anonyme' : (d.donor?.name || '—')}</td>
+                                <td className="amount">{formatFcfa(d.amount || 0)}</td>
+                                <td>{d.paymentMethod || '—'}</td>
+                                <td>{d.status || '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+
+                        <div className="donations-list">
+                          {donations.map((d) => (
+                            <div key={d._id} className="donation-row">
+                              <div className="donation-row__top">
+                                <div>
+                                  <div className="donation-row__who">{d.anonymous ? 'Anonyme' : (d.donor?.name || '—')}</div>
+                                  <div className="donation-row__date">{d.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''}</div>
+                                </div>
+                                <div className="donation-row__amount">{formatFcfa(d.amount || 0)}</div>
+                              </div>
+                              <div className="donation-row__meta">
+                                <span className="pill">{d.paymentMethod || '—'}</span>
+                                <span className="pill">{d.status || '—'}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="donations-modal__footer">
+                <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowDonationsModal(false)}>Fermer</button>
               </div>
             </div>
           </div>
