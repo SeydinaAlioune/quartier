@@ -140,6 +140,10 @@
   cursor: pointer;
   font-weight: 900;
   color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .donations-page .filters-toggle:hover {
@@ -155,10 +159,21 @@
   cursor: pointer;
   font-weight: 900;
   color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .donations-page .filters-reset:hover {
   background: #f8fafc;
+}
+
+.donations-page .filters-meta {
+  margin-top: 8px;
+  color: #64748b;
+  font-weight: 800;
+  font-size: 0.9rem;
 }
 
 .donations-page .search-input {
@@ -457,6 +472,9 @@
   cursor: pointer;
   font-weight: 900;
   color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .donations-page .campaign-menu-item:hover {

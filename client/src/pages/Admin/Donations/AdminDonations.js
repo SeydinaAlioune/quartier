@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
+import { Check, Filter, Pencil, Trash2, XCircle } from 'lucide-react';
 import './AdminDonations.css';
 
 const AdminDonations = () => {
@@ -348,6 +349,8 @@ const AdminDonations = () => {
       return q === '' || (c.title || '').toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q);
     });
 
+  const resultsLabel = `${filtered.length.toLocaleString('fr-FR')} / ${campaigns.length.toLocaleString('fr-FR')} campagne(s)`;
+
   const handleCreateCampaign = async (e) => {
     e.preventDefault();
     try {
@@ -434,9 +437,11 @@ const AdminDonations = () => {
               className="search-input"
             />
             <button type="button" className="filters-toggle" onClick={() => setFiltersOpen(v => !v)}>
-              Filtres
+              <Filter size={18} aria-hidden="true" />
+              <span>Filtres</span>
             </button>
           </div>
+          <div className="filters-meta">{resultsLabel}</div>
           <div className={`filter-group ${filtersOpen ? 'is-open' : ''}`}>
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
               <option value="all">Tous les statuts</option>
@@ -457,7 +462,8 @@ const AdminDonations = () => {
               className="filters-reset"
               onClick={() => { setStatusFilter('all'); setCategoryFilter('all'); }}
             >
-              Réinitialiser
+              <XCircle size={18} aria-hidden="true" />
+              <span>Réinitialiser</span>
             </button>
           </div>
         </div>
@@ -675,7 +681,8 @@ const AdminDonations = () => {
               return (
                 <>
                   <button type="button" className="campaign-menu-item" role="menuitem" onClick={() => startEditCampaign(campaign)}>
-                    Modifier
+                    <Pencil size={18} aria-hidden="true" />
+                    <span>Modifier</span>
                   </button>
                   <div className="campaign-menu-sep" />
                   <button
@@ -685,7 +692,8 @@ const AdminDonations = () => {
                     onClick={() => updateCampaignStatus(campaign, 'active')}
                     disabled={status === 'active'}
                   >
-                    Marquer active
+                    <Check size={18} aria-hidden="true" />
+                    <span>Marquer active</span>
                   </button>
                   <button
                     type="button"
@@ -694,7 +702,8 @@ const AdminDonations = () => {
                     onClick={() => updateCampaignStatus(campaign, 'completed')}
                     disabled={status === 'completed'}
                   >
-                    Marquer terminée
+                    <Check size={18} aria-hidden="true" />
+                    <span>Marquer terminée</span>
                   </button>
                   <button
                     type="button"
@@ -703,11 +712,13 @@ const AdminDonations = () => {
                     onClick={() => updateCampaignStatus(campaign, 'cancelled')}
                     disabled={status === 'cancelled'}
                   >
-                    Annuler
+                    <XCircle size={18} aria-hidden="true" />
+                    <span>Annuler</span>
                   </button>
                   <div className="campaign-menu-sep" />
                   <button type="button" className="campaign-menu-item is-danger" role="menuitem" onClick={() => askDeleteCampaign(campaign)}>
-                    Supprimer
+                    <Trash2 size={18} aria-hidden="true" />
+                    <span>Supprimer</span>
                   </button>
                 </>
               );
