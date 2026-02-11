@@ -534,7 +534,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 24px;
+  padding: 32px;
   overscroll-behavior: contain;
   touch-action: none;
  }
@@ -555,8 +555,8 @@
  }
  
  .admin-security .security-config-modal {
-  max-width: 920px;
-  max-height: min(760px, calc(100dvh - 140px));
+  max-width: 820px;
+  max-height: min(680px, calc(100dvh - 220px));
   padding: 0;
   overflow: hidden;
   display: flex;
@@ -568,7 +568,7 @@
  }
 
  .admin-security .security-config-modal {
-  height: min(760px, calc(100dvh - 140px));
+  height: min(680px, calc(100dvh - 220px));
  }
  
  .admin-security .modal__header {
@@ -630,8 +630,8 @@
 @media (max-width: 600px) {
   .admin-security .two-col { grid-template-columns: 1fr; }
   .admin-security .modal { max-width: 92vw; max-height: calc(100vh - 80px); }
-  .admin-security .modal-overlay { padding: 16px; }
-  .admin-security .security-config-modal { max-height: calc(100dvh - 160px); height: calc(100dvh - 160px); }
+  .admin-security .modal-overlay { padding: 14px; }
+  .admin-security .security-config-modal { max-height: calc(100dvh - 140px); height: calc(100dvh - 140px); border-radius: 14px; }
   .admin-security .tip-add-row { flex-direction: column; align-items: stretch; }
 }
 
