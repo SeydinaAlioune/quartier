@@ -18,6 +18,7 @@ router.get('/stats/summary', contactController.getContactStats);
 router.get('/stats/sources', contactController.getContactSources);
 router.post('/mark-all-read', contactController.markAllRead);
 router.get('/', contactController.getContacts);
+router.put('/:id/assign', contactController.assignContact);
 router.put('/:id/status', contactController.updateContactStatus);
 router.post('/:id/respond', contactController.respondToContact);
 router.get('/:id', contactController.getContact);
