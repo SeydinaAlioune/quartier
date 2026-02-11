@@ -535,6 +535,8 @@
   justify-content: center;
   z-index: 1000;
   padding: 24px;
+  overscroll-behavior: contain;
+  touch-action: none;
  }
  
  .admin-security .modal {
@@ -590,6 +592,8 @@
   min-height: 0;
   max-height: none;
   overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
  }
  
  .admin-security .modal__footer {

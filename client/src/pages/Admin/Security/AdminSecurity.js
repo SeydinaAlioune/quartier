@@ -122,17 +122,36 @@ const AdminSecurity = () => {
     const shouldLock = Boolean(showConfig || showAlertModal || confirmOpen || viewerOpen || showMap);
     if (!shouldLock) return;
 
-    const prevOverflow = document.body.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
     const prevPaddingRight = document.body.style.paddingRight;
     const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
 
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     if (scrollBarWidth > 0) {
       document.body.style.paddingRight = `${scrollBarWidth}px`;
     }
 
+    const onTouchMove = (e) => {
+      const target = e.target;
+      if (!target || typeof target.closest !== 'function') {
+        e.preventDefault();
+        return;
+      }
+
+      const inModalScrollable = Boolean(target.closest('.modal__body'));
+      if (!inModalScrollable) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('touchmove', onTouchMove);
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
       document.body.style.paddingRight = prevPaddingRight;
     };
   }, [confirmOpen, showAlertModal, showConfig, showMap, viewerOpen]);
