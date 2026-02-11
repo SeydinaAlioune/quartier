@@ -21,7 +21,18 @@
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 1rem;
   clear: both;
-}
+  overflow-x: auto;
+  scrollbar-width: thin;
+ }
+
+ .admin-security .security-tabs::-webkit-scrollbar {
+  height: 6px;
+ }
+
+ .admin-security .security-tabs::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 999px;
+ }
 
  .admin-security .tab-btn {
   padding: 0.5rem 1.25rem;
@@ -33,6 +44,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
  .admin-security .tab-btn:hover,
@@ -88,9 +101,9 @@
   gap: 0.5rem;
 }
 
-.add-btn:hover {
+ .admin-security .add-btn:hover {
   background-color: #008c44;
-}
+ }
 
  .admin-security .alerts-list,
  .admin-security .incidents-list {
@@ -134,6 +147,57 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+ .admin-security .alert-header__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+ .admin-security .icon-btn {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+ .admin-security .action-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+  overflow: hidden;
+  min-width: 160px;
+  z-index: 20;
+}
+
+ .admin-security .action-menu__item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+ .admin-security .action-menu__item:hover {
+  background: #f8fafc;
+}
+
+ .admin-security .action-menu__item.is-danger {
+  color: #991b1b;
 }
 
  .admin-security .alert-type {
@@ -263,6 +327,43 @@
   gap: 0.75rem;
  }
 
+ .admin-security .incident-header__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+ }
+
+ .admin-security .incident-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+ }
+
+ .admin-security .incident-status-badge.status-nouveau {
+  background: rgba(234, 179, 8, 0.14);
+  color: #92400e;
+  border-color: rgba(234, 179, 8, 0.28);
+ }
+
+ .admin-security .incident-status-badge.status-en_cours {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.24);
+ }
+
+ .admin-security .incident-status-badge.status-resolu {
+  background: rgba(34, 197, 94, 0.14);
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.28);
+ }
+
  .admin-security .incident-type {
   font-weight: 900;
   color: #0f172a;
@@ -327,6 +428,29 @@
 
  .admin-security .tip-items li {
   font-size: 0.95rem;
+ }
+
+ .admin-security .tip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+ }
+
+ .admin-security .tip-remove {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+ }
+
+ .admin-security .tip-remove:hover {
+  background: #f8fafc;
  }
 
  .admin-security .security-map-modal {
@@ -463,10 +587,7 @@
   }
 
   .admin-security .security-tabs {
-    flex-direction: column;
-  }
-
-  .admin-security .tab-btn {
-    width: 100%;
+    flex-direction: row;
+    padding-bottom: 0.5rem;
   }
 }

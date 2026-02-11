@@ -4,7 +4,7 @@ import './AdminSecurity.css';
 import api from '../../../services/api';
 import loadLeaflet from '../../../utils/loadLeaflet';
 import { emitToast } from '../../../utils/toast';
-import { MapPin, Paperclip, Plus, Settings, Trash2, X } from 'lucide-react';
+import { MapPin, MoreVertical, Paperclip, Plus, Settings, X } from 'lucide-react';
 
 const AdminSecurity = () => {
   const [activeTab, setActiveTab] = useState('alertes');
@@ -25,6 +25,8 @@ const AdminSecurity = () => {
   const [incidentTo, setIncidentTo] = useState('');
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState('Confirmer');
@@ -106,6 +108,14 @@ const AdminSecurity = () => {
     setViewerItem(null);
   };
 
+  const closeMenu = () => setOpenMenuId(null);
+
+  const statusLabel = (v) => {
+    if (v === 'en_cours') return 'En cours';
+    if (v === 'resolu') return 'Résolu';
+    return 'Nouveau';
+  };
+
   useEffect(() => {
     const fetchSecurity = async () => {
       try {
@@ -153,6 +163,10 @@ const AdminSecurity = () => {
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
 
+      if (openMenuId) {
+        closeMenu();
+        return;
+      }
       if (confirmOpen) {
         closeConfirm();
         return;
@@ -176,7 +190,18 @@ const AdminSecurity = () => {
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [confirmOpen, showAlertModal, showConfig, showMap, viewerOpen]);
+  }, [confirmOpen, openMenuId, showAlertModal, showConfig, showMap, viewerOpen]);
+
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (!openMenuId) return;
+      const el = e.target;
+      if (el && typeof el.closest === 'function' && el.closest('.alert-header__right')) return;
+      setOpenMenuId(null);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [openMenuId]);
 
   // Initialize Leaflet map when modal opens
   useEffect(() => {
@@ -386,18 +411,30 @@ const AdminSecurity = () => {
                 <div key={alert._id} className={`alert-card severity-${alert.severity}`}>
                   <div className="alert-header">
                     <span className="alert-type">{alert.type}</span>
-                    <span className="alert-date">{new Date(alert.date || alert.createdAt).toLocaleDateString('fr-FR')}</span>
+                    <div className="alert-header__right">
+                      <span className="alert-date">{new Date(alert.date || alert.createdAt).toLocaleDateString('fr-FR')}</span>
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        aria-label="Actions"
+                        aria-haspopup="menu"
+                        aria-expanded={openMenuId === alert._id}
+                        onClick={() => setOpenMenuId(openMenuId === alert._id ? null : alert._id)}
+                      >
+                        <MoreVertical size={16} aria-hidden="true" />
+                      </button>
+
+                      {openMenuId === alert._id && (
+                        <div className="action-menu" role="menu">
+                          <button type="button" className="action-menu__item" onClick={() => { closeMenu(); openEditAlert(alert); }}>Modifier</button>
+                          <button type="button" className="action-menu__item is-danger" onClick={() => { closeMenu(); handleDeleteAlert(alert._id); }}>Supprimer</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="alert-content">
                     <p className="alert-message">{alert.message}</p>
                     <span className="alert-zone">Zone: {alert.zone}</span>
-                  </div>
-                  <div className="alert-actions">
-                    <button className="edit-btn" onClick={() => openEditAlert(alert)} type="button">Modifier</button>
-                    <button className="delete-btn" onClick={() => handleDeleteAlert(alert._id)} type="button">
-                      <Trash2 size={16} aria-hidden="true" />
-                      <span>Supprimer</span>
-                    </button>
                   </div>
                 </div>
               ))}
@@ -441,7 +478,10 @@ const AdminSecurity = () => {
                 <div key={incident._id} className="incident-card">
                   <div className="incident-header">
                     <span className="incident-type">{incident.type}</span>
-                    <span className="incident-date">{incident.date ? new Date(incident.date).toLocaleDateString('fr-FR') : ''}</span>
+                    <div className="incident-header__right">
+                      <span className="incident-date">{incident.date ? new Date(incident.date).toLocaleDateString('fr-FR') : ''}</span>
+                      <span className={`incident-status-badge status-${incident.status || 'nouveau'}`}>{statusLabel(incident.status)}</span>
+                    </div>
                   </div>
                   <div className="incident-content">
                     <p className="incident-description">{incident.description}</p>
@@ -536,7 +576,6 @@ const AdminSecurity = () => {
                 {configForm.tips.map((t, idx) => (
                   <div className="form-row" key={idx}>
                     <input type="text" placeholder="Titre (ex: Protection du Domicile)" value={t.title} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, title: e.target.value } : x) }))} />
-                    <textarea rows="4" placeholder={'Un conseil par ligne'} value={t.itemsText} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, itemsText: e.target.value } : x) }))} />
                     <div className="tip-add-row">
                       <input type="text" placeholder="Ajouter un conseil" value={t.newItem || ''} onChange={(e)=> setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, newItem: e.target.value } : x) }))} />
                       <button type="button" className="btn-secondary" onClick={() => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, itemsText: (x.itemsText? x.itemsText+"\n" : '') + (x.newItem||'').trim(), newItem: '' } : x) }))}>Ajouter</button>
@@ -544,7 +583,24 @@ const AdminSecurity = () => {
                     {t.itemsText && (
                       <ul className="tip-items">
                         {t.itemsText.split('\n').filter(s=>s.trim()).map((line, li) => (
-                          <li key={li}>{line}</li>
+                          <li key={li} className="tip-item">
+                            <span>{line}</span>
+                            <button
+                              type="button"
+                              className="tip-remove"
+                              onClick={() => setConfigForm(prev => ({
+                                ...prev,
+                                tips: prev.tips.map((x, i) => {
+                                  if (i !== idx) return x;
+                                  const next = (x.itemsText || '').split('\n').map(s => s.trim()).filter(Boolean).filter((_, k) => k !== li);
+                                  return { ...x, itemsText: next.join('\n') };
+                                })
+                              }))}
+                              aria-label="Supprimer"
+                            >
+                              <X size={14} aria-hidden="true" />
+                            </button>
+                          </li>
                         ))}
                       </ul>
                     )}
