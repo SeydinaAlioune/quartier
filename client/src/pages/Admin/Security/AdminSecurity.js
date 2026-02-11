@@ -462,6 +462,28 @@ const AdminSecurity = () => {
     }
   };
 
+  const filteredAlerts = alerts
+    .filter(a => !alertTypeFilter || (a.type || '').toLowerCase().includes(alertTypeFilter.toLowerCase()))
+    .filter(a => !alertSeverityFilter || a.severity === alertSeverityFilter)
+    .filter(a => !alertZoneFilter || (a.zone || '').toLowerCase().includes(alertZoneFilter.toLowerCase()));
+
+  const filteredIncidents = incidents
+    .filter(i => !incidentTypeFilter || (i.type || '').toLowerCase().includes(incidentTypeFilter.toLowerCase()))
+    .filter(i => !incidentStatusFilter || i.status === incidentStatusFilter)
+    .filter(i => {
+      const d = new Date(i.date || i.createdAt);
+      if (incidentFrom) {
+        const from = new Date(incidentFrom);
+        if (d < from) return false;
+      }
+      if (incidentTo) {
+        const to = new Date(incidentTo);
+        to.setHours(23, 59, 59, 999);
+        if (d > to) return false;
+      }
+      return true;
+    });
+
   return (
     <AdminLayout title="Gestion de la Sécurité">
       <div className="admin-security">
@@ -512,12 +534,11 @@ const AdminSecurity = () => {
               </div>
             </div>
             <div className="alerts-list">
-              {loading && <div>Chargement...</div>}
-              {!loading && alerts
-                .filter(a => !alertTypeFilter || (a.type||'').toLowerCase().includes(alertTypeFilter.toLowerCase()))
-                .filter(a => !alertSeverityFilter || a.severity === alertSeverityFilter)
-                .filter(a => !alertZoneFilter || (a.zone||'').toLowerCase().includes(alertZoneFilter.toLowerCase()))
-                .map(alert => (
+              {loading && <div className="admin-security__empty">Chargement…</div>}
+              {!loading && filteredAlerts.length === 0 && (
+                <div className="admin-security__empty">Aucune alerte</div>
+              )}
+              {!loading && filteredAlerts.map(alert => (
                 <div key={alert._id} className={`alert-card severity-${alert.severity}`}>
                   <div className="alert-header">
                     <span className="alert-type">{alert.type}</span>
@@ -574,17 +595,11 @@ const AdminSecurity = () => {
               </div>
             </div>
             <div className="incidents-list">
-              {loading && <div>Chargement...</div>}
-              {!loading && incidents
-                .filter(i => !incidentTypeFilter || (i.type||'').toLowerCase().includes(incidentTypeFilter.toLowerCase()))
-                .filter(i => !incidentStatusFilter || i.status === incidentStatusFilter)
-                .filter(i => {
-                  const d = new Date(i.date || i.createdAt);
-                  if (incidentFrom) { const from = new Date(incidentFrom); if (d < from) return false; }
-                  if (incidentTo) { const to = new Date(incidentTo); to.setHours(23,59,59,999); if (d > to) return false; }
-                  return true;
-                })
-                .map(incident => (
+              {loading && <div className="admin-security__empty">Chargement…</div>}
+              {!loading && filteredIncidents.length === 0 && (
+                <div className="admin-security__empty">Aucun incident</div>
+              )}
+              {!loading && filteredIncidents.map(incident => (
                 <div key={incident._id} className="incident-card">
                   <div className="incident-header">
                     <span className="incident-type">{incident.type}</span>
@@ -685,7 +700,7 @@ const AdminSecurity = () => {
               </div>
 
               <div className="modal__body">
-                {configLoading && <div>Chargement...</div>}
+                {configLoading && <div className="admin-security__empty">Chargement…</div>}
                 {configError && <div className="error-banner">{configError}</div>}
                 {!configLoading && (
                   <form id="security-config-form" onSubmit={saveConfig}>
