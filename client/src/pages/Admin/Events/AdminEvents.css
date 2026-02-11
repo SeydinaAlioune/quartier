@@ -1,7 +1,7 @@
 .events-page {
   padding: 16px;
-  max-width: 980px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 0;
 }
 
 .events-page .events-header {
@@ -144,6 +144,21 @@
 
 .events-page .filter-group.is-open {
   display: flex;
+}
+
+@media (min-width: 901px) {
+  .events-page .filter-group {
+    flex-wrap: nowrap;
+  }
+
+  .events-page .filter-select {
+    flex: 0 0 240px;
+  }
+
+  .events-page .filters-meta {
+    flex: 1;
+    justify-content: flex-end;
+  }
 }
 
 .events-page .filter-select {

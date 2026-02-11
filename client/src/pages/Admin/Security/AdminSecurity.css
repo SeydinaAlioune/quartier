@@ -560,6 +560,10 @@
  .admin-security .security-config-modal.modal {
   overflow-y: hidden;
  }
+
+ .admin-security .security-config-modal {
+  height: min(760px, calc(100dvh - 140px));
+ }
  
  .admin-security .modal__header {
   display: flex;
@@ -619,7 +623,7 @@
   .admin-security .two-col { grid-template-columns: 1fr; }
   .admin-security .modal { max-width: 92vw; max-height: calc(100vh - 80px); }
   .admin-security .modal-overlay { padding: 16px; }
-  .admin-security .security-config-modal { max-height: calc(100dvh - 160px); }
+  .admin-security .security-config-modal { max-height: calc(100dvh - 160px); height: calc(100dvh - 160px); }
   .admin-security .tip-add-row { flex-direction: column; align-items: stretch; }
 }
 
