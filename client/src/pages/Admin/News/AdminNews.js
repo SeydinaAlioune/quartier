@@ -71,6 +71,45 @@ const AdminNews = () => {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const pickerFileRef = useRef(null);
 
+  const handleOverlayMouseDown = (e, onClose) => {
+    if (e.target !== e.currentTarget) return;
+    onClose();
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+
+      if (previewPost) {
+        setPreviewPost(null);
+        return;
+      }
+      if (viewerMedia) {
+        setViewerMedia(null);
+        return;
+      }
+      if (showMediaPicker) {
+        setShowMediaPicker(false);
+        setChooseCoverFor(null);
+        return;
+      }
+      if (annModalOpen) {
+        setAnnModalOpen(false);
+        return;
+      }
+      if (editing) {
+        setEditing(null);
+        return;
+      }
+      if (showAddModal) {
+        setShowAddModal(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [annModalOpen, editing, previewPost, showAddModal, showMediaPicker, viewerMedia]);
+
   const isArticlesTab = activeTab === 'articles';
   const isMediaTab = activeTab === 'media';
   const isCommentsTab = activeTab === 'comments';
@@ -743,7 +782,7 @@ const AdminNews = () => {
       )}
 
       {annModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setAnnModalOpen(false))}>
           <div className="modal">
             <h3>{annEditing? 'Modifier l\'annonce' : 'Créer une annonce'}</h3>
             <form onSubmit={saveAnnouncement}>
@@ -1042,7 +1081,7 @@ const AdminNews = () => {
           <ArticlePreviewModal />
 
           {editing && (
-            <div className="modal-overlay">
+            <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setEditing(null))}>
               <div className="modal">
                 <h3>Modifier l'article</h3>
                 <form onSubmit={handleSubmitEdit}>
@@ -1089,7 +1128,7 @@ const AdminNews = () => {
           )}
 
           {showAddModal && (
-            <div className="modal-overlay">
+            <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowAddModal(false))}>
               <div className="modal">
                 <h3>Créer un article</h3>
                 <form onSubmit={handleCreatePost}>

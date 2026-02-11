@@ -1,5 +1,5 @@
 .news-page {
-  padding: 2rem;
+  padding: 0;
   min-height: 100vh;
   box-sizing: border-box;
   overflow-x: hidden;
@@ -19,20 +19,20 @@
   min-width: 0;
 }
 
-.header-title {
+.news-page .header-title {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-width: 0;
 }
 
-.header-subtitle {
+.news-page .header-subtitle {
   color: #718096;
   font-size: 0.95rem;
   margin: 0;
 }
 
-.count-badge {
+.news-page .count-badge {
   background-color: rgba(255, 255, 255, 0.2);
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -40,12 +40,12 @@
   margin-left: 0.5rem;
 }
 
-.count-badge.active {
+.news-page .count-badge.active {
   background-color: #c6f6d5;
   color: #22543d;
 }
 
-.count-badge.inactive {
+.news-page .count-badge.inactive {
   background-color: #fefcbf;
   color: #744210;
 }
@@ -56,7 +56,7 @@
   margin: 0;
 }
 
-.header-actions {
+.news-page .header-actions {
   display: flex;
   gap: 1rem;
   align-items: center;
