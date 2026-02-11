@@ -66,6 +66,58 @@ const AdminServices = () => {
     }
   };
 
+  const closeRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectTarget(null);
+    setRejectNote('');
+  };
+
+  const handleOverlayMouseDown = (e, onClose) => {
+    if (e.target !== e.currentTarget) return;
+    onClose();
+  };
+
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (!openMenuId) return;
+      const el = e.target;
+      if (el && typeof el.closest === 'function' && el.closest('.service-header__right')) return;
+      setOpenMenuId(null);
+    };
+
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+
+      if (openMenuId) {
+        setOpenMenuId(null);
+        return;
+      }
+      if (showRejectModal) {
+        closeRejectModal();
+        return;
+      }
+      if (showEditModal) {
+        setShowEditModal(false);
+        setEditService(null);
+        return;
+      }
+      if (showAddModal) {
+        setShowAddModal(false);
+        return;
+      }
+      if (showCityModal) {
+        setShowCityModal(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [openMenuId, showRejectModal, showEditModal, showAddModal, showCityModal]);
+
   // City config handlers
   const openCityModal = async () => {
     try {
@@ -405,6 +457,8 @@ const AdminServices = () => {
                       type="button"
                       className="icon-btn"
                       aria-label="Actions"
+                      aria-haspopup="menu"
+                      aria-expanded={menuOpen}
                       onClick={() => setOpenMenuId(menuOpen ? null : s._id)}
                     >
                       <MoreVertical size={16} aria-hidden="true" />
@@ -460,12 +514,21 @@ const AdminServices = () => {
             );
           })}
           {!loading && filtered.length === 0 && (
-            <div className="service-card">Aucun service</div>
+            <div className="empty-state">
+              <div className="empty-state__title">Aucun service</div>
+              <div className="empty-state__subtitle">Ajuste les filtres ou crée un nouveau service.</div>
+              <div className="empty-state__actions">
+                {activeFiltersCount > 0 && (
+                  <button type="button" className="btn-secondary" onClick={resetFilters}>Réinitialiser</button>
+                )}
+                <button type="button" className="btn-primary" onClick={() => setShowAddModal(true)}>Nouveau service</button>
+              </div>
+            </div>
           )}
         </div>
 
         {showRejectModal && rejectTarget && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeRejectModal)}>
             <div className="modal">
               <h3>Rejeter le service</h3>
               <div className="modal-subtitle">{rejectTarget.name}</div>
@@ -480,7 +543,7 @@ const AdminServices = () => {
                   />
                 </div>
                 <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => { setShowRejectModal(false); setRejectTarget(null); setRejectNote(''); }}>Annuler</button>
+                  <button type="button" className="btn-secondary" onClick={closeRejectModal}>Annuler</button>
                   <button type="submit" className="btn-primary">Rejeter</button>
                 </div>
               </form>
@@ -489,7 +552,7 @@ const AdminServices = () => {
         )}
 
         {showAddModal && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowAddModal(false))}>
             <div className="modal">
               <h3>Nouveau service</h3>
               <form onSubmit={handleCreateService}>
@@ -534,7 +597,7 @@ const AdminServices = () => {
           </div>
         )}
         {showCityModal && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowCityModal(false))}>
             <div className="modal">
               <h3>Configuration de la ville</h3>
               {cityLoading && <div>Chargement...</div>}
@@ -585,7 +648,7 @@ const AdminServices = () => {
           </div>
         )}
         {showEditModal && editService && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => { setShowEditModal(false); setEditService(null); })}>
             <div className="modal">
               <h3>Éditer le service</h3>
               <form onSubmit={handleUpdateService}>
