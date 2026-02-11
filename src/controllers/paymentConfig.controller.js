@@ -1,4 +1,5 @@
 const PaymentConfig = require('../models/paymentConfig.model');
+const jwt = require('jsonwebtoken');
 
 function maskSecret(s) {
   if (!s) return '';
@@ -34,6 +35,57 @@ exports.getConfig = async (req, res) => {
   } catch (e) {
     console.error('getConfig error', e);
     res.status(500).json({ message: "Erreur lors de la récupération de la configuration de paiement" });
+  }
+};
+
+exports.unlockPaymentsConfig = async (req, res) => {
+  try {
+    const pin = String(req.body?.pin || '').trim();
+    const expected = String(process.env.PAYMENTS_CONFIG_PIN || '2004').trim();
+
+    if (!pin || pin.length !== 4 || !/^[0-9]{4}$/u.test(pin)) {
+      return res.status(400).json({ message: 'Code PIN invalide' });
+    }
+    if (pin !== expected) {
+      return res.status(403).json({ message: 'Code PIN incorrect' });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ message: 'Configuration serveur manquante' });
+    }
+
+    const token = jwt.sign(
+      {
+        id: req.user?._id,
+        scope: 'payments_config',
+        role: req.user?.role
+      },
+      secret,
+      { expiresIn: '15m' }
+    );
+
+    return res.json({ token, expiresInSeconds: 15 * 60 });
+  } catch (e) {
+    console.error('unlockPaymentsConfig error', e);
+    return res.status(500).json({ message: 'Erreur lors du déverrouillage' });
+  }
+};
+
+exports.requirePaymentsConfigUnlock = async (req, res, next) => {
+  try {
+    const token = req.headers['x-payments-config-token'];
+    if (!token || typeof token !== 'string') {
+      return res.status(423).json({ message: 'Page verrouillée: code requis' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || decoded.scope !== 'payments_config') {
+      return res.status(423).json({ message: 'Page verrouillée: code requis' });
+    }
+    next();
+  } catch (e) {
+    return res.status(423).json({ message: 'Page verrouillée: code requis' });
   }
 };
 

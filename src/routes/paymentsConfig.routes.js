@@ -7,6 +7,10 @@ const { auth, checkRole } = require('../middleware/auth.middleware');
 router.use(auth);
 router.use(checkRole(['admin']));
 
+router.post('/unlock', controller.unlockPaymentsConfig);
+
+router.use(controller.requirePaymentsConfigUnlock);
+
 router.get('/', controller.getConfig);
 router.put('/', controller.updateConfig);
 

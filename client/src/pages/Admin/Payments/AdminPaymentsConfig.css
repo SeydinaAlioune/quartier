@@ -1,17 +1,267 @@
-.payments-config{padding:1rem}
-.grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
-.card{background:#fff; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,.08); padding:1rem}
-.card.error{background:#fff3f3; border:1px solid #ffd5d5; color:#7a1f1f}
-.form-row{display:flex; flex-direction:column; gap:6px; margin-bottom:10px}
-.form-row label{color:#374151; font-weight:600}
-.form-row input,.form-row textarea,.form-row select{padding:10px 12px; border:1px solid #e5e7eb; border-radius:6px; outline:none}
-.secrets{display:flex; flex-direction:column; gap:8px}
-.secret-row{display:grid; grid-template-columns: 160px 1fr auto; gap:8px; align-items:center}
-.secret-label{color:#374151; font-weight:600}
-.secret-value{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color:#111827}
-.secret-actions{display:flex; gap:6px}
-.secret-edit{display:flex; flex-direction:column; gap:6px; padding:8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px}
-.secret-edit-actions{display:flex; justify-content:flex-end}
-.btn{background:#e5e7eb; border:none; border-radius:6px; padding:8px 10px; cursor:pointer}
-.btn.primary{background:#00a651; color:#fff}
-@media(max-width: 1024px){.grid{grid-template-columns:1fr}}
+ .payments-config-page{
+   padding:16px;
+ }
+ 
+ .payments-config__grid{
+   display:grid;
+   grid-template-columns: 1.05fr 0.95fr;
+   gap:16px;
+ }
+ 
+ .payments-config__card{
+   background:#fff;
+   border-radius:14px;
+   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 12px 24px rgba(15, 23, 42, 0.06);
+   border:1px solid #eef2f7;
+   padding:16px;
+   min-width:0;
+ }
+ 
+ .payments-config__card--error{
+   background:#fff3f3;
+   border:1px solid #ffd5d5;
+   color:#7a1f1f;
+ }
+ 
+ .payments-config__card-head{
+   display:flex;
+   align-items:center;
+   justify-content:space-between;
+   gap:12px;
+   margin-bottom:10px;
+ }
+ 
+ .payments-config__h3{
+   margin:0 0 10px 0;
+   font-size:16px;
+   font-weight:800;
+   color:#0f172a;
+ }
+ 
+ .payments-config__muted{
+   color:#64748b;
+   font-size:13px;
+   margin-top:8px;
+ }
+ 
+ .payments-config__form-row{
+   display:flex;
+   flex-direction:column;
+   gap:6px;
+   margin-bottom:12px;
+ }
+ 
+ .payments-config__label{
+   color:#334155;
+   font-weight:700;
+   font-size:13px;
+ }
+ 
+ .payments-config__input{
+   padding:10px 12px;
+   border:1px solid #e5e7eb;
+   border-radius:10px;
+   outline:none;
+   background:#fff;
+   font-size:14px;
+   min-width:0;
+ }
+ 
+ .payments-config__input:focus{
+   border-color:#94a3b8;
+   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+ }
+ 
+ .payments-config__btn{
+   appearance:none;
+   border:1px solid #e5e7eb;
+   background:#f8fafc;
+   color:#0f172a;
+   border-radius:10px;
+   padding:8px 10px;
+   cursor:pointer;
+   font-weight:700;
+   font-size:13px;
+   line-height:1;
+   white-space:nowrap;
+ }
+ 
+ .payments-config__btn:disabled{
+   opacity:.6;
+   cursor:not-allowed;
+ }
+ 
+ .payments-config__btn--primary{
+   background:#16a34a;
+   border-color:#16a34a;
+   color:#fff;
+ }
+ 
+ .payments-config__check{
+   display:flex;
+   align-items:center;
+   gap:10px;
+   padding:10px 12px;
+   border:1px solid #e5e7eb;
+   border-radius:12px;
+   background:#fafafa;
+ }
+ 
+ .payments-config__badge{
+   margin-left:auto;
+   font-size:12px;
+   font-weight:800;
+   padding:4px 8px;
+   border-radius:999px;
+   border:1px solid transparent;
+ }
+ 
+ .payments-config__badge.is-on{
+   background:#dcfce7;
+   color:#166534;
+   border-color:#bbf7d0;
+ }
+ 
+ .payments-config__badge.is-off{
+   background:#f1f5f9;
+   color:#475569;
+   border-color:#e2e8f0;
+ }
+ 
+ .payments-config__secrets{
+   display:flex;
+   flex-direction:column;
+   gap:10px;
+ }
+ 
+ .payments-config__secret{
+   border:1px solid #eef2f7;
+   border-radius:12px;
+   padding:12px;
+   background:#fff;
+   min-width:0;
+ }
+ 
+ .payments-config__secret-head{
+   display:flex;
+   align-items:flex-start;
+   justify-content:space-between;
+   gap:10px;
+   margin-bottom:8px;
+ }
+ 
+ .payments-config__secret-label{
+   font-weight:800;
+   color:#0f172a;
+   font-size:13px;
+ }
+ 
+ .payments-config__secret-actions{
+   display:flex;
+   gap:8px;
+   flex-wrap:wrap;
+   justify-content:flex-end;
+ }
+ 
+ .payments-config__secret-value{
+   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+   color:#0f172a;
+   font-size:13px;
+   overflow:hidden;
+   text-overflow:ellipsis;
+   white-space:nowrap;
+   min-width:0;
+ }
+ 
+ .payments-config__secret-edit{
+   display:flex;
+   flex-direction:column;
+   gap:8px;
+   padding:12px;
+   background:#f8fafc;
+   border:1px solid #e2e8f0;
+   border-radius:12px;
+ }
+ 
+ .payments-config__secret-edit-actions{
+   display:flex;
+   justify-content:flex-end;
+ }
+ 
+ .payments-config__footer{
+   display:flex;
+   justify-content:flex-end;
+   margin-top:12px;
+ }
+ 
+ .payments-config__lock{
+   display:flex;
+   justify-content:center;
+ }
+ 
+ .payments-config__lock-row{
+   display:flex;
+   gap:10px;
+   align-items:center;
+ }
+ 
+ .payments-config__pin{
+   letter-spacing: 10px;
+   text-align:center;
+   max-width: 160px;
+ }
+ 
+ .payments-config__modal{
+   position:fixed;
+   inset:0;
+   z-index:9999;
+ }
+ 
+ .payments-config__modal-backdrop{
+   position:absolute;
+   inset:0;
+   background: rgba(2, 6, 23, 0.55);
+ }
+ 
+ .payments-config__modal-card{
+   position:relative;
+   margin: 12vh auto 0;
+   width: min(520px, calc(100% - 32px));
+   background:#fff;
+   border-radius: 14px;
+   box-shadow: 0 20px 48px rgba(0,0,0,.18);
+   border:1px solid #eef2f7;
+   padding: 16px;
+ }
+ 
+ .payments-config__modal-title{
+   font-weight:900;
+   color:#0f172a;
+   margin-bottom:8px;
+ }
+ 
+ .payments-config__modal-body{
+   color:#475569;
+   font-size:14px;
+   line-height:1.4;
+ }
+ 
+ .payments-config__modal-actions{
+   display:flex;
+   justify-content:flex-end;
+   gap:10px;
+   margin-top:14px;
+ }
+ 
+ @media (max-width: 1024px){
+   .payments-config__grid{ grid-template-columns: 1fr; }
+ }
+ 
+ @media (max-width: 640px){
+   .payments-config-page{ padding:12px; }
+   .payments-config__card{ padding:14px; }
+   .payments-config__lock-row{ flex-direction:column; align-items:stretch; }
+   .payments-config__pin{ max-width: 100%; letter-spacing: 8px; }
+   .payments-config__secret-actions{ width:100%; justify-content:flex-start; }
+   .payments-config__btn{ flex:1 1 auto; }
+ }
