@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { Resend } = require('resend');
 
+const escapeRegExp = (s = '') => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const getResendClient = () => {
     const key = process.env.RESEND_API_KEY;
     if (!key) return null;
@@ -110,7 +112,11 @@ exports.forgotPassword = async (req, res) => {
             return res.status(400).json({ message: "Email requis" });
         }
 
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
+        if (!user) {
+            const rx = new RegExp(`^${escapeRegExp(email)}$`, 'i');
+            user = await User.findOne({ email: rx });
+        }
         if (!user) {
             return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
         }
