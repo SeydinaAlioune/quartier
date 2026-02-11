@@ -552,6 +552,8 @@
   max-width: 920px;
   padding: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .admin-security .modal__header {
@@ -576,6 +578,12 @@
   max-height: calc(100vh - 260px);
   overflow: auto;
 }
+
+ .admin-security .security-config-modal .modal__body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+ }
 
 .admin-security .modal__footer {
   display: flex;

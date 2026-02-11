@@ -1,12 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminProjects.css';
 import api from '../../../services/api';
+import { emitToast } from '../../../utils/toast';
+import { MoreVertical, Plus, Settings, X } from 'lucide-react';
 
 const AdminProjects = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState('Confirmer');
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const confirmActionRef = useRef(null);
+
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -31,6 +42,36 @@ const AdminProjects = () => {
     progressByStatus: { proposed: 5, planning: 15, in_progress: 50, completed: 100, cancelled: 0 },
     faq: [],
   });
+
+  const handleOverlayMouseDown = (e, onClose) => {
+    if (e.target !== e.currentTarget) return;
+    onClose();
+  };
+
+  const openConfirm = ({ title = 'Confirmer', message = '', onConfirm }) => {
+    confirmActionRef.current = typeof onConfirm === 'function' ? onConfirm : null;
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setConfirmTitle('Confirmer');
+    setConfirmMessage('');
+    confirmActionRef.current = null;
+  };
+
+  const handleConfirmSubmit = async () => {
+    const fn = confirmActionRef.current;
+    closeConfirm();
+    if (!fn) return;
+    try {
+      await fn();
+    } catch (e) {
+      emitToast('Action impossible.');
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -71,18 +112,59 @@ const AdminProjects = () => {
 
   const handleDelete = async (p) => {
     if (!p?._id) return;
-    if (!window.confirm('Supprimer ce projet ?')) return;
-    try {
-      await api.delete(`/api/projects/${p._id}`);
-      fetchProjects();
-    } catch (e) {
-      alert('Suppression impossible. Vérifiez vos droits.');
-    }
+    openConfirm({
+      title: 'Supprimer le projet',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/projects/${p._id}`);
+        setProjects(prev => prev.filter(x => x._id !== p._id));
+      }
+    });
   };
 
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+
+      if (openMenuId) {
+        setOpenMenuId(null);
+        return;
+      }
+      if (confirmOpen) {
+        closeConfirm();
+        return;
+      }
+      if (showConfigModal) {
+        setShowConfigModal(false);
+        return;
+      }
+      if (showEditModal) {
+        setShowEditModal(false);
+        return;
+      }
+      if (showProjectModal) {
+        setShowProjectModal(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [confirmOpen, openMenuId, showConfigModal, showEditModal, showProjectModal]);
+
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (!openMenuId) return;
+      const el = e.target;
+      if (el && typeof el.closest === 'function' && el.closest('.project-header__right')) return;
+      setOpenMenuId(null);
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [openMenuId]);
 
   // Statistiques des projets (selon status backend)
   const projectStats = {
@@ -92,6 +174,40 @@ const AdminProjects = () => {
     termines: projects.filter(p => p.status === 'completed').length,
     enAttente: projects.filter(p => p.status === 'proposed').length
   };
+
+  const categoryLabel = (v) => {
+    if (v === 'infrastructure') return 'Infrastructure';
+    if (v === 'environnement') return 'Environnement';
+    if (v === 'social') return 'Social';
+    if (v === 'culture') return 'Culture';
+    if (v === 'securite') return 'Sécurité';
+    if (v === 'autre') return 'Autre';
+    return v || '—';
+  };
+
+  const formatCurrency = (n) => {
+    if (n == null || n === '') return '—';
+    const num = Number(n);
+    if (!Number.isFinite(num)) return '—';
+    return `${new Intl.NumberFormat('fr-FR').format(num)} €`;
+  };
+
+  const formatDate = (d) => {
+    if (!d) return '—';
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return '—';
+    return dt.toLocaleDateString('fr-FR');
+  };
+
+  const filteredProjects = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return (projects || [])
+      .filter(p => (statusFilter === 'all' || p.status === statusFilter))
+      .filter(p => (categoryFilter === 'all' || p.category === categoryFilter))
+      .filter(p => q === '' || (p.title || '').toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q));
+  }, [categoryFilter, projects, searchQuery, statusFilter]);
+
+  const filtersActive = statusFilter !== 'all' || categoryFilter !== 'all' || searchQuery.trim() !== '';
 
   return (
     <AdminLayout title="Gestion des Projets">
@@ -104,7 +220,7 @@ const AdminProjects = () => {
             </div>
             <div className="header-actions">
               <button
-                className="add-project-btn"
+                className="projects-btn projects-btn--secondary"
                 onClick={async () => {
                   try {
                     setConfigError('');
@@ -124,14 +240,14 @@ const AdminProjects = () => {
                   }
                 }}
               >
-                <span>⚙️</span>
+                <Settings size={16} aria-hidden="true" />
                 <span>Configurer</span>
               </button>
               <button 
-                className="add-project-btn"
+                className="projects-btn projects-btn--primary"
                 onClick={() => setShowProjectModal(true)}
               >
-                <span>+</span>
+                <Plus size={16} aria-hidden="true" />
                 <span>Nouveau projet</span>
               </button>
             </div>
@@ -139,35 +255,46 @@ const AdminProjects = () => {
 
           {/* Vue d'ensemble des statistiques */}
           <div className="stats-overview">
-            <div className="stat-item">
+            <button type="button" className="stat-item" onClick={() => setStatusFilter('all')} aria-pressed={statusFilter === 'all'}>
               <span className="stat-value">{projectStats.total}</span>
-              <span className="stat-label">Total projets</span>
-            </div>
-            <div className="stat-item">
+              <span className="stat-label">Total</span>
+            </button>
+            <button type="button" className="stat-item stat-item--in-progress" onClick={() => setStatusFilter('in_progress')} aria-pressed={statusFilter === 'in_progress'}>
               <span className="stat-value">{projectStats.enCours}</span>
               <span className="stat-label">En cours</span>
-            </div>
-            <div className="stat-item">
+            </button>
+            <button type="button" className="stat-item stat-item--planning" onClick={() => setStatusFilter('planning')} aria-pressed={statusFilter === 'planning'}>
               <span className="stat-value">{projectStats.planifies}</span>
               <span className="stat-label">Planifiés</span>
-            </div>
-            <div className="stat-item">
+            </button>
+            <button type="button" className="stat-item stat-item--completed" onClick={() => setStatusFilter('completed')} aria-pressed={statusFilter === 'completed'}>
               <span className="stat-value">{projectStats.termines}</span>
               <span className="stat-label">Terminés</span>
-            </div>
+            </button>
           </div>
 
           {/* Filtres et recherche */}
           <div className="projects-filters">
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Rechercher un projet..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="projects-filters__top">
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder="Rechercher un projet..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                className="filters-toggle"
+                onClick={() => setFiltersOpen(v => !v)}
+                aria-expanded={filtersOpen}
+              >
+                Filtres{filtersActive ? ' *' : ''}
+              </button>
             </div>
-            <div className="filter-group">
+
+            <div className={`filter-group ${filtersOpen ? 'is-open' : ''}`}>
               <select 
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -190,66 +317,115 @@ const AdminProjects = () => {
                 <option value="securite">Sécurité</option>
                 <option value="autre">Autre</option>
               </select>
+              <div className="filters-meta">
+                <div className="results-count">{filteredProjects.length} résultat{filteredProjects.length > 1 ? 's' : ''}</div>
+                <button
+                  type="button"
+                  className="projects-btn projects-btn--ghost"
+                  disabled={!filtersActive}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                    setCategoryFilter('all');
+                  }}
+                >
+                  Réinitialiser
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Liste des projets */}
           <div className="projects-list">
             {loading && <div className="project-card">Chargement...</div>}
-            {!loading && projects
-              .filter(p => (statusFilter === 'all' || p.status === statusFilter))
-              .filter(p => (categoryFilter === 'all' || p.category === categoryFilter))
-              .filter(p => {
-                const q = searchQuery.trim().toLowerCase();
-                return q === '' || (p.title || '').toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
-              })
-              .map(project => (
+            {!loading && filteredProjects.map(project => (
                 <div key={project._id} className="project-card">
                   <div className="project-header">
                     <h3>{project.title}</h3>
-                    <span className={`status-badge ${project.status}`}>
-                      {project.status === 'in_progress' ? 'En cours'
-                        : project.status === 'planning' ? 'Planifié'
-                        : project.status === 'completed' ? 'Terminé'
-                        : project.status === 'cancelled' ? 'Annulé'
-                        : 'En attente'}
-                    </span>
+                    <div className="project-header__right">
+                      <span className={`status-badge ${project.status}`}>
+                        {project.status === 'in_progress' ? 'En cours'
+                          : project.status === 'planning' ? 'Planifié'
+                          : project.status === 'completed' ? 'Terminé'
+                          : project.status === 'cancelled' ? 'Annulé'
+                          : 'En attente'}
+                      </span>
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        aria-label="Actions"
+                        onClick={() => setOpenMenuId(prev => (prev === project._id ? null : project._id))}
+                      >
+                        <MoreVertical size={16} aria-hidden="true" />
+                      </button>
+                      {openMenuId === project._id && (
+                        <div className="action-menu" role="menu">
+                          <button type="button" className="action-menu__item" onClick={() => { setOpenMenuId(null); handleOpenEdit(project); }}>Modifier</button>
+                          <button type="button" className="action-menu__item is-danger" onClick={() => { setOpenMenuId(null); handleDelete(project); }}>Supprimer</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="project-info">
                     <div className="info-group">
                       <span className="label">Catégorie:</span>
-                      <span className="value">{project.category}</span>
+                      <span className="value">{categoryLabel(project.category)}</span>
                     </div>
                     <div className="info-group">
                       <span className="label">Budget estimé:</span>
-                      <span className="value">{project.budget?.estimated != null ? `${project.budget.estimated} €` : '—'}</span>
+                      <span className="value">{formatCurrency(project.budget?.estimated)}</span>
                     </div>
                   </div>
+                  {typeof project.progress === 'number' && (
+                    <div className="project-progress">
+                      <div className="progress-bar" aria-label={`Avancement ${project.progress}%`}>
+                        <div className="progress-fill" style={{ width: `${Math.max(0, Math.min(100, project.progress))}%` }} />
+                      </div>
+                      <div className="progress-text">{Math.max(0, Math.min(100, project.progress))}%</div>
+                    </div>
+                  )}
                   <div className="project-dates">
                     <div className="date-group">
                       <span className="label">Début:</span>
-                      <span className="value">{project.timeline?.startDate ? new Date(project.timeline.startDate).toLocaleDateString('fr-FR') : '—'}</span>
+                      <span className="value">{formatDate(project.timeline?.startDate)}</span>
                     </div>
                     <div className="date-group">
                       <span className="label">Fin:</span>
-                      <span className="value">{project.timeline?.endDate ? new Date(project.timeline.endDate).toLocaleDateString('fr-FR') : '—'}</span>
+                      <span className="value">{formatDate(project.timeline?.endDate)}</span>
                     </div>
-                  </div>
-                  <div className="project-actions">
-                    <button className="action-btn edit" title="Modifier" onClick={() => handleOpenEdit(project)}>✏️</button>
-                    <button className="action-btn delete" title="Supprimer" onClick={() => handleDelete(project)}>🗑️</button>
                   </div>
                 </div>
               ))}
-            {!loading && projects.length === 0 && (
-              <div className="project-card">Aucun projet</div>
+            {!loading && filteredProjects.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-state__title">Aucun projet</div>
+                <div className="empty-state__subtitle">Modifie tes filtres ou crée un nouveau projet.</div>
+                <div className="empty-state__actions">
+                  <button type="button" className="projects-btn projects-btn--secondary" onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                    setCategoryFilter('all');
+                  }}>
+                    Réinitialiser
+                  </button>
+                  <button type="button" className="projects-btn projects-btn--primary" onClick={() => setShowProjectModal(true)}>
+                    <Plus size={16} aria-hidden="true" />
+                    Nouveau projet
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
           {showProjectModal && (
-            <div className="modal-overlay">
-              <div className="modal">
-                <h3>Nouveau projet</h3>
+            <div className="projects-modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowProjectModal(false))}>
+              <div className="projects-modal projects-project-modal">
+                <div className="projects-modal__header">
+                  <h3>Nouveau projet</h3>
+                  <button type="button" className="icon-close" onClick={() => setShowProjectModal(false)} aria-label="Fermer">
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
                 <form onSubmit={async (e) => {
                   e.preventDefault();
                   try {
@@ -272,9 +448,10 @@ const AdminProjects = () => {
                     setNewProjectFiles([]);
                     fetchProjects();
                   } catch (err) {
-                    alert('Création impossible. Vérifiez vos droits.');
+                    emitToast('Création impossible. Vérifiez vos droits.');
                   }
-                }}>
+                }} id="projects-create-form">
+                  <div className="projects-modal__body">
                   <div className="form-row">
                     <label>Titre</label>
                     <input
@@ -360,75 +537,107 @@ const AdminProjects = () => {
                     <label>Images (optionnel)</label>
                     <input type="file" accept="image/*" multiple onChange={(e) => setNewProjectFiles(Array.from(e.target.files || []))} />
                   </div>
-                  <div className="modal-actions">
-                    <button type="button" className="btn-secondary" onClick={() => setShowProjectModal(false)}>Annuler</button>
-                    <button type="submit" className="btn-primary">Créer</button>
                   </div>
                 </form>
+                <div className="projects-modal__footer">
+                  <button type="button" className="projects-btn projects-btn--secondary" onClick={() => setShowProjectModal(false)}>Annuler</button>
+                  <button type="submit" className="projects-btn projects-btn--primary" form="projects-create-form">Créer</button>
+                </div>
               </div>
             </div>
           )}
           {showConfigModal && (
-            <div className="modal-overlay">
-              <div className="modal" style={{width:'min(820px, 95vw)'}}>
-                <h3>Configuration des Projets</h3>
-                {configLoading && <div>Chargement...</div>}
-                {configError && <div style={{color: 'crimson'}}>{configError}</div>}
-                {!configLoading && (
-                  <form onSubmit={async (e) => {
-                    e.preventDefault();
-                    try {
-                      setConfigError('');
-                      await api.put('/api/projects/config', configForm);
-                      setShowConfigModal(false);
-                    } catch (err) {
-                      setConfigError("Échec de la mise à jour. Vérifiez vos droits/valeurs.");
-                    }
-                  }}>
-                    <div className="form-row">
-                      <label>Seuils d'avancement par statut (%)</label>
-                      <div style={{display:'grid', gridTemplateColumns:'repeat(2,minmax(220px,1fr))', gap:'12px', marginTop:'8px'}}>
-                        {['proposed','planning','in_progress','completed','cancelled'].map((k) => (
-                          <div key={k}>
-                            <div style={{fontSize:'.9rem', color:'#555', marginBottom:4}}>
-                              {k==='proposed'?'En attente':k==='planning'?'Planifié':k==='in_progress'?'En cours':k==='completed'?'Terminé':'Annulé'}
+            <div className="projects-modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowConfigModal(false))}>
+              <div className="projects-modal projects-config-modal">
+                <div className="projects-modal__header">
+                  <h3>Configuration des Projets</h3>
+                  <button type="button" className="icon-close" onClick={() => setShowConfigModal(false)} aria-label="Fermer">
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
+
+                <div className="projects-modal__body">
+                  {configLoading && <div>Chargement...</div>}
+                  {configError && <div className="error-banner">{configError}</div>}
+                  {!configLoading && (
+                    <form id="projects-config-form" onSubmit={async (e) => {
+                      e.preventDefault();
+                      try {
+                        setConfigError('');
+                        await api.put('/api/projects/config', configForm);
+                        setShowConfigModal(false);
+                        emitToast('Configuration mise à jour.');
+                      } catch (err) {
+                        setConfigError("Échec de la mise à jour. Vérifiez vos droits/valeurs.");
+                      }
+                    }}>
+                      <div className="form-row">
+                        <label>Seuils d'avancement par statut (%)</label>
+                        <div className="projects-config-grid">
+                          {['proposed','planning','in_progress','completed','cancelled'].map((k) => (
+                            <div key={k}>
+                              <div className="projects-config-grid__label">
+                                {k==='proposed'?'En attente':k==='planning'?'Planifié':k==='in_progress'?'En cours':k==='completed'?'Terminé':'Annulé'}
+                              </div>
+                              <input type="number" min="0" max="100" value={configForm.progressByStatus?.[k] ?? ''}
+                                onChange={(e)=> setConfigForm(prev=>({ ...prev, progressByStatus: { ...(prev.progressByStatus||{}), [k]: e.target.value } }))} />
                             </div>
-                            <input type="number" min="0" max="100" value={configForm.progressByStatus?.[k] ?? ''}
-                              onChange={(e)=> setConfigForm(prev=>({ ...prev, progressByStatus: { ...(prev.progressByStatus||{}), [k]: e.target.value } }))} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="form-row">
-                      <label>Questions fréquentes (FAQ)</label>
-                    </div>
-                    {(configForm.faq||[]).map((item, idx) => (
-                      <div key={idx} className="form-row">
-                        <input type="text" placeholder="Question" value={item.question||''}
-                          onChange={(e)=> setConfigForm(prev=> ({ ...prev, faq: prev.faq.map((x,i)=> i===idx? { ...x, question: e.target.value } : x) }))} />
-                        <textarea rows="3" placeholder="Réponse" value={item.answer||''}
-                          onChange={(e)=> setConfigForm(prev=> ({ ...prev, faq: prev.faq.map((x,i)=> i===idx? { ...x, answer: e.target.value } : x) }))} />
-                        <div>
-                          <button type="button" className="btn-secondary" onClick={()=> setConfigForm(prev=> ({ ...prev, faq: prev.faq.filter((_,i)=> i!==idx) }))}>Supprimer</button>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                    <div className="form-row">
-                      <button type="button" className="btn-secondary" onClick={()=> setConfigForm(prev=> ({ ...prev, faq: [ ...(prev.faq||[]), { question:'', answer:'' } ] }))}>Ajouter une question</button>
-                    </div>
-                    <div className="modal-actions">
-                      <button type="button" className="btn-secondary" onClick={()=> setShowConfigModal(false)}>Annuler</button>
-                      <button type="submit" className="btn-primary">Enregistrer</button>
-                    </div>
-                  </form>
-                )}
+
+                      <div className="form-row">
+                        <label>Questions fréquentes (FAQ)</label>
+                      </div>
+                      {(configForm.faq||[]).map((item, idx) => (
+                        <div key={idx} className="faq-item">
+                          <div className="form-row">
+                            <input type="text" placeholder="Question" value={item.question||''}
+                              onChange={(e)=> setConfigForm(prev=> ({ ...prev, faq: prev.faq.map((x,i)=> i===idx? { ...x, question: e.target.value } : x) }))} />
+                          </div>
+                          <div className="form-row">
+                            <textarea rows="3" placeholder="Réponse" value={item.answer||''}
+                              onChange={(e)=> setConfigForm(prev=> ({ ...prev, faq: prev.faq.map((x,i)=> i===idx? { ...x, answer: e.target.value } : x) }))} />
+                          </div>
+                          <div className="faq-item__actions">
+                            <button
+                              type="button"
+                              className="projects-btn projects-btn--danger"
+                              onClick={() => openConfirm({
+                                title: 'Supprimer la question',
+                                message: 'Voulez-vous supprimer cette question de la FAQ ?',
+                                onConfirm: async () => setConfigForm(prev => ({ ...prev, faq: prev.faq.filter((_, i) => i !== idx) }))
+                              })}
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      <div className="form-row">
+                        <button type="button" className="projects-btn projects-btn--secondary" onClick={()=> setConfigForm(prev=> ({ ...prev, faq: [ ...(prev.faq||[]), { question:'', answer:'' } ] }))}>Ajouter une question</button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+
+                <div className="projects-modal__footer">
+                  <button type="button" className="projects-btn projects-btn--secondary" onClick={()=> setShowConfigModal(false)}>Annuler</button>
+                  <button type="submit" className="projects-btn projects-btn--primary" form="projects-config-form" disabled={configLoading}>Enregistrer</button>
+                </div>
               </div>
             </div>
           )}
           {showEditModal && editProject && (
-            <div className="modal-overlay">
-              <div className="modal">
-                <h3>Modifier le projet</h3>
+            <div className="projects-modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => { setShowEditModal(false); setEditFiles([]); setEditProject(null); })}>
+              <div className="projects-modal projects-project-modal">
+                <div className="projects-modal__header">
+                  <h3>Modifier le projet</h3>
+                  <button type="button" className="icon-close" onClick={() => { setShowEditModal(false); setEditFiles([]); setEditProject(null); }} aria-label="Fermer">
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
                 <form onSubmit={async (e) => {
                   e.preventDefault();
                   try {
@@ -452,9 +661,10 @@ const AdminProjects = () => {
                     setEditProject(null);
                     fetchProjects();
                   } catch (err) {
-                    alert('Mise à jour impossible.');
+                    emitToast('Mise à jour impossible.');
                   }
-                }}>
+                }} id="projects-edit-form">
+                  <div className="projects-modal__body">
                   <div className="form-row">
                     <label>Titre</label>
                     <input type="text" value={editProject.title} onChange={(e)=>setEditProject(prev=>({...prev, title: e.target.value}))} required />
@@ -502,11 +712,13 @@ const AdminProjects = () => {
                   </div>
                   <div className="form-row">
                     <label>Pièces jointes</label>
-                    <div style={{display:'flex', gap:'.5rem', flexWrap:'wrap'}}>
+                    <div className="attachments-grid">
                       {(editProject.attachments||[]).map((att, idx)=> (
-                        <div key={idx} style={{position:'relative'}}>
-                          {att.type === 'image' ? <img alt="att" src={att.url} style={{width:96, height:72, objectFit:'cover', borderRadius:6, border:'1px solid #eee'}}/> : <a href={att.url} target="_blank" rel="noreferrer">Fichier</a>}
-                          <button type="button" className="action-btn delete" style={{position:'absolute', top: -8, right: -8}} onClick={()=> setEditProject(prev=>({ ...prev, attachments: (prev.attachments||[]).filter((_,i)=>i!==idx) }))}>✕</button>
+                        <div key={idx} className="attachment-tile">
+                          {att.type === 'image' ? <img alt="att" src={att.url} className="attachment-img"/> : <a href={att.url} target="_blank" rel="noreferrer">Fichier</a>}
+                          <button type="button" className="attachment-remove" onClick={()=> setEditProject(prev=>({ ...prev, attachments: (prev.attachments||[]).filter((_,i)=>i!==idx) }))} aria-label="Supprimer">
+                            <X size={14} aria-hidden="true" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -515,11 +727,32 @@ const AdminProjects = () => {
                     <label>Ajouter des images</label>
                     <input type="file" accept="image/*" multiple onChange={(e)=>setEditFiles(Array.from(e.target.files||[]))} />
                   </div>
-                  <div className="modal-actions">
-                    <button type="button" className="btn-secondary" onClick={()=>{ setShowEditModal(false); setEditFiles([]); setEditProject(null); }}>Annuler</button>
-                    <button type="submit" className="btn-primary">Enregistrer</button>
                   </div>
                 </form>
+                <div className="projects-modal__footer">
+                  <button type="button" className="projects-btn projects-btn--secondary" onClick={()=>{ setShowEditModal(false); setEditFiles([]); setEditProject(null); }}>Annuler</button>
+                  <button type="submit" className="projects-btn projects-btn--primary" form="projects-edit-form">Enregistrer</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {confirmOpen && (
+            <div className="projects-modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeConfirm)}>
+              <div className="projects-modal projects-confirm-modal">
+                <div className="projects-modal__header">
+                  <h3>{confirmTitle}</h3>
+                  <button type="button" className="icon-close" onClick={closeConfirm} aria-label="Fermer">
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="projects-modal__body">
+                  <div className="modal-subtitle">{confirmMessage}</div>
+                </div>
+                <div className="projects-modal__footer">
+                  <button type="button" className="projects-btn projects-btn--secondary" onClick={closeConfirm}>Annuler</button>
+                  <button type="button" className="projects-btn projects-btn--danger" onClick={handleConfirmSubmit}>Confirmer</button>
+                </div>
               </div>
             </div>
           )}
