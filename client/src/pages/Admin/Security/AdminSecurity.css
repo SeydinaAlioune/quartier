@@ -550,6 +550,7 @@
 
 .admin-security .security-config-modal {
   max-width: 920px;
+  max-height: calc(100vh - 180px);
   padding: 0;
   overflow: hidden;
   display: flex;
@@ -618,6 +619,7 @@
 @media (max-width: 600px) {
   .admin-security .two-col { grid-template-columns: 1fr; }
   .admin-security .modal { max-width: 92vw; max-height: calc(100vh - 80px); }
+  .admin-security .security-config-modal { max-height: calc(100vh - 120px); }
   .admin-security .tip-add-row { flex-direction: column; align-items: stretch; }
 }
 
