@@ -203,20 +203,20 @@ const AdminDonations = () => {
   return (
     <AdminLayout title="Gestion des Dons">
       <div className="donations-page">
-          <div className="donations-header">
-            <div className="header-title">
-              <h1>Campagnes de Dons</h1>
-              <p className="header-subtitle">Gérez les campagnes et suivez les contributions</p>
-            </div>
-            <div className="header-actions">
-              <button type="button" className="donations-btn donations-btn--primary" onClick={() => setShowAddModal(true)}>
-                <span>Nouvelle campagne</span>
-              </button>
-            </div>
+        <div className="donations-header">
+          <div className="header-title">
+            <h1>Campagnes de Dons</h1>
+            <p className="header-subtitle">Gérez les campagnes et suivez les contributions</p>
           </div>
+          <div className="header-actions">
+            <button type="button" className="donations-btn donations-btn--primary" onClick={() => setShowAddModal(true)}>
+              <span>Nouvelle campagne</span>
+            </button>
+          </div>
+        </div>
 
           {/* Tableau de bord */}
-          <div className="donations-dashboard">
+        <div className="donations-dashboard">
             {statsLoading && (
               <div className="dashboard-card">Chargement des statistiques...</div>
             )}
@@ -252,7 +252,7 @@ const AdminDonations = () => {
             )}
           </div>
 
-          <div className="donations-filters">
+        <div className="donations-filters">
             <input
               type="text"
               placeholder="Rechercher une campagne..."
@@ -278,7 +278,7 @@ const AdminDonations = () => {
             </div>
           </div>
 
-          <div className="donations-campaigns">
+        <div className="donations-campaigns">
             {loading && <div className="donations-campaign-card">Chargement...</div>}
             {!loading && filtered.map(c => {
               const isActive = c.status === 'active';
@@ -326,71 +326,77 @@ const AdminDonations = () => {
               <div className="donations-campaign-card">Aucune campagne</div>
             )}
           </div>
-        </div>
 
         {showAddModal && (
           <div className="donations-modal-overlay" onMouseDown={() => setShowAddModal(false)}>
             <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
               <div className="donations-modal__header">
                 <h3>Nouvelle campagne</h3>
+                <button type="button" className="donations-icon-btn" aria-label="Fermer" onClick={() => setShowAddModal(false)}>
+                  ×
+                </button>
               </div>
               <div className="donations-modal__body">
                 <form onSubmit={handleCreateCampaign}>
-                <div className="form-row">
-                  <label>Titre</label>
-                  <input type="text" value={newCampaign.title} onChange={(e) => setNewCampaign({ ...newCampaign, title: e.target.value })} required />
-                </div>
-                <div className="form-row">
-                  <label>Description</label>
-                  <textarea rows="4" value={newCampaign.description} onChange={(e) => setNewCampaign({ ...newCampaign, description: e.target.value })} required />
-                </div>
-                <div className="form-row">
-                  <label>Objectif (FCFA)</label>
-                  <input type="number" min="0" value={newCampaign.goal} onChange={(e) => setNewCampaign({ ...newCampaign, goal: e.target.value })} required />
-                </div>
-                <div className="form-row">
-                  <label>Début</label>
-                  <input type="date" value={newCampaign.startDate} onChange={(e) => setNewCampaign({ ...newCampaign, startDate: e.target.value })} required />
-                </div>
-                <div className="form-row">
-                  <label>Fin</label>
-                  <input type="date" value={newCampaign.endDate} onChange={(e) => setNewCampaign({ ...newCampaign, endDate: e.target.value })} required />
-                </div>
-                <div className="form-row">
-                  <label>Catégorie</label>
-                  <select value={newCampaign.category} onChange={(e) => setNewCampaign({ ...newCampaign, category: e.target.value })}>
-                    <option value="telethon">Téléthon</option>
-                    <option value="project">Projet</option>
-                    <option value="emergency">Urgence</option>
-                    <option value="community">Communauté</option>
-                    <option value="other">Autre</option>
-                  </select>
-                </div>
-                {newCampaign.category === 'project' && (
                   <div className="form-row">
-                    <label>Projet lié</label>
-                    <select value={newCampaign.project} onChange={(e)=> setNewCampaign({ ...newCampaign, project: e.target.value })}>
-                      <option value="">— Sélectionner un projet —</option>
-                      {projectsList.map(p => (
-                        <option key={p._id} value={p._id}>{p.title}</option>
-                      ))}
+                    <label>Titre</label>
+                    <input type="text" value={newCampaign.title} onChange={(e) => setNewCampaign({ ...newCampaign, title: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Description</label>
+                    <textarea rows="4" value={newCampaign.description} onChange={(e) => setNewCampaign({ ...newCampaign, description: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Objectif (FCFA)</label>
+                    <input type="number" min="0" value={newCampaign.goal} onChange={(e) => setNewCampaign({ ...newCampaign, goal: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Début</label>
+                    <input type="date" value={newCampaign.startDate} onChange={(e) => setNewCampaign({ ...newCampaign, startDate: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Fin</label>
+                    <input type="date" value={newCampaign.endDate} onChange={(e) => setNewCampaign({ ...newCampaign, endDate: e.target.value })} required />
+                  </div>
+                  <div className="form-row">
+                    <label>Catégorie</label>
+                    <select value={newCampaign.category} onChange={(e) => setNewCampaign({ ...newCampaign, category: e.target.value })}>
+                      <option value="telethon">Téléthon</option>
+                      <option value="project">Projet</option>
+                      <option value="emergency">Urgence</option>
+                      <option value="community">Communauté</option>
+                      <option value="other">Autre</option>
                     </select>
                   </div>
-                )}
-                <div className="donations-modal__footer">
-                  <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
-                  <button type="submit" className="donations-btn donations-btn--primary">Créer</button>
-                </div>
-              </form>
+                  {newCampaign.category === 'project' && (
+                    <div className="form-row">
+                      <label>Projet lié</label>
+                      <select value={newCampaign.project} onChange={(e) => setNewCampaign({ ...newCampaign, project: e.target.value })}>
+                        <option value="">— Sélectionner un projet —</option>
+                        {projectsList.map(p => (
+                          <option key={p._id} value={p._id}>{p.title}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <div className="donations-modal__footer">
+                    <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowAddModal(false)}>Annuler</button>
+                    <button type="submit" className="donations-btn donations-btn--primary">Créer</button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
         )}
+
         {showDonationsModal && (
           <div className="donations-modal-overlay" onMouseDown={() => setShowDonationsModal(false)}>
             <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
               <div className="donations-modal__header">
                 <h3>Dons — {selectedCampaign?.title || ''}</h3>
+                <button type="button" className="donations-icon-btn" aria-label="Fermer" onClick={() => setShowDonationsModal(false)}>
+                  ×
+                </button>
               </div>
               <div className="donations-modal__body">
                 {donationsLoading && <div>Chargement...</div>}
@@ -452,6 +458,8 @@ const AdminDonations = () => {
             </div>
           </div>
         )}
+
+      </div>
     </AdminLayout>
   );
 };
