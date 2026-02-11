@@ -16,7 +16,13 @@ import {
 } from 'lucide-react';
 import './AdminSidebar.css';
 
-const AdminSidebar = ({ isCollapsed, onToggle }) => {
+const AdminSidebar = ({
+  isDesktopCollapsed,
+  isMobile,
+  isMobileOpen,
+  onToggleDesktop,
+  onCloseMobile,
+}) => {
   const location = useLocation();
 
   const isActive = (path) => {
@@ -39,18 +45,23 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
 
   return (
     <>
-    <div className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <div
+      className={`admin-sidebar ${isDesktopCollapsed ? 'collapsed' : ''} ${isMobile ? 'is-mobile' : ''} ${isMobile && isMobileOpen ? 'is-mobile-open' : ''}`}
+      aria-hidden={isMobile ? (!isMobileOpen) : false}
+    >
       <div className="sidebar-header">
         <div className="header-content">
           <h2>QuartierConnect</h2>
-          <button
-            type="button"
-            className="close-sidebar-btn"
-            onClick={onToggle}
-            aria-label={isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
-          >
-            {isCollapsed ? '☰' : '✕'}
-          </button>
+          {isMobile && (
+            <button
+              type="button"
+              className="close-sidebar-btn"
+              onClick={onCloseMobile}
+              aria-label="Fermer le menu"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
@@ -97,8 +108,8 @@ const AdminSidebar = ({ isCollapsed, onToggle }) => {
       </nav>
     </div>
     {/* Mobile backdrop to close the sidebar when tapping outside */}
-    {onToggle && !isCollapsed && (
-      <div className="sidebar-backdrop" onClick={onToggle} />
+    {isMobile && isMobileOpen && (
+      <div className="sidebar-backdrop" onClick={onCloseMobile} />
     )}
     </>
   );

@@ -181,6 +181,7 @@
 .admin-sidebar .nav-text {
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   opacity: 1;
   transition: opacity 0.3s ease;
 }
@@ -192,16 +193,20 @@
 
 @media (max-width: 768px) {
   .admin-sidebar {
-    width: 200px;
+    width: 260px;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
   }
 
-  .admin-sidebar.collapsed {
-    width: 0;
-    overflow: hidden;
-    pointer-events: none;
+  .admin-sidebar.is-mobile.is-mobile-open {
+    transform: translateX(0);
   }
 
-  .sidebar-backdrop {
+  .admin-sidebar.is-mobile.collapsed {
+    width: 260px;
+  }
+
+  .admin-shell .sidebar-backdrop {
     display: block;
   }
 }

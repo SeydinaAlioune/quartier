@@ -2,9 +2,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import './AdminHeader.css';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, X } from 'lucide-react';
+import { Bell, Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 
-const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 0 }) => {
+const AdminHeader = ({
+  title,
+  isMobile,
+  isDesktopCollapsed,
+  isMobileOpen,
+  onToggleDesktop,
+  onToggleMobile,
+  notificationsCount = 0
+}) => {
   const [user, setUser] = useState(null);
   const [notifCount, setNotifCount] = useState(0);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -127,10 +135,14 @@ const AdminHeader = ({ title, isCollapsed, setIsCollapsed, notificationsCount = 
         <button
           type="button"
           className="toggle-sidebar-btn"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          aria-label={isCollapsed ? 'Ouvrir le menu' : 'Fermer le menu'}
+          onClick={isMobile ? onToggleMobile : onToggleDesktop}
+          aria-label={isMobile
+            ? (isMobileOpen ? 'Fermer le menu' : 'Ouvrir le menu')
+            : (isDesktopCollapsed ? 'Agrandir le menu' : 'Réduire le menu')}
         >
-          {isCollapsed ? <Menu size={20} aria-hidden="true" /> : <X size={20} aria-hidden="true" />}
+          {isMobile
+            ? (isMobileOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />)
+            : (isDesktopCollapsed ? <PanelLeftOpen size={20} aria-hidden="true" /> : <PanelLeftClose size={20} aria-hidden="true" />)}
         </button>
         <h1>{title}</h1>
       </div>
