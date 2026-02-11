@@ -245,7 +245,7 @@ const Dashboard = () => {
                   <tbody>
                     {usersLoading && (
                       <tr>
-                        <td colSpan="6" style={{ textAlign: 'center' }}>Chargement...</td>
+                        <td colSpan="6" className="dashboard-page__table-empty">Chargement…</td>
                       </tr>
                     )}
                     {!usersLoading && topUsers.map((user, index) => (
@@ -271,12 +271,12 @@ const Dashboard = () => {
                     ))}
                     {!usersLoading && !usersError && usersData.length === 0 && (
                       <tr>
-                        <td colSpan="6" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
+                        <td colSpan="6" className="dashboard-page__table-empty">Aucun utilisateur</td>
                       </tr>
                     )}
                     {!usersLoading && usersError && (
                       <tr>
-                        <td colSpan="6" style={{ textAlign: 'center' }}>{usersError}</td>
+                        <td colSpan="6" className="dashboard-page__table-empty">{usersError}</td>
                       </tr>
                     )}
                   </tbody>
@@ -315,13 +315,6 @@ const Dashboard = () => {
                 ))}
               </div>
 
-              <div className="pagination" aria-hidden="true">
-                <button className="active" type="button">1</button>
-                <button type="button">2</button>
-                <button type="button">3</button>
-                <span>...</span>
-                <button type="button">10</button>
-              </div>
             </div>
           )}
 
@@ -409,7 +402,7 @@ const Dashboard = () => {
               <tbody>
                 {visibleReports.length === 0 ? (
                   <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '12px 0' }}>
+                    <td colSpan="5" className="dashboard-page__table-empty">
                       Aucun rapport pour cet onglet.
                     </td>
                   </tr>

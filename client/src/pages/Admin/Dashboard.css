@@ -189,6 +189,12 @@
   font-weight: 600;
 }
 
+ .dashboard-page__table-empty {
+  text-align: center;
+  padding: 12px 0;
+  color: #64748b;
+ }
+
 .dashboard-page .status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -227,27 +233,6 @@
   padding: 0.25rem;
   margin: 0 0.25rem;
   color: #475569;
-}
-
-.dashboard-page .pagination {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-
-.dashboard-page .pagination button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.dashboard-page .pagination button.active {
-  background-color: #00a651;
-  color: white;
-  border-color: #00a651;
 }
 
 .dashboard-page .preview-panel {
