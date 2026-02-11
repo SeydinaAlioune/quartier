@@ -119,6 +119,25 @@ const AdminSecurity = () => {
   };
 
   useEffect(() => {
+    const shouldLock = Boolean(showConfig || showAlertModal || confirmOpen || viewerOpen || showMap);
+    if (!shouldLock) return;
+
+    const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+    };
+  }, [confirmOpen, showAlertModal, showConfig, showMap, viewerOpen]);
+
+  useEffect(() => {
     const fetchSecurity = async () => {
       try {
         setLoading(true);

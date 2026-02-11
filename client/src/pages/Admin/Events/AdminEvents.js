@@ -14,6 +14,7 @@ const AdminEvents = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPos, setMenuPos] = useState(null); // { top, right, left, bottom }
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState('Confirmer');
@@ -102,9 +103,24 @@ const AdminEvents = () => {
       const el = e.target;
       if (el && typeof el.closest === 'function' && el.closest('.event-header__right')) return;
       setOpenMenuId(null);
+      setMenuPos(null);
     };
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [openMenuId]);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    const close = () => {
+      setOpenMenuId(null);
+      setMenuPos(null);
+    };
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
   }, [openMenuId]);
 
   const filtered = useMemo(() => {
@@ -281,12 +297,25 @@ const AdminEvents = () => {
                       type="button"
                       className="icon-btn"
                       aria-label="Actions"
-                      onClick={() => setOpenMenuId(prev => (prev === ev._id ? null : ev._id))}
+                      onClick={(e) => {
+                        const nextOpen = openMenuId !== ev._id;
+                        if (!nextOpen) {
+                          setOpenMenuId(null);
+                          setMenuPos(null);
+                          return;
+                        }
+
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const top = rect.bottom + 8;
+                        const right = Math.max(12, window.innerWidth - rect.right);
+                        setMenuPos({ top, right });
+                        setOpenMenuId(ev._id);
+                      }}
                     >
                       <MoreVertical size={16} aria-hidden="true" />
                     </button>
                     {openMenuId === ev._id && (
-                      <div className="action-menu" role="menu">
+                      <div className="action-menu" role="menu" style={{ position: 'fixed', top: menuPos?.top ?? 0, right: menuPos?.right ?? 0 }}>
                         <button type="button" className="action-menu__item" onClick={() => { setOpenMenuId(null); handleOpenEdit(ev); }}>
                           <Pencil size={16} aria-hidden="true" />
                           <span>Modifier</span>
