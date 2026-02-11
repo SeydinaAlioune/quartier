@@ -3,8 +3,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 const escapeRegExp = (s = '') => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const isDebugEmail = () => {
+    const v = String(process.env.DEBUG_EMAIL || '').trim().toLowerCase();
+    return v === '1' || v === 'true' || v === 'yes';
+};
 
 const getResendClient = () => {
     const key = process.env.RESEND_API_KEY;
@@ -15,6 +21,71 @@ const getResendClient = () => {
 const buildFrontendUrl = () => {
     const base = (process.env.FRONTEND_URL || '').trim().replace(/\/$/, '');
     return base;
+};
+
+const createSmtpTransport = () => {
+    const host = String(process.env.SMTP_HOST || 'smtp.gmail.com').trim();
+    const port = Number(process.env.SMTP_PORT || 465);
+    const user = String(process.env.SMTP_USER || '').trim();
+    const pass = String(process.env.SMTP_PASS || '').trim();
+    const secureEnv = String(process.env.SMTP_SECURE || '').trim().toLowerCase();
+    const secure = secureEnv ? (secureEnv === 'true' || secureEnv === '1' || secureEnv === 'yes') : (port === 465);
+    if (!user || !pass) return null;
+    return nodemailer.createTransport({
+        host,
+        port,
+        secure,
+        auth: { user, pass }
+    });
+};
+
+const sendPasswordResetEmail = async ({ to, resetUrl }) => {
+    const provider = String(process.env.EMAIL_PROVIDER || 'resend').trim().toLowerCase();
+    const fromEmail = (process.env.FROM_EMAIL || 'onboarding@resend.dev').trim();
+    const subject = 'Réinitialisation du mot de passe — QuartierConnect';
+    const text = `Bonjour,\n\nPour réinitialiser votre mot de passe, cliquez sur ce lien (valide 30 minutes) :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.\n`;
+    const html = `
+                <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.5; color:#0f172a;">
+                  <h2 style="margin:0 0 12px;">Réinitialisation du mot de passe</h2>
+                  <p style="margin:0 0 16px;">Vous avez demandé à réinitialiser votre mot de passe QuartierConnect.</p>
+                  <p style="margin:0 0 16px;">
+                    <a href="${resetUrl}" style="display:inline-block; padding:12px 16px; border-radius:12px; background:#00a651; color:#fff; text-decoration:none; font-weight:800;">
+                      Réinitialiser mon mot de passe
+                    </a>
+                  </p>
+                  <p style="margin:0 0 8px; color:rgba(15,23,42,.75);">Ce lien expire dans 30 minutes.</p>
+                  <p style="margin:0; color:rgba(15,23,42,.75);">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+                </div>
+            `;
+
+    if (provider === 'smtp') {
+        const transport = createSmtpTransport();
+        if (!transport) {
+            return { ok: false, provider: 'smtp', error: { message: 'SMTP non configuré (SMTP_USER/SMTP_PASS manquants)' } };
+        }
+        const smtpFrom = (process.env.SMTP_FROM || process.env.FROM_EMAIL || process.env.SMTP_USER || '').trim();
+        if (!smtpFrom) {
+            return { ok: false, provider: 'smtp', error: { message: 'SMTP_FROM manquant' } };
+        }
+        const info = await transport.sendMail({ from: smtpFrom, to, subject, text, html });
+        return { ok: true, provider: 'smtp', data: info };
+    }
+
+    const resend = getResendClient();
+    if (!resend) {
+        return { ok: false, provider: 'resend', error: { message: "RESEND_API_KEY n'est pas configurée" } };
+    }
+    const sendRes = await resend.emails.send({
+        from: fromEmail,
+        to,
+        subject,
+        text,
+        html
+    });
+    if (sendRes?.error) {
+        return { ok: false, provider: 'resend', error: sendRes.error, data: sendRes.data };
+    }
+    return { ok: true, provider: 'resend', data: sendRes.data };
 };
 
 // Inscription
@@ -112,7 +183,7 @@ exports.forgotPassword = async (req, res) => {
             return res.status(400).json({ message: "Email requis" });
         }
 
-        console.log('[forgotPassword] request', { email });
+        if (isDebugEmail()) console.log('[forgotPassword] request', { email });
 
         let user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
         if (!user) {
@@ -120,11 +191,11 @@ exports.forgotPassword = async (req, res) => {
             user = await User.findOne({ email: rx });
         }
         if (!user) {
-            console.log('[forgotPassword] user not found', { email });
+            if (isDebugEmail()) console.log('[forgotPassword] user not found', { email });
             return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
         }
 
-        console.log('[forgotPassword] user found', { email, userId: String(user._id) });
+        if (isDebugEmail()) console.log('[forgotPassword] user found', { email, userId: String(user._id) });
 
         const rawToken = crypto.randomBytes(32).toString('hex');
         const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -140,34 +211,9 @@ exports.forgotPassword = async (req, res) => {
         }
 
         const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
-        const resend = getResendClient();
-        if (!resend) {
-            return res.status(500).json({ message: "RESEND_API_KEY n'est pas configurée" });
-        }
 
-        const fromEmail = (process.env.FROM_EMAIL || 'onboarding@resend.dev').trim();
-
-        const sendRes = await resend.emails.send({
-            from: fromEmail,
-            to: email,
-            subject: 'Réinitialisation du mot de passe — QuartierConnect',
-            text: `Bonjour,\n\nPour réinitialiser votre mot de passe, cliquez sur ce lien (valide 30 minutes) :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.\n`,
-            html: `
-                <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; line-height:1.5; color:#0f172a;">
-                  <h2 style="margin:0 0 12px;">Réinitialisation du mot de passe</h2>
-                  <p style="margin:0 0 16px;">Vous avez demandé à réinitialiser votre mot de passe QuartierConnect.</p>
-                  <p style="margin:0 0 16px;">
-                    <a href="${resetUrl}" style="display:inline-block; padding:12px 16px; border-radius:12px; background:#00a651; color:#fff; text-decoration:none; font-weight:800;">
-                      Réinitialiser mon mot de passe
-                    </a>
-                  </p>
-                  <p style="margin:0 0 8px; color:rgba(15,23,42,.75);">Ce lien expire dans 30 minutes.</p>
-                  <p style="margin:0; color:rgba(15,23,42,.75);">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
-                </div>
-            `
-        });
-
-        console.log('[forgotPassword] resend send ok', { email, sendRes });
+        const sendResult = await sendPasswordResetEmail({ to: email, resetUrl });
+        if (isDebugEmail()) console.log('[forgotPassword] send result', { email, sendResult });
 
         return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
     } catch (error) {
