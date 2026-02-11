@@ -130,6 +130,9 @@ const AdminSecurity = () => {
     const prevBodyLeft = document.body.style.left;
     const prevBodyRight = document.body.style.right;
     const prevBodyWidth = document.body.style.width;
+    const sidebarEl = document.querySelector('.admin-sidebar');
+    const prevSidebarOverflowY = sidebarEl ? sidebarEl.style.overflowY : '';
+    const prevSidebarOverscroll = sidebarEl ? sidebarEl.style.overscrollBehavior : '';
     const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
     const scrollY = window.scrollY || window.pageYOffset || 0;
 
@@ -140,6 +143,10 @@ const AdminSecurity = () => {
     document.body.style.left = '0';
     document.body.style.right = '0';
     document.body.style.width = '100%';
+    if (sidebarEl) {
+      sidebarEl.style.overflowY = 'hidden';
+      sidebarEl.style.overscrollBehavior = 'contain';
+    }
     if (scrollBarWidth > 0) {
       document.body.style.paddingRight = `${scrollBarWidth}px`;
     }
@@ -184,6 +191,10 @@ const AdminSecurity = () => {
       document.body.style.left = prevBodyLeft;
       document.body.style.right = prevBodyRight;
       document.body.style.width = prevBodyWidth;
+      if (sidebarEl) {
+        sidebarEl.style.overflowY = prevSidebarOverflowY;
+        sidebarEl.style.overscrollBehavior = prevSidebarOverscroll;
+      }
 
       window.scrollTo(0, scrollY);
     };

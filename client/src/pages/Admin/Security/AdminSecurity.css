@@ -538,6 +538,10 @@
   overscroll-behavior: contain;
   touch-action: none;
  }
+
+ .admin-security .modal-overlay .modal {
+  touch-action: auto;
+ }
  
  .admin-security .modal {
   width: 100%;
