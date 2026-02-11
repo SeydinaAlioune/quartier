@@ -71,14 +71,69 @@ const AdminNews = () => {
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const pickerFileRef = useRef(null);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState('Confirmer');
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const confirmActionRef = useRef(null);
+
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyPostId, setReplyPostId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+
   const handleOverlayMouseDown = (e, onClose) => {
     if (e.target !== e.currentTarget) return;
     onClose();
   };
 
+  const openConfirm = ({ title = 'Confirmer', message = '', onConfirm }) => {
+    confirmActionRef.current = typeof onConfirm === 'function' ? onConfirm : null;
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+  };
+
+  const closeConfirm = () => {
+    setConfirmOpen(false);
+    setConfirmTitle('Confirmer');
+    setConfirmMessage('');
+    confirmActionRef.current = null;
+  };
+
+  const handleConfirmSubmit = async () => {
+    const fn = confirmActionRef.current;
+    closeConfirm();
+    if (!fn) return;
+    try {
+      await fn();
+    } catch (e) {
+      emitToast('Action impossible.');
+    }
+  };
+
+  const openReplyModal = (postId) => {
+    setReplyPostId(postId);
+    setReplyText('');
+    setReplyOpen(true);
+  };
+
+  const closeReplyModal = () => {
+    setReplyOpen(false);
+    setReplyPostId(null);
+    setReplyText('');
+  };
+
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
+
+      if (confirmOpen) {
+        closeConfirm();
+        return;
+      }
+      if (replyOpen) {
+        closeReplyModal();
+        return;
+      }
 
       if (previewPost) {
         setPreviewPost(null);
@@ -108,7 +163,7 @@ const AdminNews = () => {
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [annModalOpen, editing, previewPost, showAddModal, showMediaPicker, viewerMedia]);
+  }, [annModalOpen, confirmOpen, editing, previewPost, replyOpen, showAddModal, showMediaPicker, viewerMedia]);
 
   const isArticlesTab = activeTab === 'articles';
   const isMediaTab = activeTab === 'media';
@@ -402,24 +457,32 @@ const AdminNews = () => {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Supprimer ce commentaire ?')) return;
-    try {
-      await api.delete(`/api/posts/comments/${commentId}`);
-      fetchComments();
-    } catch (e) {
-      emitToast('Suppression impossible.');
-    }
+    openConfirm({
+      title: 'Supprimer le commentaire',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/posts/comments/${commentId}`);
+        fetchComments();
+      }
+    });
   };
 
   const handleReplyToPost = async (postId) => {
-    const content = window.prompt('Votre réponse');
-    if (!content || !content.trim()) return;
+    openReplyModal(postId);
+  };
+
+  const handleSubmitReply = async (e) => {
+    e.preventDefault();
+    const content = replyText.trim();
+    if (!replyPostId || !content) return;
     try {
-      await api.post(`/api/posts/${postId}/comments`, { content });
+      await api.post(`/api/posts/${replyPostId}/comments`, { content });
       emitToast('Réponse publiée');
+      closeReplyModal();
       if (isCommentsTab) fetchComments();
-    } catch (e) {
-      emitToast("Impossible de répondre (connexion requise).");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Impossible de répondre (connexion requise).";
+      emitToast(msg);
     }
   };
 
@@ -434,14 +497,25 @@ const AdminNews = () => {
   };
 
   const handleDeleteMedia = async (mediaId) => {
-    if (!window.confirm('Supprimer ce média ? Cette action est définitive.')) return;
-    try {
-      await api.delete(`/api/media/${mediaId}`);
-      await fetchMedia();
-    } catch (e) {
-      const msg = e?.response?.data?.message || 'Suppression impossible.';
-      emitToast(msg);
-    }
+    openConfirm({
+      title: 'Supprimer le média',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/media/${mediaId}`);
+        await fetchMedia();
+      }
+    });
+  };
+
+  const requestDeletePost = (postId) => {
+    openConfirm({
+      title: 'Supprimer l\'article',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/posts/${postId}`);
+        fetchPosts();
+      }
+    });
   };
 
   const toggleStatus = async (p) => {
@@ -464,7 +538,7 @@ const AdminNews = () => {
             <span>Importer des médias</span>
           </button>
           <button className="organize-btn" onClick={() => fetchMedia()}>Organiser</button>
-          <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*,video/*" onChange={handleFileSelected} />
+          <input type="file" ref={fileInputRef} className="file-input-hidden" accept="image/*,video/*" onChange={handleFileSelected} />
         </div>
       </div>
 
@@ -665,19 +739,23 @@ const AdminNews = () => {
   };
 
   const deleteAnn = async (a) => {
-    if (!window.confirm('Supprimer cette annonce ?')) return;
-    try {
-      await api.delete(`/api/announcements/${a.id}`);
-      await fetchAnnouncements();
-      try { const r = await api.get('/api/announcements'); setAnnActiveCount(Array.isArray(r.data)?r.data.length:0);} catch {}
-    } catch {
-      emitToast('Suppression impossible');
-    }
+    openConfirm({
+      title: 'Supprimer l\'annonce',
+      message: 'Cette action est définitive. Voulez-vous continuer ?',
+      onConfirm: async () => {
+        await api.delete(`/api/announcements/${a.id}`);
+        await fetchAnnouncements();
+        try {
+          const r = await api.get('/api/announcements');
+          setAnnActiveCount(Array.isArray(r.data) ? r.data.length : 0);
+        } catch {}
+      }
+    });
   };
 
   const renderAnnouncementsSection = () => (
     <div className="announcements-admin">
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.75rem'}}>
+      <div className="ann-header">
         <h3>Annonces Importantes</h3>
         <button className="add-news-btn" type="button" onClick={openCreateAnn}>
           <Plus size={18} aria-hidden="true" />
@@ -802,12 +880,12 @@ const AdminNews = () => {
                 <label>Lien (URL)</label>
                 <input type="url" value={annForm.link} onChange={(e) => setAnnForm((p) => ({ ...p, link: e.target.value }))} placeholder="https://…" />
               </div>
-              <div className="form-row" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.5rem'}}>
-                <div>
+              <div className="form-row ann-dates-grid">
+                <div className="ann-dates-field">
                   <label>Début (optionnel)</label>
                   <input type="datetime-local" value={annForm.startsAt} onChange={(e) => setAnnForm((p) => ({ ...p, startsAt: e.target.value }))} />
                 </div>
-                <div>
+                <div className="ann-dates-field">
                   <label>Fin (optionnel)</label>
                   <input type="datetime-local" value={annForm.endsAt} onChange={(e) => setAnnForm((p) => ({ ...p, endsAt: e.target.value }))} />
                 </div>
@@ -913,7 +991,7 @@ const AdminNews = () => {
           <h3>Sélectionner une image de couverture</h3>
           <div className="news-modal__actions">
             <button className="upload-btn" type="button" onClick={() => pickerFileRef.current && pickerFileRef.current.click()}>Téléverser depuis l'ordinateur</button>
-            <input type="file" ref={pickerFileRef} style={{ display: 'none' }} accept="image/*" onChange={handlePickerFileSelected} />
+            <input type="file" ref={pickerFileRef} className="file-input-hidden" accept="image/*" onChange={handlePickerFileSelected} />
             <button className="btn-secondary" type="button" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>Fermer</button>
           </div>
           <div className="media-grid news-modal__grid">
@@ -1273,7 +1351,7 @@ const AdminNews = () => {
                 <tbody>
                   {loading && (
                     <tr>
-                      <td colSpan="5" style={{ textAlign: 'center' }}>Chargement...</td>
+                      <td colSpan="5" className="table-cell-center">Chargement...</td>
                     </tr>
                   )}
                   {!loading && posts
@@ -1307,22 +1385,7 @@ const AdminNews = () => {
                           >
                             {p.status === 'published' ? <Pause size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
                           </button>
-                          <button
-                            className="action-btn delete"
-                            title="Supprimer"
-                            aria-label="Supprimer"
-                            type="button"
-                            onClick={async () => {
-                              try {
-                                if (window.confirm('Supprimer cet article ?')) {
-                                  await api.delete(`/api/posts/${p._id}`);
-                                }
-                              } catch {
-                                emitToast('Suppression impossible.');
-                              }
-                              fetchPosts();
-                            }}
-                          >
+                          <button className="action-btn delete" title="Supprimer" aria-label="Supprimer" type="button" onClick={() => requestDeletePost(p._id)}>
                             <Trash2 size={16} aria-hidden="true" />
                           </button>
                         </td>
@@ -1330,7 +1393,7 @@ const AdminNews = () => {
                     ))}
                   {!loading && posts.length === 0 && (
                     <tr>
-                      <td colSpan="5" style={{ textAlign: 'center' }}>Aucun article</td>
+                      <td colSpan="5" className="table-cell-center">Aucun article</td>
                     </tr>
                   )}
                 </tbody>
@@ -1389,20 +1452,7 @@ const AdminNews = () => {
                           </>
                         )}
                       </button>
-                      <button
-                        className="media-action-btn is-danger"
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            if (window.confirm('Supprimer cet article ?')) {
-                              await api.delete(`/api/posts/${p._id}`);
-                            }
-                          } catch {
-                            emitToast('Suppression impossible.');
-                          }
-                          fetchPosts();
-                        }}
-                      >
+                      <button className="media-action-btn is-danger" type="button" onClick={() => requestDeletePost(p._id)}>
                         <Trash2 size={16} aria-hidden="true" />
                         Supprimer
                       </button>
@@ -1419,13 +1469,44 @@ const AdminNews = () => {
               )}
             </div>
 
-            <div className="pagination">
+            <div className="pagination" aria-label="Pagination">
               <button disabled={currentPage <= 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>{'<'}</button>
-              <span style={{ padding: '0 8px' }}>Page {currentPage} / {totalPages}</span>
+              <span className="pagination__meta">Page {currentPage} / {totalPages}</span>
               <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>{'>'}</button>
             </div>
           </div>
           )}
+
+        {confirmOpen && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeConfirm)}>
+            <div className="modal">
+              <h3>{confirmTitle}</h3>
+              <div className="modal-subtitle">{confirmMessage}</div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={closeConfirm}>Annuler</button>
+                <button type="button" className="btn-primary" onClick={handleConfirmSubmit}>Confirmer</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {replyOpen && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeReplyModal)}>
+            <div className="modal">
+              <h3>Répondre</h3>
+              <form onSubmit={handleSubmitReply}>
+                <div className="form-row">
+                  <label>Votre réponse</label>
+                  <textarea rows="4" value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Écrivez votre réponse…" required />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" onClick={closeReplyModal}>Annuler</button>
+                  <button type="submit" className="btn-primary">Publier</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
