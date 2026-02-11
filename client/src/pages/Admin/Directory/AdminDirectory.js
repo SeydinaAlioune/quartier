@@ -421,10 +421,10 @@ const AdminDirectory = () => {
               </div>
               <div className="business-list">
                 {loading && (
-                  <div className="business-item">Chargement...</div>
+                  <div className="business-item directory-page__empty">Chargement…</div>
                 )}
                 {!loading && filteredBusinesses.length === 0 && (
-                  <div className="business-item">Aucune entreprise</div>
+                  <div className="business-item directory-page__empty">Aucune entreprise</div>
                 )}
                 {!loading && filteredBusinesses.map((b) => (
                   <div className="business-item" key={b._id}>
@@ -454,7 +454,7 @@ const AdminDirectory = () => {
             <div className="categories-section">
               <div className="categories-grid">
                 {Object.keys(categoriesSummary).length === 0 && (
-                  <div>Aucune catégorie disponible.</div>
+                  <div className="directory-page__empty">Aucune catégorie disponible.</div>
                 )}
                 {Object.entries(categoriesSummary).map(([key, count]) => {
                   const meta = CATEGORY_META[key] || CATEGORY_META.autre;
@@ -476,9 +476,9 @@ const AdminDirectory = () => {
           {activeTab === 'validation' && (
             <div className="validation-section">
               <div className="validation-list">
-                {loading && <div className="validation-item">Chargement...</div>}
+                {loading && <div className="validation-item directory-page__empty">Chargement…</div>}
                 {!loading && pendingBusinesses.length === 0 && (
-                  <div className="validation-item">Aucune demande en attente</div>
+                  <div className="validation-item directory-page__empty">Aucune demande en attente</div>
                 )}
                 {!loading && pendingBusinesses.map((b) => (
                   <div className="validation-item" key={b._id}>
@@ -531,9 +531,9 @@ const AdminDirectory = () => {
                   </div>
                 </div>
 
-                {ucLoading && <div className="business-item">Chargement...</div>}
+                {ucLoading && <div className="business-item directory-page__empty">Chargement…</div>}
                 {!ucLoading && ucats.length === 0 && (
-                  <div className="business-item">Aucune catégorie</div>
+                  <div className="business-item directory-page__empty">Aucune catégorie</div>
                 )}
 
                 {!ucLoading && ucats.map(cat => (
