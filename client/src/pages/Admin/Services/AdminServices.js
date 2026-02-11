@@ -4,6 +4,7 @@ import api from '../../../services/api';
 import './AdminServices.css';
 import SERVICE_CATEGORIES from '../../../constants/serviceCategories';
 import { emitToast } from '../../../utils/toast';
+import { Check, ChevronDown, MoreVertical, Plus, Settings, X } from 'lucide-react';
 
 const AdminServices = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +18,11 @@ const AdminServices = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editService, setEditService] = useState(null);
   const [showCityModal, setShowCityModal] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejectNote, setRejectNote] = useState('');
   const [cityLoading, setCityLoading] = useState(false);
   const [cityError, setCityError] = useState('');
   const [cityForm, setCityForm] = useState({
@@ -133,6 +139,32 @@ const AdminServices = () => {
       return q === '' || (s.name || '').toLowerCase().includes(q) || (s.description || '').toLowerCase().includes(q) || (s.provider?.name || '').toLowerCase().includes(q);
     });
 
+  const activeFiltersCount =
+    (searchQuery.trim() ? 1 : 0) +
+    (statusFilter !== 'all' ? 1 : 0) +
+    (approvalFilter !== 'all' ? 1 : 0) +
+    (categoryFilter !== 'all' ? 1 : 0);
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setApprovalFilter('all');
+    setCategoryFilter('all');
+  };
+
+  const statusLabel = (v) => {
+    if (v === 'active') return 'Actif';
+    if (v === 'inactive') return 'Inactif';
+    if (v === 'temporaire') return 'Temporaire';
+    return '—';
+  };
+
+  const approvalLabel = (v) => {
+    if (v === 'approved') return 'Approuvé';
+    if (v === 'rejected') return 'Rejeté';
+    return 'En attente';
+  };
+
   const handleApprove = async (service) => {
     try {
       await api.put(`/api/services/${service._id}/approval`, { approvalStatus: 'approved' });
@@ -143,10 +175,20 @@ const AdminServices = () => {
     }
   };
 
-  const handleReject = async (service) => {
-    const note = window.prompt('Motif du rejet (optionnel)', '');
+  const openRejectModal = (service) => {
+    setRejectTarget(service);
+    setRejectNote('');
+    setShowRejectModal(true);
+  };
+
+  const handleConfirmReject = async (e) => {
+    e.preventDefault();
+    if (!rejectTarget?._id) return;
     try {
-      await api.put(`/api/services/${service._id}/approval`, { approvalStatus: 'rejected', reviewNote: note || undefined });
+      await api.put(`/api/services/${rejectTarget._id}/approval`, { approvalStatus: 'rejected', reviewNote: rejectNote.trim() || undefined });
+      setShowRejectModal(false);
+      setRejectTarget(null);
+      setRejectNote('');
       await fetchServices();
     } catch (err) {
       const msg = err?.response?.data?.message || 'Rejet impossible.';
@@ -270,27 +312,28 @@ const AdminServices = () => {
   return (
     <AdminLayout title="Gestion des Services">
 
-        <div className="services-page">
-          <div className="services-header">
-            <div className="header-title">
-              <h1>Services</h1>
-              <p className="header-subtitle">Créez et gérez les services disponibles</p>
-            </div>
-            <div className="header-actions">
-              <button className="add-service-btn" onClick={() => setShowAddModal(true)}>
-                <span>+</span>
-                <span>Nouveau service</span>
-              </button>
-              <button className="city-config-btn" onClick={openCityModal}>
-                <span>🏙️</span>
-                <span>Configurer la ville</span>
-              </button>
-            </div>
+      <div className="services-page">
+        <div className="services-header">
+          <div className="header-title">
+            <h1>Services</h1>
+            <p className="header-subtitle">Créez et gérez les services disponibles</p>
           </div>
+          <div className="header-actions">
+            <button className="add-service-btn" onClick={() => setShowAddModal(true)}>
+              <Plus size={16} aria-hidden="true" />
+              <span>Nouveau service</span>
+            </button>
+            <button className="city-config-btn" onClick={openCityModal}>
+              <Settings size={16} aria-hidden="true" />
+              <span>Configurer la ville</span>
+            </button>
+          </div>
+        </div>
 
           {error && <div className="error-banner">{error}</div>}
 
-          <div className="services-filters">
+        <div className="services-toolbar">
+          <div className="services-toolbar__row">
             <input
               type="text"
               placeholder="Rechercher un service..."
@@ -298,6 +341,19 @@ const AdminServices = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
             />
+            <button
+              type="button"
+              className="filters-toggle"
+              onClick={() => setFiltersOpen(v => !v)}
+              aria-expanded={filtersOpen}
+            >
+              <span>Filtres</span>
+              {activeFiltersCount > 0 && <span className="filters-count">{activeFiltersCount}</span>}
+              <ChevronDown size={16} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className={`services-filters ${filtersOpen ? 'is-open' : ''}`}>
             <div className="filter-group">
               <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
                 <option value="all">Tous les statuts</option>
@@ -318,53 +374,119 @@ const AdminServices = () => {
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="services-list">
-            {loading && <div className="service-card">Chargement...</div>}
-            {!loading && filtered.map(s => (
+            <div className="services-toolbar__meta">
+              <div className="results-count">{filtered.length} résultat{filtered.length > 1 ? 's' : ''}</div>
+              {activeFiltersCount > 0 && (
+                <button type="button" className="btn-reset" onClick={resetFilters}>
+                  Réinitialiser
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="services-list">
+          {loading && <div className="service-card">Chargement...</div>}
+          {!loading && filtered.map(s => {
+            const isPending = (s.approvalStatus || 'pending') === 'pending';
+            const approval = s.approvalStatus || 'pending';
+            const status = s.status || '—';
+            const menuOpen = openMenuId === s._id;
+
+            return (
               <div key={s._id} className="service-card">
                 <div className="service-header">
                   <h3>{s.name}</h3>
-                  <span className={`status-badge ${s.status}`}>{s.status || '—'}</span>
+
+                  <div className="service-header__right">
+                    <span className={`status-badge ${status}`}>{statusLabel(status)}</span>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      aria-label="Actions"
+                      onClick={() => setOpenMenuId(menuOpen ? null : s._id)}
+                    >
+                      <MoreVertical size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  {menuOpen && (
+                    <div className="service-menu" role="menu">
+                      <button type="button" className="service-menu__item" onClick={() => { setOpenMenuId(null); openEdit(s); }}>Éditer</button>
+                      <button type="button" className="service-menu__item" onClick={() => { setOpenMenuId(null); handleDeleteService(s._id); }}>Supprimer</button>
+                    </div>
+                  )}
                 </div>
+
                 <div className="service-approval">
-                  <span className={`approval-badge ${s.approvalStatus || 'pending'}`}>{s.approvalStatus || 'pending'}</span>
+                  <span className={`approval-badge ${approval}`}>{approvalLabel(approval)}</span>
                 </div>
+
                 <div className="service-info">
                   <div className="info-group">
-                    <span className="label">Catégorie:</span>
+                    <span className="label">Catégorie</span>
                     <span className="value">{s.category}</span>
                   </div>
                   <div className="info-group">
-                    <span className="label">Fournisseur:</span>
+                    <span className="label">Fournisseur</span>
                     <span className="value">{s.provider?.name || '—'}</span>
                   </div>
                   <div className="info-group">
-                    <span className="label">Adresse:</span>
+                    <span className="label">Adresse</span>
                     <span className="value">{s.location?.address || '—'}</span>
                   </div>
                 </div>
+
                 <div className="card-actions">
-                  {(s.approvalStatus || 'pending') === 'pending' && (
+                  {isPending ? (
                     <>
-                      <button className="btn btn-approve" onClick={() => handleApprove(s)}>Approuver</button>
-                      <button className="btn btn-reject" onClick={() => handleReject(s)}>Rejeter</button>
+                      <button className="btn btn-approve" onClick={() => handleApprove(s)}>
+                        <Check size={16} aria-hidden="true" />
+                        Approuver
+                      </button>
+                      <button className="btn btn-reject" onClick={() => openRejectModal(s)}>
+                        <X size={16} aria-hidden="true" />
+                        Rejeter
+                      </button>
                     </>
+                  ) : (
+                    <button className="btn btn-toggle" onClick={() => handleToggleStatus(s)}>
+                      {s.status === 'active' ? 'Désactiver' : 'Activer'}
+                    </button>
                   )}
-                  <button className="btn btn-toggle" onClick={() => handleToggleStatus(s)}>
-                    {s.status === 'active' ? 'Désactiver' : 'Activer'}
-                  </button>
-                  <button className="btn btn-edit" onClick={() => openEdit(s)}>Éditer</button>
-                  <button className="btn btn-delete" onClick={() => handleDeleteService(s._id)}>Supprimer</button>
                 </div>
               </div>
-            ))}
-            {!loading && filtered.length === 0 && (
-              <div className="service-card">Aucun service</div>
-            )}
-          </div>
+            );
+          })}
+          {!loading && filtered.length === 0 && (
+            <div className="service-card">Aucun service</div>
+          )}
         </div>
+
+        {showRejectModal && rejectTarget && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Rejeter le service</h3>
+              <div className="modal-subtitle">{rejectTarget.name}</div>
+              <form onSubmit={handleConfirmReject}>
+                <div className="form-row">
+                  <label>Motif (optionnel)</label>
+                  <textarea
+                    rows="4"
+                    placeholder="Expliquez brièvement le motif du rejet..."
+                    value={rejectNote}
+                    onChange={(e) => setRejectNote(e.target.value)}
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" onClick={() => { setShowRejectModal(false); setRejectTarget(null); setRejectNote(''); }}>Annuler</button>
+                  <button type="submit" className="btn-primary">Rejeter</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {showAddModal && (
           <div className="modal-overlay">
@@ -430,7 +552,7 @@ const AdminServices = () => {
                   <div className="form-row">
                     <label>Coordonnées Mairie</label>
                     <input type="text" placeholder="Adresse" value={cityForm.mayorOffice.contact.address} onChange={(e) => setCityForm(prev => ({ ...prev, mayorOffice: { ...prev.mayorOffice, contact: { ...prev.mayorOffice.contact, address: e.target.value } } }))} />
-                    <div className="two-col" style={{marginTop: '.5rem'}}>
+                    <div className="two-col two-col--spaced">
                       <input type="text" placeholder="Téléphone" value={cityForm.mayorOffice.contact.phone} onChange={(e) => setCityForm(prev => ({ ...prev, mayorOffice: { ...prev.mayorOffice, contact: { ...prev.mayorOffice.contact, phone: e.target.value } } }))} />
                       <input type="email" placeholder="Email" value={cityForm.mayorOffice.contact.email} onChange={(e) => setCityForm(prev => ({ ...prev, mayorOffice: { ...prev.mayorOffice, contact: { ...prev.mayorOffice.contact, email: e.target.value } } }))} />
                     </div>
@@ -515,6 +637,8 @@ const AdminServices = () => {
             </div>
           </div>
         )}
+
+      </div>
     </AdminLayout>
   );
 };
