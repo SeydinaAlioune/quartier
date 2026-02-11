@@ -674,169 +674,171 @@ const AdminSecurity = () => {
             </div>
           </div>
         )}
-      </div>
-      {showConfig && (
-        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowConfig(false))}>
-          <div className="modal security-config-modal">
-            <div className="modal__header">
-              <h3>Configuration Sécurité</h3>
-              <button type="button" className="icon-close" onClick={() => setShowConfig(false)} aria-label="Fermer">
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
+        {showConfig && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowConfig(false))}>
+            <div className="modal security-config-modal">
+              <div className="modal__header">
+                <h3>Configuration Sécurité</h3>
+                <button type="button" className="icon-close" onClick={() => setShowConfig(false)} aria-label="Fermer">
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
 
-            <div className="modal__body">
-              {configLoading && <div>Chargement...</div>}
-              {configError && <div className="error-banner">{configError}</div>}
-              {!configLoading && (
-                <form id="security-config-form" onSubmit={saveConfig}>
-                  <div className="form-row">
-                    <label>Titre (Patrouilles de Police)</label>
-                    <input type="text" value={configForm.policeInfo.title} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, title: e.target.value } }))} />
-                  </div>
-                  <div className="form-row">
-                    <label>Message</label>
-                    <textarea rows="3" value={configForm.policeInfo.message} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, message: e.target.value } }))} />
-                  </div>
-                  <div className="form-row">
-                    <label>Contact</label>
-                    <input type="text" value={configForm.policeInfo.contact} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, contact: e.target.value } }))} />
-                  </div>
-
-                  <div className="form-row">
-                    <label>Conseils (catégories)</label>
-                  </div>
-                  {configForm.tips.map((t, idx) => (
-                    <div className="form-row" key={idx}>
-                      <input type="text" placeholder="Titre (ex: Protection du Domicile)" value={t.title} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, title: e.target.value } : x) }))} />
-                      <div className="tip-add-row">
-                        <input type="text" placeholder="Ajouter un conseil" value={t.newItem || ''} onChange={(e)=> setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, newItem: e.target.value } : x) }))} />
-                        <button type="button" className="btn-secondary" onClick={() => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, itemsText: (x.itemsText? x.itemsText+"\n" : '') + (x.newItem||'').trim(), newItem: '' } : x) }))}>Ajouter</button>
-                      </div>
-                      {t.itemsText && (
-                        <ul className="tip-items">
-                          {t.itemsText.split('\n').filter(s=>s.trim()).map((line, li) => (
-                            <li key={li} className="tip-item">
-                              <span>{line}</span>
-                              <button
-                                type="button"
-                                className="tip-remove"
-                                onClick={() => setConfigForm(prev => ({
-                                  ...prev,
-                                  tips: prev.tips.map((x, i) => {
-                                    if (i !== idx) return x;
-                                    const next = (x.itemsText || '').split('\n').map(s => s.trim()).filter(Boolean).filter((_, k) => k !== li);
-                                    return { ...x, itemsText: next.join('\n') };
-                                  })
-                                }))}
-                                aria-label="Supprimer"
-                              >
-                                <X size={14} aria-hidden="true" />
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <div>
-                        <button type="button" className="btn-secondary" onClick={() => removeTipCategory(idx)}>Supprimer cette catégorie</button>
-                      </div>
+              <div className="modal__body">
+                {configLoading && <div>Chargement...</div>}
+                {configError && <div className="error-banner">{configError}</div>}
+                {!configLoading && (
+                  <form id="security-config-form" onSubmit={saveConfig}>
+                    <div className="form-row">
+                      <label>Titre (Patrouilles de Police)</label>
+                      <input type="text" value={configForm.policeInfo.title} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, title: e.target.value } }))} />
                     </div>
-                  ))}
-                  <div className="form-row">
-                    <button type="button" className="btn-secondary" onClick={addTipCategory}>Ajouter une catégorie</button>
-                  </div>
-                </form>
-              )}
-            </div>
+                    <div className="form-row">
+                      <label>Message</label>
+                      <textarea rows="3" value={configForm.policeInfo.message} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, message: e.target.value } }))} />
+                    </div>
+                    <div className="form-row">
+                      <label>Contact</label>
+                      <input type="text" value={configForm.policeInfo.contact} onChange={(e) => setConfigForm(prev => ({ ...prev, policeInfo: { ...prev.policeInfo, contact: e.target.value } }))} />
+                    </div>
 
-            <div className="modal__footer">
-              <button type="button" className="btn-secondary" onClick={() => setShowConfig(false)}>Annuler</button>
-              <button type="submit" className="btn-primary" form="security-config-form">Enregistrer</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showAlertModal && (
-        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowAlertModal(false))}>
-          <div className="modal">
-            <h3>{alertEditingId ? 'Modifier une alerte' : 'Nouvelle alerte'}</h3>
-            {alertError && <div className="error-banner">{alertError}</div>}
-            <form onSubmit={saveAlert}>
-              <div className="form-row">
-                <label>Type</label>
-                <input type="text" value={alertForm.type} onChange={(e) => setAlertForm(prev => ({ ...prev, type: e.target.value }))} required />
+                    <div className="form-row">
+                      <label>Conseils (catégories)</label>
+                    </div>
+                    {configForm.tips.map((t, idx) => (
+                      <div className="form-row" key={idx}>
+                        <input type="text" placeholder="Titre (ex: Protection du Domicile)" value={t.title} onChange={(e) => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x, i) => i === idx ? { ...x, title: e.target.value } : x) }))} />
+                        <div className="tip-add-row">
+                          <input type="text" placeholder="Ajouter un conseil" value={t.newItem || ''} onChange={(e)=> setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, newItem: e.target.value } : x) }))} />
+                          <button type="button" className="btn-secondary" onClick={() => setConfigForm(prev => ({ ...prev, tips: prev.tips.map((x,i)=> i===idx ? { ...x, itemsText: (x.itemsText? x.itemsText+"\n" : '') + (x.newItem||'').trim(), newItem: '' } : x) }))}>Ajouter</button>
+                        </div>
+                        {t.itemsText && (
+                          <ul className="tip-items">
+                            {t.itemsText.split('\n').filter(s=>s.trim()).map((line, li) => (
+                              <li key={li} className="tip-item">
+                                <span>{line}</span>
+                                <button
+                                  type="button"
+                                  className="tip-remove"
+                                  onClick={() => setConfigForm(prev => ({
+                                    ...prev,
+                                    tips: prev.tips.map((x, i) => {
+                                      if (i !== idx) return x;
+                                      const next = (x.itemsText || '').split('\n').map(s => s.trim()).filter(Boolean).filter((_, k) => k !== li);
+                                      return { ...x, itemsText: next.join('\n') };
+                                    })
+                                  }))}
+                                  aria-label="Supprimer"
+                                >
+                                  <X size={14} aria-hidden="true" />
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <div>
+                          <button type="button" className="btn-secondary" onClick={() => removeTipCategory(idx)}>Supprimer cette catégorie</button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="form-row">
+                      <button type="button" className="btn-secondary" onClick={addTipCategory}>Ajouter une catégorie</button>
+                    </div>
+                  </form>
+                )}
               </div>
-              <div className="form-row">
-                <label>Message</label>
-                <textarea rows="3" value={alertForm.message} onChange={(e) => setAlertForm(prev => ({ ...prev, message: e.target.value }))} required />
-              </div>
-              <div className="form-row two-col">
-                <input type="text" placeholder="Zone (ex: Nord, Centre, Sud)" value={alertForm.zone} onChange={(e) => setAlertForm(prev => ({ ...prev, zone: e.target.value }))} />
-                <select value={alertForm.severity} onChange={(e) => setAlertForm(prev => ({ ...prev, severity: e.target.value }))}>
-                  <option value="low">Faible</option>
-                  <option value="medium">Moyenne</option>
-                  <option value="high">Élevée</option>
-                </select>
-              </div>
-              <div className="form-row">
-                <label>Date (optionnelle)</label>
-                <input type="date" value={alertForm.date} onChange={(e) => setAlertForm(prev => ({ ...prev, date: e.target.value }))} />
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowAlertModal(false)}>Annuler</button>
-                <button type="submit" className="btn-primary">Enregistrer</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {showMap && (
-        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowMap(false))}>
-          <div className="modal security-map-modal">
-            <h3>Localisation de l'incident</h3>
-            <div ref={mapContainerRef} className="security-map-container" />
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => setShowMap(false)}>Fermer</button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {confirmOpen && (
-        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeConfirm)}>
-          <div className="modal">
-            <h3>{confirmTitle}</h3>
-            <div className="modal-subtitle">{confirmMessage}</div>
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={closeConfirm}>Annuler</button>
-              <button type="button" className="btn-primary" onClick={handleConfirmSubmit}>Confirmer</button>
+              <div className="modal__footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowConfig(false)}>Annuler</button>
+                <button type="submit" className="btn-primary" form="security-config-form">Enregistrer</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {viewerOpen && viewerItem && (
-        <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeViewer)}>
-          <div className="modal security-viewer-modal">
-            <div className="viewer-topbar">
-              <div className="viewer-title">{viewerItem.title || 'Pièce jointe'}</div>
-              <button type="button" className="icon-close" onClick={closeViewer} aria-label="Fermer">
-                <X size={18} aria-hidden="true" />
-              </button>
-            </div>
-            <div className="viewer-body">
-              {viewerItem.type === 'image' ? (
-                <img className="viewer-image" src={viewerItem.url} alt={viewerItem.title || 'pièce jointe'} />
-              ) : (
-                <div className="viewer-file">
-                  <Paperclip size={18} aria-hidden="true" />
-                  <a href={viewerItem.url} target="_blank" rel="noreferrer">Ouvrir le fichier</a>
+        {showAlertModal && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowAlertModal(false))}>
+            <div className="modal">
+              <h3>{alertEditingId ? 'Modifier une alerte' : 'Nouvelle alerte'}</h3>
+              {alertError && <div className="error-banner">{alertError}</div>}
+              <form onSubmit={saveAlert}>
+                <div className="form-row">
+                  <label>Type</label>
+                  <input type="text" value={alertForm.type} onChange={(e) => setAlertForm(prev => ({ ...prev, type: e.target.value }))} required />
                 </div>
-              )}
+                <div className="form-row">
+                  <label>Message</label>
+                  <textarea rows="3" value={alertForm.message} onChange={(e) => setAlertForm(prev => ({ ...prev, message: e.target.value }))} required />
+                </div>
+                <div className="form-row two-col">
+                  <input type="text" placeholder="Zone (ex: Nord, Centre, Sud)" value={alertForm.zone} onChange={(e) => setAlertForm(prev => ({ ...prev, zone: e.target.value }))} />
+                  <select value={alertForm.severity} onChange={(e) => setAlertForm(prev => ({ ...prev, severity: e.target.value }))}>
+                    <option value="low">Faible</option>
+                    <option value="medium">Moyenne</option>
+                    <option value="high">Élevée</option>
+                  </select>
+                </div>
+                <div className="form-row">
+                  <label>Date (optionnelle)</label>
+                  <input type="date" value={alertForm.date} onChange={(e) => setAlertForm(prev => ({ ...prev, date: e.target.value }))} />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setShowAlertModal(false)}>Annuler</button>
+                  <button type="submit" className="btn-primary">Enregistrer</button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {showMap && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, () => setShowMap(false))}>
+            <div className="modal security-map-modal">
+              <h3>Localisation de l'incident</h3>
+              <div ref={mapContainerRef} className="security-map-container" />
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowMap(false)}>Fermer</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {confirmOpen && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeConfirm)}>
+            <div className="modal">
+              <h3>{confirmTitle}</h3>
+              <div className="modal-subtitle">{confirmMessage}</div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={closeConfirm}>Annuler</button>
+                <button type="button" className="btn-primary" onClick={handleConfirmSubmit}>Confirmer</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {viewerOpen && viewerItem && (
+          <div className="modal-overlay" onMouseDown={(e) => handleOverlayMouseDown(e, closeViewer)}>
+            <div className="modal security-viewer-modal">
+              <div className="viewer-topbar">
+                <div className="viewer-title">{viewerItem.title || 'Pièce jointe'}</div>
+                <button type="button" className="icon-close" onClick={closeViewer} aria-label="Fermer">
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="viewer-body">
+                {viewerItem.type === 'image' ? (
+                  <img className="viewer-image" src={viewerItem.url} alt={viewerItem.title || 'pièce jointe'} />
+                ) : (
+                  <div className="viewer-file">
+                    <Paperclip size={18} aria-hidden="true" />
+                    <a href={viewerItem.url} target="_blank" rel="noreferrer">Ouvrir le fichier</a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </AdminLayout>
   );
 };
