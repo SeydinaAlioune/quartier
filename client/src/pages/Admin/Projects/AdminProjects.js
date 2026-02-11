@@ -189,7 +189,8 @@ const AdminProjects = () => {
     if (n == null || n === '') return '—';
     const num = Number(n);
     if (!Number.isFinite(num)) return '—';
-    return `${new Intl.NumberFormat('fr-FR').format(num)} €`;
+    const formatted = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', currencyDisplay: 'code', maximumFractionDigits: 0 }).format(num);
+    return formatted.replace('XOF', 'FCFA').replace(' ', ' ');
   };
 
   const formatDate = (d) => {
