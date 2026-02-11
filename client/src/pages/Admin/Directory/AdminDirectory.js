@@ -3,6 +3,7 @@ import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import './AdminDirectory.css';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
+import { Building2, Search, Pencil, Trash2 } from 'lucide-react';
 
 const AdminDirectory = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -25,6 +26,7 @@ const AdminDirectory = () => {
   const [newCat, setNewCat] = useState({ title: '', order: '' });
   const [newContact, setNewContact] = useState({ name: '', number: '', note: '', catId: '' });
   const [editingContact, setEditingContact] = useState(null); // {catId, contactId, name, number, note}
+  const [editingCategory, setEditingCategory] = useState(null); // {catId, title}
 
   const fetchBusinesses = async (status = 'active', params = {}) => {
     try {
@@ -46,6 +48,29 @@ const AdminDirectory = () => {
       setError("Impossible de charger les entreprises.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startEditCategory = (cat) => {
+    setEditingCategory({ catId: cat._id, title: cat.title || '' });
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategory(null);
+  };
+
+  const saveEditCategory = async () => {
+    if (!editingCategory?.catId) return;
+    const title = (editingCategory.title || '').trim();
+    if (!title) return;
+    try {
+      await api.put(`/api/useful-contacts/categories/${editingCategory.catId}`, { title });
+      const r = await api.get('/api/useful-contacts');
+      setUCats(r?.data?.categories || []);
+      setEditingCategory(null);
+      emitToast('Catégorie mise à jour');
+    } catch {
+      emitToast('Mise à jour impossible');
     }
   };
 
@@ -283,16 +308,16 @@ const AdminDirectory = () => {
 
           {activeTab === 'useful' && (
             <div className="businesses-section">
-              <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div className="section-header useful-header">
                 <h2>Contacts utiles</h2>
                 <div className="header-actions">
                   <button className="business-btn" onClick={seedUsefulDefaults} disabled={ucLoading}>Pré-remplir (France)</button>
                 </div>
               </div>
               {ucError && <div className="business-item" style={{ color: '#e53e3e', background: '#fff5f5' }}>{ucError}</div>}
-              <div className="business-list" style={{ padding: '1rem' }}>
-                <div className="business-item" style={{ gap: 16, flexDirection: 'column', alignItems: 'stretch' }}>
-                  <h3 style={{ margin: 0 }}>Nouvelle catégorie</h3>
+              <div className="business-list useful-list">
+                <div className="business-item useful-card">
+                  <h3 className="useful-card__title">Nouvelle catégorie</h3>
                   <div className="search-filters">
                     <input type="text" placeholder="Titre" className="search-input" value={newCat.title} onChange={(e) => setNewCat(prev => ({ ...prev, title: e.target.value }))} />
                     <input type="number" placeholder="Ordre (optionnel)" className="filter-select" value={newCat.order} onChange={(e) => setNewCat(prev => ({ ...prev, order: e.target.value }))} />
@@ -314,26 +339,40 @@ const AdminDirectory = () => {
                   <div className="business-item">Aucune catégorie</div>
                 )}
                 {!ucLoading && ucats.map(cat => (
-                  <div className="business-item" key={cat._id} style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                      <h3 className="business-name" style={{ margin: 0 }}>{cat.title}</h3>
+                  <div className="business-item useful-card" key={cat._id}>
+                    <div className="useful-cat-header">
+                      {editingCategory?.catId === cat._id ? (
+                        <div className="useful-cat-edit">
+                          <input
+                            type="text"
+                            className="search-input"
+                            value={editingCategory.title}
+                            onChange={(e) => setEditingCategory(prev => ({ ...prev, title: e.target.value }))}
+                          />
+                          <div className="useful-cat-edit__actions">
+                            <button type="button" className="btn-primary" onClick={saveEditCategory}>Enregistrer</button>
+                            <button type="button" className="btn-secondary" onClick={cancelEditCategory}>Annuler</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <h3 className="business-name useful-cat-title">{cat.title}</h3>
+                      )}
                       <div className="business-actions">
-                        <button className="action-btn edit" title="Renommer" onClick={async () => {
-                          const title = prompt('Nouveau titre', cat.title) || cat.title;
-                          try { await api.put(`/api/useful-contacts/categories/${cat._id}`, { title });
-                            const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
-                          } catch { emitToast('Mise à jour impossible'); }
-                        }}>✏️</button>
+                        <button className="action-btn edit" title="Renommer" type="button" onClick={() => startEditCategory(cat)} disabled={editingCategory?.catId === cat._id}>
+                          <Pencil size={16} aria-hidden="true" />
+                        </button>
                         <button className="action-btn delete" title="Supprimer" onClick={async () => {
                           if (!window.confirm('Supprimer cette catégorie ?')) return;
                           try { await api.delete(`/api/useful-contacts/categories/${cat._id}`);
                             const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
                           } catch { emitToast('Suppression impossible'); }
-                        }}>🗑️</button>
+                        }}>
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
                       </div>
                     </div>
-                    <div style={{ paddingLeft: 8 }}>
-                      <h4 style={{ margin: '8px 0' }}>Ajouter un contact</h4>
+                    <div className="useful-cat-body">
+                      <h4 className="useful-subtitle">Ajouter un contact</h4>
                       <div className="search-filters">
                         <input type="text" placeholder="Nom" className="search-input" value={newContact.catId === cat._id ? newContact.name : ''}
                           onChange={(e) => setNewContact(prev => ({ ...prev, catId: cat._id, name: e.target.value }))} />
@@ -350,9 +389,9 @@ const AdminDirectory = () => {
                         }}>Ajouter</button>
                       </div>
 
-                      <div style={{ marginTop: 8 }}>
+                      <div className="useful-contacts">
                         {(cat.contacts || []).map(c => (
-                          <div key={c._id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #e2e8f0' }}>
+                          <div key={c._id} className="useful-contact-row">
                             {editingContact && editingContact.contactId === c._id ? (
                               <>
                                 <input type="text" className="search-input" value={editingContact.name} onChange={(e) => setEditingContact(prev => ({ ...prev, name: e.target.value }))} />
@@ -368,17 +407,21 @@ const AdminDirectory = () => {
                               </>
                             ) : (
                               <>
-                                <div style={{ flex: 1 }}>
+                                <div className="useful-contact-main">
                                   <strong>{c.name}</strong> — {c.number} {c.note ? `· ${c.note}` : ''}
                                 </div>
                                 <div className="business-actions">
-                                  <button className="action-btn edit" title="Modifier" onClick={() => setEditingContact({ catId: cat._id, contactId: c._id, name: c.name, number: c.number, note: c.note || '' })}>✏️</button>
+                                  <button className="action-btn edit" title="Modifier" onClick={() => setEditingContact({ catId: cat._id, contactId: c._id, name: c.name, number: c.number, note: c.note || '' })}>
+                                    <Pencil size={16} aria-hidden="true" />
+                                  </button>
                                   <button className="action-btn delete" title="Supprimer" onClick={async () => {
                                     if (!window.confirm('Supprimer ce contact ?')) return;
                                     try { await api.delete(`/api/useful-contacts/categories/${cat._id}/contacts/${c._id}`);
                                       const r = await api.get('/api/useful-contacts'); setUCats(r?.data?.categories || []);
                                     } catch { emitToast('Suppression impossible'); }
-                                  }}>🗑️</button>
+                                  }}>
+                                    <Trash2 size={16} aria-hidden="true" />
+                                  </button>
                                 </div>
                               </>
                             )}
@@ -401,7 +444,7 @@ const AdminDirectory = () => {
                 className="validation-btn"
                 onClick={() => setActiveTab('validation')}
               >
-                <span>🔍</span>
+                <Search size={18} aria-hidden="true" />
                 <span>En attente</span>
                 <span className="count-badge">{directoryStats.pendingValidation}</span>
               </button>
@@ -409,7 +452,7 @@ const AdminDirectory = () => {
                 className="business-btn"
                 onClick={() => { setActiveTab('businesses'); setShowAddModal(true); }}
               >
-                <span>🏢</span>
+                <Building2 size={18} aria-hidden="true" />
                 <span>Nouvelle entreprise</span>
               </button>
             </div>
@@ -501,15 +544,21 @@ const AdminDirectory = () => {
                 )}
                 {!loading && filteredBusinesses.map((b) => (
                   <div className="business-item" key={b._id}>
-                    <div className="business-logo">🏢</div>
+                    <div className="business-logo" aria-hidden="true">
+                      <Building2 size={28} />
+                    </div>
                     <div className="business-info">
                       <h3 className="business-name">{b.name}</h3>
                       <span className="business-category">{b.category}</span>
                       <p className="business-address">{b.address?.street || '—'} {b.address?.city ? `, ${b.address.city}` : ''}</p>
                     </div>
                     <div className="business-actions">
-                      <button className="action-btn edit" title="Modifier" onClick={() => openEdit(b)}>✏️</button>
-                      <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteBusiness(b._id)}>🗑️</button>
+                      <button className="action-btn edit" title="Modifier" onClick={() => openEdit(b)}>
+                        <Pencil size={16} aria-hidden="true" />
+                      </button>
+                      <button className="action-btn delete" title="Supprimer" onClick={() => handleDeleteBusiness(b._id)}>
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
                     </div>
                   </div>
                 ))}
