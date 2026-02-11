@@ -398,6 +398,30 @@
   color: #0f172a;
 }
 
+.donations-page .pill.is-success {
+  border-color: rgba(0, 166, 81, 0.25);
+  background: rgba(0, 166, 81, 0.10);
+  color: #065f46;
+}
+
+.donations-page .pill.is-warning {
+  border-color: rgba(245, 158, 11, 0.30);
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+}
+
+.donations-page .pill.is-danger {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.donations-page .pill.is-muted {
+  border-color: rgba(100, 116, 139, 0.25);
+  background: rgba(100, 116, 139, 0.10);
+  color: #475569;
+}
+
 @media (max-width: 640px) {
   .donations-page {
     padding: 12px;

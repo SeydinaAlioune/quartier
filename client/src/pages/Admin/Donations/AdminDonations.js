@@ -52,6 +52,53 @@ const AdminDonations = () => {
     return Math.max(0, Math.min(100, pct));
   };
 
+  const getCategoryLabel = (category) => {
+    switch (category) {
+      case 'telethon':
+        return 'Téléthon';
+      case 'project':
+        return 'Projet';
+      case 'emergency':
+        return 'Urgence';
+      case 'community':
+        return 'Communauté';
+      case 'other':
+        return 'Autre';
+      default:
+        return category || '—';
+    }
+  };
+
+  const getDonationStatusLabel = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'Payé';
+      case 'pending':
+        return 'En attente';
+      case 'failed':
+        return 'Échec';
+      case 'cancelled':
+        return 'Annulé';
+      default:
+        return status || '—';
+    }
+  };
+
+  const getDonationStatusTone = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'is-success';
+      case 'pending':
+        return 'is-warning';
+      case 'failed':
+        return 'is-danger';
+      case 'cancelled':
+        return 'is-muted';
+      default:
+        return 'is-muted';
+    }
+  };
+
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
@@ -81,7 +128,24 @@ const AdminDonations = () => {
     }
   };
 
-  useEffect(() => { fetchCampaigns(); }, []);
+  useEffect(() => {
+    fetchCampaigns();
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    if (!showAddModal && !showDonationsModal) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowAddModal(false);
+        setShowDonationsModal(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showAddModal, showDonationsModal]);
 
   const fetchStats = async () => {
     try {
@@ -95,8 +159,6 @@ const AdminDonations = () => {
       setStatsLoading(false);
     }
   };
-
-  useEffect(() => { fetchStats(); }, []);
 
   // Charger la liste des projets quand on ouvre la modale
   useEffect(() => {
@@ -248,7 +310,7 @@ const AdminDonations = () => {
                   </div>
 
                   <div className="campaign-meta">
-                    <div className="campaign-meta-line">Catégorie: {c.category || '—'}</div>
+                    <div className="campaign-meta-line">Catégorie: {getCategoryLabel(c.category)}</div>
                     {c.project && <div className="campaign-meta-line">Projet lié: {c.project?.title || c.project}</div>}
                     <div className="campaign-meta-line">Début: {c.startDate ? new Date(c.startDate).toLocaleDateString('fr-FR') : '—'}</div>
                     <div className="campaign-meta-line">Fin: {c.endDate ? new Date(c.endDate).toLocaleDateString('fr-FR') : '—'}</div>
@@ -355,8 +417,8 @@ const AdminDonations = () => {
                                 <td>{d.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''}</td>
                                 <td>{d.anonymous ? 'Anonyme' : (d.donor?.name || '—')}</td>
                                 <td className="amount">{formatFcfa(d.amount || 0)}</td>
-                                <td>{d.paymentMethod || '—'}</td>
-                                <td>{d.status || '—'}</td>
+                                <td><span className="pill">{(d.paymentMethod || '—').toString().toUpperCase()}</span></td>
+                                <td><span className={`pill ${getDonationStatusTone(d.status)}`}>{getDonationStatusLabel(d.status)}</span></td>
                               </tr>
                             ))}
                           </tbody>
@@ -373,8 +435,8 @@ const AdminDonations = () => {
                                 <div className="donation-row__amount">{formatFcfa(d.amount || 0)}</div>
                               </div>
                               <div className="donation-row__meta">
-                                <span className="pill">{d.paymentMethod || '—'}</span>
-                                <span className="pill">{d.status || '—'}</span>
+                                <span className="pill">{(d.paymentMethod || '—').toString().toUpperCase()}</span>
+                                <span className={`pill ${getDonationStatusTone(d.status)}`}>{getDonationStatusLabel(d.status)}</span>
                               </div>
                             </div>
                           ))}
