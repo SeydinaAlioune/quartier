@@ -357,7 +357,7 @@ const Users = () => {
                     ))}
                     {!loading && !error && filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan="7" style={{ textAlign: 'center' }}>Aucun utilisateur</td>
+                        <td colSpan="7" className="users-page__table-empty">Aucun utilisateur</td>
                       </tr>
                     )}
                   </tbody>
@@ -420,14 +420,6 @@ const Users = () => {
                   <div className="mobile-card mobile-card--empty">Aucun utilisateur</div>
                 )}
               </div>
-            </div>
-
-            <div className="pagination">
-              <button className="active">1</button>
-              <button>2</button>
-              <button>3</button>
-              <span>...</span>
-              <button>10</button>
             </div>
           </div>
 

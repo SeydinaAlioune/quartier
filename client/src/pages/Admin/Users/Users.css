@@ -6,6 +6,12 @@
   overflow-x: hidden;
 }
 
+ .users-page__table-empty {
+  text-align: center;
+  padding: 12px 0;
+  color: #64748b;
+ }
+
 .users-header {
   display: flex;
   justify-content: space-between;
@@ -231,33 +237,101 @@
   border-color: #cbd5e1;
 }
 
-.users-page .pagination {
+ .users-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
+  z-index: 1200;
+  padding: 16px;
+ }
 
-.users-page .pagination button {
-  padding: 0.5rem 1rem;
+ .users-page .modal {
+  width: min(560px, 100%);
+  background: #fff;
+  border-radius: 14px;
   border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 6px;
-  color: #4a5568;
+  box-shadow: 0 22px 60px rgba(0,0,0,0.2);
+  padding: 16px;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+ }
+
+ .users-page .modal h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+ }
+
+ .users-page .form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+ }
+
+ .users-page .form-row label {
+  font-weight: 700;
+  color: #334155;
+  font-size: 0.9rem;
+ }
+
+ .users-page .form-row input,
+ .users-page .form-row select {
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  outline: none;
+ }
+
+ .users-page .form-row input:focus,
+ .users-page .form-row select:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+ }
+
+ .users-page .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+ }
+
+ .users-page .btn-primary,
+ .users-page .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
+  border: 1px solid transparent;
+ }
 
-.users-page .pagination button:hover {
-  border-color: #00a651;
-  color: #00a651;
-}
+ .users-page .btn-primary {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+ }
 
-.users-page .pagination button.active {
-  background-color: #00a651;
-  color: white;
-  border-color: #00a651;
-}
+ .users-page .btn-secondary {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+ }
+
+ @media (max-width: 768px) {
+  .users-page .modal-actions .btn-primary,
+  .users-page .modal-actions .btn-secondary {
+    width: 100%;
+  }
+ }
 
 /* Section des statistiques */
 .stats-section {
