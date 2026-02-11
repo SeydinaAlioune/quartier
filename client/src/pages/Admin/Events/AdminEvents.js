@@ -299,17 +299,15 @@ const AdminEvents = () => {
                 </div>
 
                 <div className="event-meta">
-                  <div className="meta-row">
-                    <span className="meta-label">Lieu</span>
+                  <div className="meta-line">
+                    <span className="meta-label">Lieu:</span>
                     <span className="meta-value">{ev.location || '—'}</span>
                   </div>
-                  <div className="meta-row">
-                    <span className="meta-label">Date</span>
+                  <div className="meta-line">
+                    <span className="meta-label">Date:</span>
                     <span className="meta-value">{formatEventDate(ev.date)}</span>
                   </div>
                 </div>
-
-                {ev.description && <div className="event-description">{ev.description}</div>}
               </div>
             ))}
 
