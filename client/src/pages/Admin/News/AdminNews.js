@@ -612,9 +612,9 @@ const AdminNews = () => {
         <input type="text" placeholder="Rechercher un média..." className="media-search" value={mediaSearch} onChange={(e) => setMediaSearch(e.target.value)} />
       </div>
       <div className="media-grid">
-        {mediaLoading && <div>Chargement des médias...</div>}
+        {mediaLoading && <div className="news-page__empty">Chargement des médias…</div>}
         {!mediaLoading && mediaError && <div className="media-error">{mediaError}</div>}
-        {!mediaLoading && !mediaError && mediaList.length === 0 && <div>Aucun média</div>}
+        {!mediaLoading && !mediaError && mediaList.length === 0 && <div className="news-page__empty">Aucun média</div>}
         {!mediaLoading && !mediaError && mediaList
           .filter(m => mediaTypeFilter === 'all' || m.type === mediaTypeFilter)
           .filter(m => {
@@ -762,9 +762,9 @@ const AdminNews = () => {
           <span>Nouvelle annonce</span>
         </button>
       </div>
-      {annLoading && <div>Chargement…</div>}
+      {annLoading && <div className="news-page__empty">Chargement…</div>}
       {!annLoading && annError && <div className="media-error">{annError}</div>}
-      {!annLoading && !annError && annList.length === 0 && <div>Aucune annonce</div>}
+      {!annLoading && !annError && annList.length === 0 && <div className="news-page__empty">Aucune annonce</div>}
       {!annLoading && !annError && annList.length > 0 && (
         <>
         <div className="articles-table announcements-table--desktop">
@@ -992,17 +992,20 @@ const AdminNews = () => {
           <div className="news-modal__actions">
             <button className="upload-btn" type="button" onClick={() => pickerFileRef.current && pickerFileRef.current.click()}>Téléverser depuis l'ordinateur</button>
             <input type="file" ref={pickerFileRef} className="file-input-hidden" accept="image/*" onChange={handlePickerFileSelected} />
-            <button className="btn-secondary" type="button" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>Fermer</button>
+            <div className="news-modal__actions" style={{ justifyContent: 'space-between', width: '100%' }}>
+              <div className="pagination__meta">Sélecteur: images de la bibliothèque</div>
+              <button className="btn-secondary" type="button" onClick={() => { setShowMediaPicker(false); setChooseCoverFor(null); }}>Fermer</button>
+            </div>
           </div>
           <div className="media-grid news-modal__grid">
-            {mediaLoading && <div>Chargement des médias...</div>}
+            {mediaLoading && <div className="news-page__empty">Chargement des médias…</div>}
             {!mediaLoading && mediaError && <div className="media-error">{mediaError}</div>}
-            {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').length === 0 && <div>Aucune image</div>}
+            {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').length === 0 && <div className="news-page__empty">Aucune image</div>}
             {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').map((media) => (
               <div key={media._id} className="media-item news-modal__pick-item" onClick={() => applyMediaAsCover(media.url)}>
-                <div className="media-preview">
+                <button className="media-preview" type="button" title="Choisir" aria-label="Choisir">
                   <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
-                </div>
+                </button>
                 <div className="media-info">
                   <span className="media-name">{media.title || media.name || '—'}</span>
                   <span className={`media-status status-${media.status || 'pending'}`}>{media.status || 'pending'}</span>
@@ -1029,13 +1032,15 @@ const AdminNews = () => {
         </div>
       </div>
       <div className="comments-list">
-        {commentsLoading && <div>Chargement des commentaires...</div>}
+        {commentsLoading && <div className="news-page__empty">Chargement des commentaires…</div>}
         {!commentsLoading && commentsError && <div className="comments-error">{commentsError}</div>}
-        {!commentsLoading && !commentsError && commentsList.length === 0 && <div>Aucun commentaire</div>}
+        {!commentsLoading && !commentsError && commentsList.length === 0 && <div className="news-page__empty">Aucun commentaire</div>}
         {!commentsLoading && !commentsError && commentsList.map((comment) => (
-          <div key={comment.id} className={`comment-item ${comment.status}`}>
+          <div key={comment.id} className="comment-item">
             <div className="comment-header">
-              <span className="comment-author">{comment.author}</span>
+              <div>
+                <div className="comment-author">{comment.authorName || 'Anonyme'}</div>
+              </div>
               <span className="comment-date">{new Date(comment.createdAt).toLocaleDateString('fr-FR')}</span>
             </div>
             <div className="comment-content">{comment.content}</div>
@@ -1351,7 +1356,7 @@ const AdminNews = () => {
                 <tbody>
                   {loading && (
                     <tr>
-                      <td colSpan="5" className="table-cell-center">Chargement...</td>
+                      <td colSpan="5" className="table-cell-center news-page__empty">Chargement…</td>
                     </tr>
                   )}
                   {!loading && posts
@@ -1461,11 +1466,11 @@ const AdminNews = () => {
                 ))}
 
               {!loading && posts.length === 0 && (
-                <div className="news-mobile-cards__empty">Aucun article</div>
+                <div className="news-mobile-cards__empty news-page__empty">Aucun article</div>
               )}
 
               {loading && (
-                <div className="news-mobile-cards__empty">Chargement...</div>
+                <div className="news-mobile-cards__empty news-page__empty">Chargement…</div>
               )}
             </div>
 
