@@ -22,6 +22,22 @@ const AdminHeader = ({
   const countInFlightRef = useRef(false);
   const navigate = useNavigate();
 
+  const resolveNotifLink = (n) => {
+    const link = String(n?.link || '').trim();
+    if (link) return link;
+    const sourceType = String(n?.metadata?.sourceType || '').trim();
+    if (sourceType === 'security_incident') return '/admin/security';
+    if (n?.metadata?.contactId) return '/admin/messages';
+    return '/admin/messages';
+  };
+
+  const markNotifRead = async (id) => {
+    if (!id) return;
+    try {
+      await api.put(`/api/notifications/${id}/read`);
+    } catch {}
+  };
+
   useEffect(() => {
     const hydrate = async () => {
       const token = localStorage.getItem('token');
@@ -60,8 +76,8 @@ const AdminHeader = ({
       if (countInFlightRef.current) return;
       countInFlightRef.current = true;
       try {
-        const r = await api.get('/api/contact?status=new&limit=1&page=1');
-        const total = Number(r?.data?.total || 0);
+        const r = await api.get('/api/notifications?read=false&limit=1&page=1');
+        const total = Number(r?.data?.unreadCount || 0);
         if (!cancelled) {
           setNotifCount(total);
         }
@@ -101,12 +117,11 @@ const AdminHeader = ({
     const loadLatest = async () => {
       try {
         setNotifLoading(true);
-        const res = await api.get('/api/contact?status=new&limit=5&page=1');
-        const arr = Array.isArray(res?.data?.contacts)
-          ? res.data.contacts
+        const res = await api.get('/api/notifications?read=false&limit=5&page=1');
+        const arr = Array.isArray(res?.data?.notifications)
+          ? res.data.notifications
           : (Array.isArray(res?.data) ? res.data : []);
-        const apiTotal = Number(res?.data?.total || 0);
-        const total = arr.length === 0 ? 0 : (apiTotal || arr.length || 0);
+        const total = Number(res?.data?.unreadCount || 0);
         if (!cancelled) {
           setNotifItems(arr);
           setNotifCount(total);
@@ -176,8 +191,8 @@ const AdminHeader = ({
               if (next) {
                 // Rafraîchir immédiatement le compteur au clic (au lieu d'attendre le timer)
                 try {
-                  api.get('/api/contact?status=new&limit=1&page=1').then((r) => {
-                    const total = Number(r?.data?.total || 0);
+                  api.get('/api/notifications?read=false&limit=1&page=1').then((r) => {
+                    const total = Number(r?.data?.unreadCount || 0);
                     setNotifCount(total);
                   }).catch(() => {});
                 } catch {}
@@ -190,7 +205,7 @@ const AdminHeader = ({
           {notifOpen && (
             <div className="notif-dropdown" role="menu">
               <div className="notif-dropdown__header">
-                <div className="notif-dropdown__title">Nouveaux messages</div>
+                <div className="notif-dropdown__title">Notifications</div>
                 <button type="button" className="notif-dropdown__link" onClick={() => { setNotifOpen(false); navigate('/admin/messages'); }}>
                   Tout voir
                 </button>
@@ -199,7 +214,7 @@ const AdminHeader = ({
                 {notifLoading && <div className="notif-dropdown__empty">Chargement…</div>}
                 {!notifLoading && notifItems.length === 0 && (
                   <div className="notif-dropdown__empty">
-                    Aucun nouveau message
+                    Aucune notification
                   </div>
                 )}
                 {!notifLoading && notifItems.map((m) => (
@@ -207,10 +222,16 @@ const AdminHeader = ({
                     key={m._id}
                     type="button"
                     className="notif-item"
-                    onClick={() => { setNotifOpen(false); navigate('/admin/messages'); }}
+                    onClick={async () => {
+                      const to = resolveNotifLink(m);
+                      setNotifOpen(false);
+                      await markNotifRead(m._id);
+                      setNotifCount((v) => Math.max(0, Number(v || 0) - 1));
+                      navigate(to);
+                    }}
                   >
-                    <div className="notif-item__title">{m.subject || 'Message'}</div>
-                    <div className="notif-item__meta">{m.name || m.email || '—'}</div>
+                    <div className="notif-item__title">{m.title || 'Notification'}</div>
+                    <div className="notif-item__meta">{m.message || '—'}</div>
                   </button>
                 ))}
               </div>

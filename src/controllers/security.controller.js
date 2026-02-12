@@ -1,4 +1,6 @@
 const { SecurityAlert, SecurityIncident } = require('../models/security.model');
+const Notification = require('../models/notification.model');
+const User = require('../models/user.model');
 // SSE clients registries
 const alertsClients = new Set();
 const incidentsClients = new Set();
@@ -125,6 +127,25 @@ exports.createIncident = async (req, res) => {
       payload.attachments = attachments.map(a => ({ url: a.url, type: a.type || 'image' }));
     }
     const incident = await SecurityIncident.create(payload);
+
+    try {
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      const title = 'Nouveau signalement sécurité';
+      const msg = `${incident.type || 'Incident'}${incident.location ? `\nLieu: ${incident.location}` : ''}`;
+      await Notification.insertMany(
+        admins.map((a) => ({
+          recipient: a._id,
+          type: 'system_notification',
+          title,
+          message: msg,
+          priority: 'high',
+          link: '/admin/security',
+          metadata: { sourceType: 'security_incident', sourceId: incident._id }
+        })),
+        { ordered: false }
+      );
+    } catch {}
+
     incidentsClients.forEach(c => sendEvent(c, 'incident:create', incident));
     res.status(201).json(incident);
   } catch (e) {
