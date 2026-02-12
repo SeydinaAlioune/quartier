@@ -105,12 +105,41 @@ exports.initiatePayment = async (req, res) => {
         await donation.save();
 
         // Créer une session chez le prestataire (ou mock si non configuré)
-        const { paymentUrl } = await createPaymentSession(method, {
-            donationId: donation._id,
-            amount: amt,
-            returnUrl: returnUrl || '',
-            req
-        });
+        let paymentUrl;
+        try {
+            const session = await createPaymentSession(method, {
+                donationId: donation._id,
+                amount: amt,
+                returnUrl: returnUrl || '',
+                req
+            });
+            paymentUrl = session?.paymentUrl;
+        } catch (e) {
+            const msg = String(e?.message || '');
+            const lower = msg.toLowerCase();
+
+            // PayDunya peut refuser tant que le KYC n'est pas validé (ex: code=1001 plafond)
+            // => fallback mode manuel Wave (preuve + validation admin)
+            const isPaydunyaCeiling = lower.includes('paydunya') && (lower.includes('code=1001') || lower.includes('plafond') || lower.includes('kyc'));
+            if (isPaydunyaCeiling && method === 'wave') {
+                const waveNumber = String(process.env.WAVE_RECEIVE_NUMBER || '772006961').trim();
+                const ref = `DON-${String(donation._id)}`;
+                return res.json({
+                    paymentUrl: null,
+                    donationId: donation._id,
+                    manual: {
+                        provider: 'wave',
+                        waveNumber,
+                        reference: ref,
+                        amount: amt,
+                        status: 'pending'
+                    },
+                    message: msg
+                });
+            }
+
+            throw e;
+        }
 
         const isMock = typeof paymentUrl === 'string' && paymentUrl.includes('/api/donations/mock-checkout');
         if (isMock) {
