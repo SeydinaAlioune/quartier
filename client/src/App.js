@@ -26,6 +26,7 @@ import AdminEvents from './pages/Admin/Events/AdminEvents';
 import AdminServices from './pages/Admin/Services/AdminServices';
 import AdminPaymentsConfig from './pages/Admin/Payments/AdminPaymentsConfig';
 import AdminMessages from './pages/Admin/Messages/AdminMessages';
+import AdminNotifications from './pages/Admin/Notifications/AdminNotifications';
 import './App.css';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -105,6 +106,7 @@ function AppLayout() {
           <Route path="/admin/events" element={<AdminEvents />} />
           <Route path="/admin/donations" element={<AdminDonations />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
+          <Route path="/admin/notifications" element={<AdminNotifications />} />
           <Route path="/admin/payments-config" element={<AdminPaymentsConfig />} />
           <Route path="/admin/services" element={<AdminServices />} />
           <Route path="/admin" element={<AdminLogin />} />

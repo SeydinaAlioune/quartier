@@ -1,4 +1,6 @@
 const Project = require('../models/project.model');
+const User = require('../models/user.model');
+const Notification = require('../models/notification.model');
 
 // Créer un nouveau projet
 exports.createProject = async (req, res) => {
@@ -115,6 +117,25 @@ exports.submitProject = async (req, res) => {
     });
 
     await project.save();
+
+    try {
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      const notifTitle = 'Nouvelle proposition de projet';
+      const msg = `${project.title || 'Projet'}${project.category ? `\nCatégorie: ${project.category}` : ''}`;
+      await Notification.insertMany(
+        admins.map((a) => ({
+          recipient: a._id,
+          type: 'system_notification',
+          title: notifTitle,
+          message: msg,
+          priority: 'normal',
+          link: '/admin/projects',
+          metadata: { sourceType: 'project_submission', sourceId: project._id }
+        })),
+        { ordered: false }
+      );
+    } catch {}
+
     res.status(201).json({ message: 'Proposition envoyée', project });
   } catch (error) {
     console.error('Erreur soumission projet:', error);

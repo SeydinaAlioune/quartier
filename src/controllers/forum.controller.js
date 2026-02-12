@@ -3,6 +3,7 @@ const path = require('path');
 const { deleteFile } = require('../middleware/upload.middleware');
 const Media = require('../models/media.model');
 const User = require('../models/user.model');
+const Notification = require('../models/notification.model');
 
 // Helper: relative time string in French (very simple)
 function relativeTime(date) {
@@ -268,6 +269,25 @@ exports.createAd = async (req, res) => {
     // Par défaut: pending (nécessite approbation admin)
     const imgs = Array.isArray(images) ? images.filter(Boolean).map(String) : [];
     const ad = await ForumAd.create({ type, title: title.trim(), description: description.trim(), price, imageUrl: String(imageUrl || (imgs[0] || '')), images: imgs, author: req.user._id, status: 'pending' });
+
+    try {
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      const notifTitle = 'Annonce forum à valider';
+      const msg = `${String(type || '').toUpperCase()} · ${ad.title || ''}`.trim();
+      await Notification.insertMany(
+        admins.map((a) => ({
+          recipient: a._id,
+          type: 'system_notification',
+          title: notifTitle,
+          message: msg || 'Nouvelle annonce',
+          priority: 'normal',
+          link: '/admin/forum',
+          metadata: { sourceType: 'forum_ad_pending', sourceId: ad._id }
+        })),
+        { ordered: false }
+      );
+    } catch {}
+
     res.status(201).json({ id: ad._id });
   } catch (e) {
     console.error('Forum createAd error', e);
@@ -357,6 +377,25 @@ exports.createReport = async (req, res) => {
       reason = normalized;
     }
     const r = await ForumReport.create({ targetType, targetId, reason, details, reporter: req.user._id, status: 'pending' });
+
+    try {
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      const notifTitle = 'Signalement forum';
+      const msg = `Cible: ${targetType} · Motif: ${reason}`;
+      await Notification.insertMany(
+        admins.map((a) => ({
+          recipient: a._id,
+          type: 'system_notification',
+          title: notifTitle,
+          message: msg,
+          priority: 'high',
+          link: '/admin/forum',
+          metadata: { sourceType: 'forum_report', sourceId: r._id, additionalData: { targetType, targetId } }
+        })),
+        { ordered: false }
+      );
+    } catch {}
+
     res.status(201).json({ id: r._id });
   } catch (e) {
     console.error('Forum createReport error', e);

@@ -1,5 +1,7 @@
 const { DonationCampaign, Donation } = require('../models/donation.model');
 const { createPaymentSession } = require('../services/payment.service');
+const User = require('../models/user.model');
+const Notification = require('../models/notification.model');
 
 // Créer une campagne de dons
 exports.createCampaign = async (req, res) => {
@@ -191,11 +193,32 @@ exports.mockCheckout = async (req, res) => {
 };
 
 async function completeDonation(donationId, provider) {
-    const donation = await Donation.findById(donationId);
+    const donation = await Donation.findById(donationId).populate('campaign', 'title').populate('donor', 'name');
     if (!donation) return null;
     donation.status = 'completed';
     donation.transactionId = `${provider.toUpperCase()}_${Date.now()}`;
     await donation.save();
+
+    try {
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        const campaignTitle = donation?.campaign?.title || 'Campagne de dons';
+        const who = donation.anonymous ? 'Anonyme' : (donation?.donor?.name || 'Donateur');
+        const notifTitle = 'Don reçu';
+        const msg = `${campaignTitle}\nMontant: ${donation.amount}\nPar: ${who}`;
+        await Notification.insertMany(
+            admins.map((a) => ({
+                recipient: a._id,
+                type: 'system_notification',
+                title: notifTitle,
+                message: msg,
+                priority: 'normal',
+                link: '/admin/donations',
+                metadata: { sourceType: 'donation_completed', sourceId: donation._id, additionalData: { provider: String(provider || '').toLowerCase() } }
+            })),
+            { ordered: false }
+        );
+    } catch {}
+
     return donation;
 }
 

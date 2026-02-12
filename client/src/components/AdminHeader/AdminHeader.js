@@ -206,7 +206,7 @@ const AdminHeader = ({
             <div className="notif-dropdown" role="menu">
               <div className="notif-dropdown__header">
                 <div className="notif-dropdown__title">Notifications</div>
-                <button type="button" className="notif-dropdown__link" onClick={() => { setNotifOpen(false); navigate('/admin/messages'); }}>
+                <button type="button" className="notif-dropdown__link" onClick={() => { setNotifOpen(false); navigate('/admin/notifications'); }}>
                   Tout voir
                 </button>
               </div>
