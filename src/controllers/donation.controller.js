@@ -2,6 +2,7 @@ const { DonationCampaign, Donation } = require('../models/donation.model');
 const { createPaymentSession } = require('../services/payment.service');
 const User = require('../models/user.model');
 const Notification = require('../models/notification.model');
+const Media = require('../models/media.model');
 
 // Créer une campagne de dons
 exports.createCampaign = async (req, res) => {
@@ -110,6 +111,24 @@ exports.initiatePayment = async (req, res) => {
             returnUrl: returnUrl || '',
             req
         });
+
+        const isMock = typeof paymentUrl === 'string' && paymentUrl.includes('/api/donations/mock-checkout');
+        if (isMock) {
+            const waveNumber = String(process.env.WAVE_RECEIVE_NUMBER || '772006961').trim();
+            const ref = `DON-${String(donation._id)}`;
+            return res.json({
+                paymentUrl: null,
+                donationId: donation._id,
+                manual: {
+                    provider: 'wave',
+                    waveNumber,
+                    reference: ref,
+                    amount: amt,
+                    status: 'pending'
+                }
+            });
+        }
+
         return res.json({ paymentUrl, donationId: donation._id });
     } catch (error) {
         console.error('Erreur initiatePayment:', error);
@@ -123,6 +142,106 @@ exports.initiatePayment = async (req, res) => {
             return res.status(400).json({ message: msg });
         }
         res.status(500).json({ message: 'Erreur lors de l\'initialisation du paiement' });
+    }
+};
+
+exports.submitManualProof = async (req, res) => {
+    try {
+        const { donationId, transactionId, mediaId } = req.body || {};
+        if (!donationId) return res.status(400).json({ message: 'donationId manquant' });
+        const tx = String(transactionId || '').trim();
+        if (!tx) return res.status(400).json({ message: 'ID de transaction manquant' });
+        if (!mediaId) return res.status(400).json({ message: 'Reçu manquant' });
+
+        const donation = await Donation.findById(donationId);
+        if (!donation) return res.status(404).json({ message: 'Donation introuvable' });
+        if (String(donation.donor) !== String(req.user._id)) return res.status(403).json({ message: 'Non autorisé' });
+        if (!['pending', 'proof_submitted'].includes(donation.status)) {
+            return res.status(400).json({ message: 'Cette donation ne peut plus être modifiée' });
+        }
+
+        const media = await Media.findById(mediaId);
+        if (!media) return res.status(404).json({ message: 'Média introuvable' });
+        if (String(media.uploadedBy) !== String(req.user._id) && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Non autorisé' });
+        }
+
+        donation.manualPayment = {
+            method: donation.paymentMethod,
+            transactionId: tx,
+            receiptMedia: media._id,
+            receiptUrl: media.url,
+            submittedAt: new Date()
+        };
+        donation.status = 'proof_submitted';
+        await donation.save();
+
+        return res.json({ message: 'Preuve envoyée', donationId: donation._id, status: donation.status });
+    } catch (error) {
+        const msg = String(error?.message || '');
+        if (msg && msg.includes('duplicate key') && msg.includes('manualPayment.transactionId')) {
+            return res.status(400).json({ message: 'ID de transaction déjà utilisé.' });
+        }
+        console.error('Erreur submitManualProof:', error);
+        return res.status(500).json({ message: 'Erreur lors de l\'envoi de la preuve' });
+    }
+};
+
+exports.adminListProofs = async (req, res) => {
+    try {
+        const { status = 'proof_submitted', limit = 50 } = req.query;
+        const query = {};
+        if (status && status !== 'all') query.status = status;
+
+        const items = await Donation.find(query)
+            .populate('donor', 'name email')
+            .populate('campaign', 'title')
+            .sort('-updatedAt')
+            .limit(Math.min(200, Math.max(1, Number(limit) || 50)));
+
+        res.json({ donations: items });
+    } catch (error) {
+        console.error('Erreur adminListProofs:', error);
+        res.status(500).json({ message: 'Erreur lors de la récupération des preuves' });
+    }
+};
+
+exports.adminReviewProof = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, note } = req.body || {};
+        const act = String(action || '').toLowerCase();
+        if (!['approve', 'reject'].includes(act)) return res.status(400).json({ message: 'Action invalide' });
+
+        const donation = await Donation.findById(id);
+        if (!donation) return res.status(404).json({ message: 'Donation introuvable' });
+
+        if (act === 'reject') {
+            donation.status = 'rejected';
+            donation.review = {
+                status: 'rejected',
+                note: note ? String(note) : '',
+                reviewedBy: req.user._id,
+                reviewedAt: new Date()
+            };
+            await donation.save();
+            return res.json({ message: 'Donation rejetée', donationId: donation._id, status: donation.status });
+        }
+
+        donation.review = {
+            status: 'approved',
+            note: note ? String(note) : '',
+            reviewedBy: req.user._id,
+            reviewedAt: new Date()
+        };
+        await donation.save();
+
+        const d = await completeDonation(donation._id, 'wave');
+        if (!d) return res.status(404).json({ message: 'Donation introuvable' });
+        return res.json({ message: 'Donation validée', donationId: d._id, status: d.status });
+    } catch (error) {
+        console.error('Erreur adminReviewProof:', error);
+        res.status(500).json({ message: 'Erreur lors de la validation' });
     }
 };
 

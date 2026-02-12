@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import AdminLayout from '../../../components/AdminLayout/AdminLayout';
 import api from '../../../services/api';
 import { emitToast } from '../../../utils/toast';
-import { Check, Filter, Pencil, Trash2, XCircle } from 'lucide-react';
+import { Check, Filter, Pencil, Plus, Trash2, XCircle } from 'lucide-react';
 import './AdminDonations.css';
 
 const AdminDonations = () => {
@@ -25,6 +25,11 @@ const AdminDonations = () => {
   });
   const [projectsList, setProjectsList] = useState([]);
   const [showDonationsModal, setShowDonationsModal] = useState(false);
+  const [showProofsModal, setShowProofsModal] = useState(false);
+  const [proofsLoading, setProofsLoading] = useState(false);
+  const [proofsError, setProofsError] = useState('');
+  const [proofs, setProofs] = useState([]);
+  const [reviewLoadingId, setReviewLoadingId] = useState('');
   const [donationsLoading, setDonationsLoading] = useState(false);
   const [donationsError, setDonationsError] = useState('');
   const [donations, setDonations] = useState([]);
@@ -67,6 +72,33 @@ const AdminDonations = () => {
       }).format(v);
     } catch (e) {
       return `${v.toLocaleString('fr-FR')} FCFA`;
+    }
+  };
+
+  const fetchProofs = async () => {
+    try {
+      setProofsLoading(true);
+      setProofsError('');
+      const res = await api.get('/api/donations/admin/proofs?status=proof_submitted&limit=100');
+      const list = Array.isArray(res?.data?.donations) ? res.data.donations : [];
+      setProofs(list);
+    } catch (e) {
+      setProofsError('Impossible de charger les preuves.');
+      setProofs([]);
+    } finally {
+      setProofsLoading(false);
+    }
+  };
+
+  const reviewProof = async (id, action) => {
+    if (!id || reviewLoadingId) return;
+    try {
+      setReviewLoadingId(id);
+      await api.put(`/api/donations/admin/proofs/${id}`, { action });
+      setProofs((prev) => prev.filter((x) => x._id !== id));
+    } catch (e) {
+    } finally {
+      setReviewLoadingId('');
     }
   };
 
@@ -384,8 +416,13 @@ const AdminDonations = () => {
             <p className="header-subtitle">Gérez les campagnes et suivez les contributions</p>
           </div>
           <div className="header-actions">
+            <button type="button" className="donations-btn donations-btn--secondary" onClick={() => { setShowProofsModal(true); fetchProofs(); }}>
+              Paiements à valider
+            </button>
+            <button type="button" className="donations-btn donations-btn--secondary" onClick={() => { fetchCampaigns(); fetchStats(); }} disabled={loading}>Actualiser</button>
             <button type="button" className="donations-btn donations-btn--primary" onClick={() => setShowAddModal(true)}>
-              <span>Nouvelle campagne</span>
+              <Plus size={18} aria-hidden="true" />
+              Nouvelle campagne
             </button>
           </div>
         </div>
@@ -395,6 +432,69 @@ const AdminDonations = () => {
             {statsLoading && (
               <div className="dashboard-card">Chargement des statistiques...</div>
             )}
+
+        {showProofsModal && renderPortal(
+          <div className="donations-modal-overlay" onMouseDown={() => setShowProofsModal(false)}>
+            <div className="donations-modal" onMouseDown={(e) => e.stopPropagation()}>
+              <div className="donations-modal__header">
+                <h3>Paiements à valider</h3>
+                <button type="button" className="donations-icon-btn" aria-label="Fermer" onClick={() => setShowProofsModal(false)}>
+                  ×
+                </button>
+              </div>
+              <div className="donations-modal__body">
+                {proofsLoading && <div>Chargement...</div>}
+                {proofsError && <div style={{ color: 'crimson', fontWeight: 800 }}>{proofsError}</div>}
+                {!proofsLoading && !proofsError && proofs.length === 0 && (
+                  <div className="donations-empty">
+                    <div className="donations-empty__title">Aucun paiement en attente</div>
+                    <div className="donations-empty__subtitle">Les preuves envoyées apparaîtront ici.</div>
+                  </div>
+                )}
+                {!proofsLoading && !proofsError && proofs.length > 0 && (
+                  <div className="donations-list">
+                    {proofs.map((d) => (
+                      <div key={d._id} className="donation-row">
+                        <div className="donation-row__top">
+                          <div>
+                            <div className="donation-row__who">{d.anonymous ? 'Anonyme' : (d.donor?.name || '—')}</div>
+                            <div className="donation-row__date">{d.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''}</div>
+                          </div>
+                          <div className="donation-row__amount">{formatFcfa(d.amount || 0)}</div>
+                        </div>
+                        <div className="donation-row__meta">
+                          <span className="pill">WAVE</span>
+                          <span className="pill warning">À valider</span>
+                        </div>
+                        <div style={{ marginTop: 10, color: '#334155', fontWeight: 800 }}>
+                          ID transaction: <span style={{ fontWeight: 1000, color: '#0f172a' }}>{d.manualPayment?.transactionId || '—'}</span>
+                        </div>
+                        {d.manualPayment?.receiptUrl && (
+                          <div style={{ marginTop: 10 }}>
+                            <a href={d.manualPayment.receiptUrl} target="_blank" rel="noreferrer" style={{ fontWeight: 900 }}>
+                              Voir le reçu
+                            </a>
+                          </div>
+                        )}
+                        <div style={{ marginTop: 12, display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                          <button type="button" className="donations-btn donations-btn--secondary" onClick={() => reviewProof(d._id, 'reject')} disabled={reviewLoadingId === d._id}>
+                            Rejeter
+                          </button>
+                          <button type="button" className="donations-btn donations-btn--primary" onClick={() => reviewProof(d._id, 'approve')} disabled={reviewLoadingId === d._id}>
+                            {reviewLoadingId === d._id ? 'Validation…' : 'Valider'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="donations-modal__footer">
+                <button type="button" className="donations-btn donations-btn--secondary" onClick={() => setShowProofsModal(false)}>Fermer</button>
+              </div>
+            </div>
+          </div>
+        )}
             {statsError && (
               <div className="dashboard-card" style={{ background: '#fff3f3', borderColor: '#ffd5d5', color: '#7a1f1f' }}>{statsError}</div>
             )}

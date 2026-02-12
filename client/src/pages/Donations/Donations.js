@@ -21,6 +21,10 @@ const Donations = () => {
   const [donateOpen, setDonateOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [donateData, setDonateData] = useState({ amount: '', paymentMethod: 'wave', message: '', anonymous: false });
+  const [manualInfo, setManualInfo] = useState(null);
+  const [proofTxId, setProofTxId] = useState('');
+  const [proofFile, setProofFile] = useState(null);
+  const [proofLoading, setProofLoading] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
   const [copyMsg, setCopyMsg] = useState('');
@@ -119,6 +123,9 @@ const Donations = () => {
   const openDonate = (campaign, method) => {
     setSelectedCampaign(campaign);
     setDonateData({ amount: '', paymentMethod: method || 'wave', message: '', anonymous: false });
+    setManualInfo(null);
+    setProofTxId('');
+    setProofFile(null);
     setDonateOpen(true);
   };
 
@@ -155,6 +162,13 @@ const Donations = () => {
         returnUrl: window.location.origin + '/dons?paid=1'
       });
       const paymentUrl = res?.data?.paymentUrl;
+      const manual = res?.data?.manual;
+      const donationId = res?.data?.donationId;
+      if (manual && manual.provider === 'wave') {
+        setManualInfo({ ...manual, donationId });
+        setToast('Paiement Wave manuel: finalise le paiement puis envoie la preuve.');
+        return;
+      }
       if (paymentUrl) {
         // Si mobile: redirection directe; sinon afficher un QR pour scanner
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -181,6 +195,56 @@ const Donations = () => {
         return;
       }
       setToast("Échec du don. Réessaie plus tard.");
+    }
+  };
+
+  const submitProof = async () => {
+    if (!manualInfo || !selectedCampaign) return;
+    const token = localStorage.getItem('token');
+    if (!token) return navigate('/login');
+
+    const tx = String(proofTxId || '').trim();
+    if (!tx) {
+      setToast("Saisis l'ID de transaction.");
+      return;
+    }
+    if (!proofFile) {
+      setToast('Ajoute une capture du reçu.');
+      return;
+    }
+
+    try {
+      setProofLoading(true);
+      setToast('');
+
+      const fd = new FormData();
+      fd.append('media', proofFile);
+      fd.append('title', `recu-wave-${manualInfo.reference || ''}`);
+      fd.append('category', 'general');
+      const up = await api.post('/api/media', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const mediaId = up?.data?.media?._id;
+      if (!mediaId) {
+        setToast("Upload impossible. Réessaie.");
+        return;
+      }
+
+      await api.post('/api/donations/proof', {
+        donationId: String(manualInfo?.donationId || ''),
+        transactionId: tx,
+        mediaId,
+      });
+
+      setToast('Preuve envoyée. Merci !');
+      setManualInfo(null);
+      setProofTxId('');
+      setProofFile(null);
+      setDonateOpen(false);
+    } catch (e) {
+      const serverMsg = e?.response?.data?.message;
+      if (typeof serverMsg === 'string' && serverMsg.trim()) setToast(serverMsg);
+      else setToast("Erreur lors de l'envoi de la preuve.");
+    } finally {
+      setProofLoading(false);
     }
   };
 
@@ -497,7 +561,8 @@ const Donations = () => {
               <button type="button" className="donations-modal-close" onClick={()=>setDonateOpen(false)}>Fermer</button>
             </div>
 
-            <form className="donations-form" onSubmit={submitDonation}>
+            {!manualInfo && (
+              <form className="donations-form" onSubmit={submitDonation}>
               <div className="donations-field donations-field--full">
                 <span>Montants rapides</span>
                 <div className="donations-amount-presets" role="group" aria-label="Montants rapides">
@@ -536,7 +601,39 @@ const Donations = () => {
                 <button type="button" className="donations-btn-secondary" onClick={()=>setDonateOpen(false)}>Annuler</button>
                 <button type="submit" className="donations-btn-primary">Valider le don</button>
               </div>
-            </form>
+              </form>
+            )}
+
+            {manualInfo && (
+              <div className="donations-form">
+                <div className="donations-field donations-field--full">
+                  <span>Paiement Wave (manuel)</span>
+                  <div style={{ fontWeight: 900, color: '#0f172a', marginTop: 6 }}>
+                    Numéro Wave: <span style={{ fontWeight: 1000 }}>{manualInfo.waveNumber}</span>
+                  </div>
+                  <div style={{ fontWeight: 900, color: '#334155', marginTop: 4 }}>
+                    Référence: <span style={{ fontWeight: 1000 }}>{manualInfo.reference}</span>
+                  </div>
+                </div>
+
+                <label className="donations-field donations-field--full">
+                  <span>ID de transaction</span>
+                  <input value={proofTxId} onChange={(e)=>setProofTxId(e.target.value)} placeholder="Ex: TE44JJR-..." />
+                </label>
+
+                <label className="donations-field donations-field--full">
+                  <span>Capture du reçu</span>
+                  <input type="file" accept="image/*" onChange={(e)=> setProofFile((e.target.files && e.target.files[0]) ? e.target.files[0] : null)} />
+                </label>
+
+                <div className="donations-actions donations-field--full">
+                  <button type="button" className="donations-btn-secondary" onClick={()=>{ setManualInfo(null); setProofTxId(''); setProofFile(null); }}>Retour</button>
+                  <button type="button" className="donations-btn-primary" onClick={submitProof} disabled={proofLoading}>
+                    {proofLoading ? 'Envoi…' : 'Envoyer la preuve'}
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </Modal>

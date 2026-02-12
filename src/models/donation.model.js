@@ -89,7 +89,7 @@ const donationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'completed', 'failed', 'refunded'],
+        enum: ['pending', 'proof_submitted', 'completed', 'failed', 'refunded', 'rejected'],
         default: 'pending'
     },
     paymentMethod: {
@@ -98,6 +98,34 @@ const donationSchema = new mongoose.Schema({
         required: true
     },
     transactionId: String,
+    manualPayment: {
+        method: {
+            type: String,
+            enum: ['wave', 'orange']
+        },
+        transactionId: {
+            type: String,
+            trim: true
+        },
+        receiptMedia: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Media'
+        },
+        receiptUrl: String,
+        submittedAt: Date
+    },
+    review: {
+        status: {
+            type: String,
+            enum: ['approved', 'rejected']
+        },
+        note: String,
+        reviewedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        reviewedAt: Date
+    },
     anonymous: {
         type: Boolean,
         default: false
@@ -122,6 +150,8 @@ donationSchema.post('save', async function(doc) {
         );
     }
 });
+
+donationSchema.index({ 'manualPayment.transactionId': 1 }, { unique: true, sparse: true });
 
 const DonationCampaign = mongoose.model('DonationCampaign', donationCampaignSchema);
 const Donation = mongoose.model('Donation', donationSchema);

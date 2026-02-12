@@ -19,9 +19,14 @@ router.use(auth);
 // Routes pour les dons
 router.post('/donate', donationController.makeDonation);
 router.post('/pay', donationController.initiatePayment);
+router.post('/proof', donationController.submitManualProof);
 router.get('/history', donationController.getUserDonations);
 router.get('/status/:id', donationController.getDonationStatus);
 router.get('/stats', checkRole(['admin']), donationController.getStats);
+
+// Admin: preuves de paiement
+router.get('/admin/proofs', checkRole(['admin']), donationController.adminListProofs);
+router.put('/admin/proofs/:id', checkRole(['admin']), donationController.adminReviewProof);
 
 // Routes pour la gestion des campagnes
 router.post('/campaigns', checkRole(['admin']), donationController.createCampaign);

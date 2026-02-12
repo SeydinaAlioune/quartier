@@ -636,6 +636,18 @@
   color: #0f172a;
 }
 
+.donations-modal .pill.success {
+  background: rgba(0, 166, 81, 0.12);
+  border-color: rgba(0, 166, 81, 0.25);
+  color: #0b5d30;
+}
+
+.donations-modal .pill.warning {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #92400e;
+}
+
 .donations-modal .pill.is-success {
   border-color: rgba(0, 166, 81, 0.25);
   background: rgba(0, 166, 81, 0.10);
