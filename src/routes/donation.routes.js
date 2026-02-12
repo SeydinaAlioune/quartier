@@ -21,6 +21,7 @@ router.post('/donate', donationController.makeDonation);
 router.post('/pay', donationController.initiatePayment);
 router.post('/proof', donationController.submitManualProof);
 router.get('/history', donationController.getUserDonations);
+router.delete('/history/:id', donationController.hideUserDonation);
 router.get('/status/:id', donationController.getDonationStatus);
 router.get('/stats', checkRole(['admin']), donationController.getStats);
 

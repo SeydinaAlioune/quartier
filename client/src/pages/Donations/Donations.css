@@ -568,6 +568,27 @@
   color: #0f172a;
  }
 
+ .donations-my-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+ }
+
+ .donations-my-delete {
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  background: rgba(239, 68, 68, 0.08);
+  color: #991b1b;
+  border-radius: 12px;
+  padding: 0.55rem 0.85rem;
+  font-weight: 1000;
+  cursor: pointer;
+ }
+
+ .donations-my-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+ }
+
 .payment-btn {
   padding: 0.5rem 1rem;
   border: none;

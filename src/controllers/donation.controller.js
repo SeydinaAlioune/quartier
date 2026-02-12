@@ -631,7 +631,7 @@ exports.makeDonation = async (req, res) => {
 // Obtenir l'historique des dons d'un utilisateur
 exports.getUserDonations = async (req, res) => {
     try {
-        const donations = await Donation.find({ donor: req.user._id })
+        const donations = await Donation.find({ donor: req.user._id, hiddenByDonor: { $ne: true } })
             .populate('campaign', 'title')
             .sort('-createdAt');
 
@@ -639,6 +639,25 @@ exports.getUserDonations = async (req, res) => {
     } catch (error) {
         console.error('Erreur historique dons:', error);
         res.status(500).json({ message: 'Erreur lors de la récupération de l\'historique des dons' });
+    }
+};
+
+// Masquer un don dans l'historique du donateur (soft-delete)
+exports.hideUserDonation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const donation = await Donation.findById(id);
+        if (!donation) return res.status(404).json({ message: 'Donation introuvable' });
+        if (String(donation.donor) !== String(req.user._id)) return res.status(403).json({ message: 'Non autorisé' });
+
+        donation.hiddenByDonor = true;
+        donation.hiddenAt = new Date();
+        await donation.save();
+
+        return res.json({ message: 'Don supprimé de votre historique', donationId: donation._id });
+    } catch (error) {
+        console.error('Erreur hideUserDonation:', error);
+        res.status(500).json({ message: 'Erreur lors de la suppression du don' });
     }
 };
 

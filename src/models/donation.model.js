@@ -135,6 +135,11 @@ const donationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    hiddenByDonor: {
+        type: Boolean,
+        default: false
+    },
+    hiddenAt: Date,
     createdAt: {
         type: Date,
         default: Date.now

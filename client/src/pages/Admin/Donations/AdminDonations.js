@@ -75,6 +75,15 @@ const AdminDonations = () => {
     }
   };
 
+  const backendBase = String(api.defaults.baseURL || '').replace(/\/$/, '');
+  const toAbsoluteUrl = (u) => {
+    const v = String(u || '').trim();
+    if (!v) return '';
+    if (v.startsWith('http://') || v.startsWith('https://')) return v;
+    const sep = v.startsWith('/') ? '' : '/';
+    return backendBase ? `${backendBase}${sep}${v}` : v;
+  };
+
   const fetchProofs = async () => {
     try {
       setProofsLoading(true);
@@ -96,7 +105,9 @@ const AdminDonations = () => {
       setReviewLoadingId(id);
       await api.put(`/api/donations/admin/proofs/${id}`, { action });
       setProofs((prev) => prev.filter((x) => x._id !== id));
+      emitToast(action === 'approve' ? 'Don validé.' : 'Don rejeté.');
     } catch (e) {
+      emitToast('Action impossible.');
     } finally {
       setReviewLoadingId('');
     }
@@ -471,7 +482,7 @@ const AdminDonations = () => {
                         </div>
                         {d.manualPayment?.receiptUrl && (
                           <div style={{ marginTop: 10 }}>
-                            <a href={d.manualPayment.receiptUrl} target="_blank" rel="noreferrer" style={{ fontWeight: 900 }}>
+                            <a href={toAbsoluteUrl(d.manualPayment.receiptUrl)} target="_blank" rel="noreferrer" style={{ fontWeight: 900 }}>
                               Voir le reçu
                             </a>
                           </div>

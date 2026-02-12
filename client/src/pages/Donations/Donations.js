@@ -34,6 +34,8 @@ const Donations = () => {
   const [myDonationsLoading, setMyDonationsLoading] = useState(false);
   const [myDonationsError, setMyDonationsError] = useState('');
   const [myDonations, setMyDonations] = useState([]);
+  const [myDonationsLimit, setMyDonationsLimit] = useState(20);
+  const [hideLoadingId, setHideLoadingId] = useState('');
 
   const isAdmin = (() => {
     try {
@@ -45,6 +47,15 @@ const Donations = () => {
   })();
 
   const isAuthed = Boolean(localStorage.getItem('token'));
+
+  const backendBase = String(api.defaults.baseURL || '').replace(/\/$/, '');
+  const toAbsoluteUrl = (u) => {
+    const v = String(u || '').trim();
+    if (!v) return '';
+    if (v.startsWith('http://') || v.startsWith('https://')) return v;
+    const sep = v.startsWith('/') ? '' : '/';
+    return backendBase ? `${backendBase}${sep}${v}` : v;
+  };
 
   const getDonationStatusLabel = (status) => {
     switch (String(status || '').toLowerCase()) {
@@ -167,7 +178,16 @@ const Donations = () => {
         setMyDonationsError('');
         const res = await api.get('/api/donations/history');
         const list = Array.isArray(res?.data) ? res.data : [];
-        setMyDonations(list);
+        const seen = new Set();
+        const dedup = [];
+        for (const item of list) {
+          const id = item?._id ? String(item._id) : '';
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          dedup.push(item);
+        }
+        setMyDonations(dedup);
+        setMyDonationsLimit(20);
       } catch (e) {
         setMyDonations([]);
         setMyDonationsError("Impossible de charger l'historique des dons.");
@@ -177,6 +197,18 @@ const Donations = () => {
     };
     loadMyDonations();
   }, [isAuthed]);
+
+  const requireAuth = (msg) => {
+    const token = localStorage.getItem('token');
+    if (token) return true;
+    navigate('/login', {
+      state: {
+        from: location.pathname + location.search,
+        flash: msg || 'Connectez-vous pour continuer.'
+      }
+    });
+    return false;
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -206,11 +238,7 @@ const Donations = () => {
 
   const submitDonation = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setToast('Connectez-vous pour valider le don.');
-      return;
-    }
+    if (!requireAuth('Connectez-vous ou créez un compte pour faire un don.')) return;
     try {
       setDonateLoading(true);
       setToast('');
@@ -266,8 +294,7 @@ const Donations = () => {
 
   const submitProof = async () => {
     if (!manualInfo || !selectedCampaign) return;
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
+    if (!requireAuth('Connectez-vous pour envoyer la preuve de paiement.')) return;
 
     const tx = String(proofTxId || '').trim();
     if (!tx) {
@@ -305,12 +332,48 @@ const Donations = () => {
       setProofTxId('');
       setProofFile(null);
       setDonateOpen(false);
+      if (isAuthed) {
+        try {
+          setMyDonationsLoading(true);
+          const res = await api.get('/api/donations/history');
+          const list = Array.isArray(res?.data) ? res.data : [];
+          const seen = new Set();
+          const dedup = [];
+          for (const item of list) {
+            const id = item?._id ? String(item._id) : '';
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            dedup.push(item);
+          }
+          setMyDonations(dedup);
+        } catch (_) {
+        } finally {
+          setMyDonationsLoading(false);
+        }
+      }
     } catch (e) {
       const serverMsg = e?.response?.data?.message;
       if (typeof serverMsg === 'string' && serverMsg.trim()) setToast(serverMsg);
       else setToast("Erreur lors de l'envoi de la preuve.");
     } finally {
       setProofLoading(false);
+    }
+  };
+
+  const hideDonationFromHistory = async (donationId) => {
+    if (!donationId) return;
+    if (!requireAuth('Connectez-vous pour gérer votre historique.')) return;
+    const ok = window.confirm('Supprimer ce don de votre historique ?');
+    if (!ok) return;
+    try {
+      setHideLoadingId(String(donationId));
+      await api.delete(`/api/donations/history/${donationId}`);
+      setMyDonations((prev) => prev.filter((d) => String(d?._id) !== String(donationId)));
+      setToast('Don supprimé de votre historique.');
+    } catch (e) {
+      setToast('Suppression impossible.');
+    } finally {
+      setHideLoadingId('');
     }
   };
 
@@ -506,7 +569,7 @@ const Donations = () => {
           )}
           {!myDonationsLoading && !myDonationsError && myDonations.length > 0 && (
             <div className="donations-my-grid">
-              {myDonations.map((d) => (
+              {myDonations.slice(0, myDonationsLimit).map((d) => (
                 <div key={d._id} className="donations-my-card">
                   <div className="donations-my-top">
                     <div>
@@ -526,11 +589,30 @@ const Donations = () => {
                   )}
                   {d?.manualPayment?.receiptUrl && (
                     <div className="donations-my-line">
-                      <a href={d.manualPayment.receiptUrl} target="_blank" rel="noreferrer">Voir le reçu</a>
+                      <a href={toAbsoluteUrl(d.manualPayment.receiptUrl)} target="_blank" rel="noreferrer">Voir le reçu</a>
                     </div>
                   )}
+
+                  <div className="donations-my-actions">
+                    <button
+                      type="button"
+                      className="donations-my-delete"
+                      onClick={() => hideDonationFromHistory(d._id)}
+                      disabled={hideLoadingId === String(d._id)}
+                    >
+                      {hideLoadingId === String(d._id) ? 'Suppression…' : 'Supprimer'}
+                    </button>
+                  </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {!myDonationsLoading && !myDonationsError && myDonations.length > myDonationsLimit && (
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+              <button type="button" className="donations-btn-secondary" onClick={() => setMyDonationsLimit((v) => v + 20)}>
+                Voir plus
+              </button>
             </div>
           )}
         </section>

@@ -45,13 +45,38 @@
   line-height: 1;
 }
 
+.donations-btn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+}
+
 .donations-page .donations-btn--primary {
   background: #00a651;
   color: #fff;
   border-color: #009349;
 }
 
+.donations-btn--primary {
+  background: #00a651;
+  color: #fff;
+  border-color: #009349;
+}
+
 .donations-page .donations-btn--secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+.donations-btn--secondary {
   background: #ffffff;
   color: #0f172a;
   border-color: #e2e8f0;
