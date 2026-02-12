@@ -248,9 +248,6 @@ const AdminPaymentsConfig = () => {
                   {unlocking ? 'Vérification…' : 'Déverrouiller'}
                 </button>
               </div>
-              <div className="payments-config__muted">
-                Code par défaut: 2004 (modifiable via variable serveur `PAYMENTS_CONFIG_PIN`).
-              </div>
             </div>
           </div>
         )}
