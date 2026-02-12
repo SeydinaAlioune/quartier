@@ -19,6 +19,7 @@ const AdminHeader = ({
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifItems, setNotifItems] = useState([]);
   const notifWrapRef = useRef(null);
+  const countInFlightRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +57,8 @@ const AdminHeader = ({
   useEffect(() => {
     let cancelled = false;
     const loadCount = async () => {
+      if (countInFlightRef.current) return;
+      countInFlightRef.current = true;
       try {
         const r = await api.get('/api/contact?status=new&limit=1&page=1');
         const total = Number(r?.data?.total || 0);
@@ -66,11 +69,28 @@ const AdminHeader = ({
         if (!cancelled) {
           setNotifCount(0);
         }
+      } finally {
+        countInFlightRef.current = false;
       }
     };
     loadCount();
-    const t = setInterval(loadCount, 60000);
-    return () => { cancelled = true; clearInterval(t); };
+
+    const onFocus = () => loadCount();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') loadCount();
+    };
+
+    // Plus réactif que 60s: on rafraîchit plus souvent, mais sans spammer.
+    const t = setInterval(loadCount, 15000);
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   const effectiveCount = (notificationsCount || notifCount || 0);
@@ -150,7 +170,19 @@ const AdminHeader = ({
             aria-label="Notifications"
             aria-haspopup="menu"
             aria-expanded={notifOpen}
-            onClick={() => setNotifOpen(v => !v)}
+            onClick={() => {
+              const next = !notifOpen;
+              setNotifOpen(next);
+              if (next) {
+                // Rafraîchir immédiatement le compteur au clic (au lieu d'attendre le timer)
+                try {
+                  api.get('/api/contact?status=new&limit=1&page=1').then((r) => {
+                    const total = Number(r?.data?.total || 0);
+                    setNotifCount(total);
+                  }).catch(() => {});
+                } catch {}
+              }
+            }}
           >
             <Bell size={18} />
             {effectiveCount > 0 && <span className="notif-badge">{effectiveCount}</span>}
