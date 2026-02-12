@@ -240,6 +240,14 @@ exports.forgotPassword = async (req, res) => {
             sendResult = { ok: false, provider: 'unknown', error: { message: err?.message || 'sendPasswordResetEmail failed' } };
         }
         if (isDebugEmail()) console.log('[forgotPassword] send result', { email, sendResult });
+        if (!sendResult?.ok) {
+            console.warn('[forgotPassword] email send failed', {
+                provider: sendResult?.provider,
+                message: sendResult?.error?.message,
+                code: sendResult?.error?.code,
+                responseCode: sendResult?.error?.responseCode
+            });
+        }
 
         return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
     } catch (error) {
