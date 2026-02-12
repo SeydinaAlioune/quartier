@@ -100,6 +100,10 @@ const AdminSecurity = () => {
 
   const openViewer = (item) => {
     if (!item?.url) return;
+    try {
+      const el = document.querySelector('.admin-security .viewer-body');
+      if (el) delete el.dataset.previewError;
+    } catch {}
     setViewerItem(item);
     setViewerOpen(true);
   };
@@ -652,7 +656,15 @@ const AdminSecurity = () => {
                               }}
                             >
                               {isImg ? (
-                                <img src={abs} alt={title} />
+                                <img
+                                  src={abs}
+                                  alt={title}
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent) parent.dataset.previewError = '1';
+                                  }}
+                                />
                               ) : (
                                 <span className="attachment-file">
                                   <Paperclip size={16} aria-hidden="true" />
@@ -842,9 +854,25 @@ const AdminSecurity = () => {
               </div>
               <div className="viewer-body">
                 {viewerItem.type === 'image' ? (
-                  <img className="viewer-image" src={viewerItem.url} alt={viewerItem.title || 'pièce jointe'} />
+                  <img
+                    className="viewer-image"
+                    src={viewerItem.url}
+                    alt={viewerItem.title || 'pièce jointe'}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) parent.dataset.previewError = '1';
+                    }}
+                  />
                 ) : (
                   <div className="viewer-file">
+                    <Paperclip size={18} aria-hidden="true" />
+                    <a href={viewerItem.url} target="_blank" rel="noreferrer">Ouvrir le fichier</a>
+                  </div>
+                )}
+
+                {viewerItem.type === 'image' && (
+                  <div className="viewer-file" data-preview-fallback>
                     <Paperclip size={18} aria-hidden="true" />
                     <a href={viewerItem.url} target="_blank" rel="noreferrer">Ouvrir le fichier</a>
                   </div>

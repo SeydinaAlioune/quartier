@@ -410,6 +410,14 @@
   display: block;
  }
 
+ .admin-security .attachment-item[data-preview-error="1"] img {
+  display: none;
+ }
+
+ .admin-security .attachment-item[data-preview-error="1"] .attachment-file {
+  display: inline-flex;
+ }
+
  .admin-security .attachment-file {
   display: inline-flex;
   align-items: center;
@@ -417,6 +425,10 @@
   padding: 0.55rem 0.65rem;
   font-weight: 800;
   color: #0f172a;
+ }
+
+ .admin-security .attachment-item .attachment-file {
+  display: none;
  }
 
  .admin-security .incident-map-action { margin-top: 0.25rem; }
@@ -502,6 +514,14 @@
  .admin-security .viewer-body {
   display: grid;
   place-items: center;
+ }
+
+ .admin-security .viewer-body [data-preview-fallback] {
+  display: none;
+ }
+
+ .admin-security .viewer-body[data-preview-error="1"] [data-preview-fallback] {
+  display: flex;
  }
 
  .admin-security .viewer-image {
