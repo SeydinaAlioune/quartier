@@ -31,6 +31,10 @@ const Donations = () => {
   const [copyMsg, setCopyMsg] = useState('');
   const [toast, setToast] = useState('');
 
+  const [myDonationsLoading, setMyDonationsLoading] = useState(false);
+  const [myDonationsError, setMyDonationsError] = useState('');
+  const [myDonations, setMyDonations] = useState([]);
+
   const isAdmin = (() => {
     try {
       const u = JSON.parse(localStorage.getItem('user') || 'null');
@@ -39,6 +43,41 @@ const Donations = () => {
       return false;
     }
   })();
+
+  const isAuthed = Boolean(localStorage.getItem('token'));
+
+  const getDonationStatusLabel = (status) => {
+    switch (String(status || '').toLowerCase()) {
+      case 'completed':
+        return 'Payé';
+      case 'proof_submitted':
+        return 'Preuve envoyée';
+      case 'pending':
+        return 'En attente';
+      case 'failed':
+        return 'Échec';
+      case 'rejected':
+        return 'Rejeté';
+      default:
+        return status || '—';
+    }
+  };
+
+  const getDonationStatusTone = (status) => {
+    switch (String(status || '').toLowerCase()) {
+      case 'completed':
+        return 'is-success';
+      case 'proof_submitted':
+        return 'is-warning';
+      case 'pending':
+        return 'is-muted';
+      case 'rejected':
+      case 'failed':
+        return 'is-danger';
+      default:
+        return 'is-muted';
+    }
+  };
 
   const formatXof = (n) => {
     const v = Number(n || 0);
@@ -115,6 +154,29 @@ const Donations = () => {
     fetchCampaigns();
     return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    const loadMyDonations = async () => {
+      if (!isAuthed) {
+        setMyDonations([]);
+        setMyDonationsError('');
+        return;
+      }
+      try {
+        setMyDonationsLoading(true);
+        setMyDonationsError('');
+        const res = await api.get('/api/donations/history');
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setMyDonations(list);
+      } catch (e) {
+        setMyDonations([]);
+        setMyDonationsError("Impossible de charger l'historique des dons.");
+      } finally {
+        setMyDonationsLoading(false);
+      }
+    };
+    loadMyDonations();
+  }, [isAuthed]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -433,6 +495,46 @@ const Donations = () => {
           </div>
         </div>
       </section>
+
+      {isAuthed && (
+        <section className="donations-my" aria-label="Mes dons">
+          <SectionHead title="Mes dons" />
+          {myDonationsLoading && <p>Chargement...</p>}
+          {!myDonationsLoading && myDonationsError && <p className="donations-error">{myDonationsError}</p>}
+          {!myDonationsLoading && !myDonationsError && myDonations.length === 0 && (
+            <p style={{ color: '#64748b', fontWeight: 800 }}>Aucun don pour le moment.</p>
+          )}
+          {!myDonationsLoading && !myDonationsError && myDonations.length > 0 && (
+            <div className="donations-my-grid">
+              {myDonations.map((d) => (
+                <div key={d._id} className="donations-my-card">
+                  <div className="donations-my-top">
+                    <div>
+                      <div className="donations-my-title">{d?.campaign?.title || 'Campagne de dons'}</div>
+                      <div className="donations-my-date">{d?.createdAt ? new Date(d.createdAt).toLocaleString('fr-FR') : ''}</div>
+                    </div>
+                    <div className="donations-my-amount">{formatXof(Number(d?.amount || 0))}</div>
+                  </div>
+                  <div className="donations-my-meta">
+                    <span className={`donations-pill ${getDonationStatusTone(d?.status)}`}>{getDonationStatusLabel(d?.status)}</span>
+                    <span className="donations-pill">{String(d?.paymentMethod || '—').toUpperCase()}</span>
+                  </div>
+                  {d?.manualPayment?.transactionId && (
+                    <div className="donations-my-line">
+                      ID transaction: <span className="strong">{d.manualPayment.transactionId}</span>
+                    </div>
+                  )}
+                  {d?.manualPayment?.receiptUrl && (
+                    <div className="donations-my-line">
+                      <a href={d.manualPayment.receiptUrl} target="_blank" rel="noreferrer">Voir le reçu</a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {toast && (
         <div className="donations-toast" role="status">{toast}</div>

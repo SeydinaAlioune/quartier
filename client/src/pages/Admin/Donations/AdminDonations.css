@@ -584,7 +584,7 @@
 }
 
 .donations-modal .donations-list {
-  display: none;
+  display: grid;
   gap: 10px;
 }
 
