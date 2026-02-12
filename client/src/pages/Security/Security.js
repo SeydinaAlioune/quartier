@@ -30,7 +30,7 @@ const Security = () => {
   const [showReportForm, setShowReportForm] = useState(false);
   const [landmark, setLandmark] = useState('');
 
-  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+  const API_BASE = (process.env.REACT_APP_API_URL || api.defaults.baseURL || window.location.origin).replace(/\/$/, '');
   const toAbsoluteUrl = (url = '') => {
     if (!url) return '';
     if (/^https?:\/\//i.test(url)) return url;
