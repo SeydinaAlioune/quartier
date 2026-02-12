@@ -67,25 +67,46 @@ const sendPasswordResetEmail = async ({ to, resetUrl }) => {
         if (!smtpFrom) {
             return { ok: false, provider: 'smtp', error: { message: 'SMTP_FROM manquant' } };
         }
-        const info = await transport.sendMail({ from: smtpFrom, to, subject, text, html });
-        return { ok: true, provider: 'smtp', data: info };
+        try {
+            const info = await transport.sendMail({ from: smtpFrom, to, subject, text, html });
+            return { ok: true, provider: 'smtp', data: info };
+        } catch (err) {
+            return {
+                ok: false,
+                provider: 'smtp',
+                error: {
+                    message: err?.message || 'SMTP send failed',
+                    code: err?.code,
+                    response: err?.response,
+                    responseCode: err?.responseCode
+                }
+            };
+        }
     }
 
     const resend = getResendClient();
     if (!resend) {
         return { ok: false, provider: 'resend', error: { message: "RESEND_API_KEY n'est pas configurée" } };
     }
-    const sendRes = await resend.emails.send({
-        from: fromEmail,
-        to,
-        subject,
-        text,
-        html
-    });
-    if (sendRes?.error) {
-        return { ok: false, provider: 'resend', error: sendRes.error, data: sendRes.data };
+    try {
+        const sendRes = await resend.emails.send({
+            from: fromEmail,
+            to,
+            subject,
+            text,
+            html
+        });
+        if (sendRes?.error) {
+            return { ok: false, provider: 'resend', error: sendRes.error, data: sendRes.data };
+        }
+        return { ok: true, provider: 'resend', data: sendRes.data };
+    } catch (err) {
+        return {
+            ok: false,
+            provider: 'resend',
+            error: { message: err?.message || 'Resend send failed' }
+        };
     }
-    return { ok: true, provider: 'resend', data: sendRes.data };
 };
 
 // Inscription
@@ -212,7 +233,12 @@ exports.forgotPassword = async (req, res) => {
 
         const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
 
-        const sendResult = await sendPasswordResetEmail({ to: email, resetUrl });
+        let sendResult;
+        try {
+            sendResult = await sendPasswordResetEmail({ to: email, resetUrl });
+        } catch (err) {
+            sendResult = { ok: false, provider: 'unknown', error: { message: err?.message || 'sendPasswordResetEmail failed' } };
+        }
         if (isDebugEmail()) console.log('[forgotPassword] send result', { email, sendResult });
 
         return res.json({ message: "Si un compte existe, vous recevrez un lien de réinitialisation." });
