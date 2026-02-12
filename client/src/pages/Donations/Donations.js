@@ -25,6 +25,7 @@ const Donations = () => {
   const [proofTxId, setProofTxId] = useState('');
   const [proofFile, setProofFile] = useState(null);
   const [proofLoading, setProofLoading] = useState(false);
+  const [donateLoading, setDonateLoading] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
   const [copyMsg, setCopyMsg] = useState('');
@@ -145,10 +146,11 @@ const Donations = () => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     if (!token) {
-      // Auth requise
-      return navigate('/login');
+      setToast('Connectez-vous pour valider le don.');
+      return;
     }
     try {
+      setDonateLoading(true);
       setToast('');
       const payload = {
         campaign: selectedCampaign.id,
@@ -195,6 +197,8 @@ const Donations = () => {
         return;
       }
       setToast("Échec du don. Réessaie plus tard.");
+    } finally {
+      setDonateLoading(false);
     }
   };
 
@@ -599,7 +603,9 @@ const Donations = () => {
               </label>
               <div className="donations-actions">
                 <button type="button" className="donations-btn-secondary" onClick={()=>setDonateOpen(false)}>Annuler</button>
-                <button type="submit" className="donations-btn-primary">Valider le don</button>
+                <button type="submit" className="donations-btn-primary" disabled={donateLoading}>
+                  {donateLoading ? 'Validation…' : 'Valider le don'}
+                </button>
               </div>
               </form>
             )}
