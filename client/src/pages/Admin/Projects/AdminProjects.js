@@ -127,6 +127,88 @@ const AdminProjects = () => {
   }, []);
 
   useEffect(() => {
+    const shouldLock = Boolean(showProjectModal || showEditModal || showConfigModal || confirmOpen);
+    if (!shouldLock) return;
+
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    const prevBodyPosition = document.body.style.position;
+    const prevBodyTop = document.body.style.top;
+    const prevBodyLeft = document.body.style.left;
+    const prevBodyRight = document.body.style.right;
+    const prevBodyWidth = document.body.style.width;
+    const sidebarEl = document.querySelector('.admin-sidebar');
+    const prevSidebarOverflowY = sidebarEl ? sidebarEl.style.overflowY : '';
+    const prevSidebarOverscroll = sidebarEl ? sidebarEl.style.overscrollBehavior : '';
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    if (sidebarEl) {
+      sidebarEl.style.overflowY = 'hidden';
+      sidebarEl.style.overscrollBehavior = 'contain';
+    }
+    if (scrollBarWidth > 0) {
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+    }
+
+    const onTouchMove = (e) => {
+      const target = e.target;
+      if (!target || typeof target.closest !== 'function') {
+        e.preventDefault();
+        return;
+      }
+
+      const inModalScrollable = Boolean(target.closest('.projects-modal__body'));
+      if (!inModalScrollable) {
+        e.preventDefault();
+      }
+    };
+
+    const onWheel = (e) => {
+      const target = e.target;
+      if (!target || typeof target.closest !== 'function') {
+        e.preventDefault();
+        return;
+      }
+      const inModalScrollable = Boolean(target.closest('.projects-modal__body'));
+      if (!inModalScrollable) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('wheel', onWheel, { passive: false });
+
+    return () => {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('wheel', onWheel);
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+
+      document.body.style.position = prevBodyPosition;
+      document.body.style.top = prevBodyTop;
+      document.body.style.left = prevBodyLeft;
+      document.body.style.right = prevBodyRight;
+      document.body.style.width = prevBodyWidth;
+      if (sidebarEl) {
+        sidebarEl.style.overflowY = prevSidebarOverflowY;
+        sidebarEl.style.overscrollBehavior = prevSidebarOverscroll;
+      }
+
+      window.scrollTo(0, scrollY);
+    };
+  }, [confirmOpen, showConfigModal, showEditModal, showProjectModal]);
+
+  useEffect(() => {
     const onKeyDown = (e) => {
       if (e.key !== 'Escape') return;
 

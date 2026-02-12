@@ -586,10 +586,14 @@
 .donations-qr-card {
   background: #fff;
   width: min(560px, calc(100% - 2rem));
+  max-height: calc(100vh - 2rem);
   border-radius: 18px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   box-shadow: 0 40px 140px rgba(0,0,0,0.35);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .donations-modal-head {
@@ -629,6 +633,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  overflow: auto;
+  min-height: 0;
 }
 
 .donations-field {
@@ -728,6 +734,8 @@
   padding: 1.1rem;
   display: grid;
   gap: 0.85rem;
+  overflow: auto;
+  min-height: 0;
 }
 
 .donations-qr-img {
