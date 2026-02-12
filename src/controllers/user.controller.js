@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
+const fetch = require('node-fetch');
 
 const escapeRegExp = (s = '') => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -57,6 +58,57 @@ const sendPasswordResetEmail = async ({ to, resetUrl }) => {
                   <p style="margin:0; color:rgba(15,23,42,.75);">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
                 </div>
             `;
+
+    if (provider === 'brevo') {
+        const apiKey = String(process.env.BREVO_API_KEY || '').trim();
+        const senderEmail = String(process.env.BREVO_SENDER_EMAIL || '').trim();
+        const senderName = String(process.env.BREVO_SENDER_NAME || 'QuartierConnect').trim();
+        if (!apiKey || !senderEmail) {
+            return { ok: false, provider: 'brevo', error: { message: 'Brevo non configuré (BREVO_API_KEY / BREVO_SENDER_EMAIL manquants)' } };
+        }
+
+        try {
+            const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'api-key': apiKey,
+                    'content-type': 'application/json',
+                    accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    sender: { name: senderName, email: senderEmail },
+                    to: [{ email: to }],
+                    subject,
+                    htmlContent: html,
+                    textContent: text
+                })
+            });
+
+            const bodyText = await resp.text();
+            let bodyJson;
+            try {
+                bodyJson = bodyText ? JSON.parse(bodyText) : null;
+            } catch {
+                bodyJson = null;
+            }
+
+            if (!resp.ok) {
+                return {
+                    ok: false,
+                    provider: 'brevo',
+                    error: {
+                        message: bodyJson?.message || bodyText || `Brevo HTTP ${resp.status}`,
+                        statusCode: resp.status
+                    },
+                    data: bodyJson
+                };
+            }
+
+            return { ok: true, provider: 'brevo', data: bodyJson };
+        } catch (err) {
+            return { ok: false, provider: 'brevo', error: { message: err?.message || 'Brevo send failed' } };
+        }
+    }
 
     if (provider === 'smtp') {
         const transport = createSmtpTransport();
