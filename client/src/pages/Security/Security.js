@@ -30,6 +30,14 @@ const Security = () => {
   const [showReportForm, setShowReportForm] = useState(false);
   const [landmark, setLandmark] = useState('');
 
+  const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
+  const toAbsoluteUrl = (url = '') => {
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith('/')) return `${API_BASE}${url}`;
+    return `${API_BASE}/${url}`;
+  };
+
   const handleCloseReport = () => {
     setShowReportForm(false);
   };
@@ -388,22 +396,42 @@ const Security = () => {
               <p className="incident-desc">{it.description}</p>
               {Array.isArray(it.attachments) && it.attachments.length > 0 && (
                 <div className="incident-att">
-                  {it.attachments.map((att, idx) => (
-                    <a key={idx} href={att.url} target="_blank" rel="noreferrer">
-                      {att.type === 'image' ? (
-                        <img src={att.url} alt="pièce jointe" style={{width: 96, height: 72, objectFit: 'cover', borderRadius: 6, border:'1px solid #eee'}} />
-                      ) : (
-                        <span>Fichier</span>
-                      )}
-                    </a>
-                  ))}
+                  {it.attachments.map((att, idx) => {
+                    const abs = toAbsoluteUrl(att?.url || '');
+                    const type = String(att?.type || '').toLowerCase();
+                    const isImg = type === 'image' || /\.(png|jpe?g|webp|gif)$/i.test(abs);
+                    if (!abs) return null;
+                    return (
+                      <a key={idx} className="incident-att__item" href={abs} target="_blank" rel="noreferrer">
+                        {isImg ? (
+                          <img
+                            className="incident-att__thumb"
+                            src={abs}
+                            alt="pièce jointe"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) parent.dataset.previewError = '1';
+                            }}
+                          />
+                        ) : null}
+                        <span className="incident-att__label">Pièce jointe</span>
+                      </a>
+                    );
+                  })}
                 </div>
               )}
-              {it.locationCoords && typeof it.locationCoords.lat === 'number' && typeof it.locationCoords.lng === 'number' && (
+              {(() => {
+                const lat = Number(it?.locationCoords?.lat);
+                const lng = Number(it?.locationCoords?.lng);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+                return (
                 <div className="incident-actions">
-                  <a className="incident-link" href={`https://www.google.com/maps?q=${it.locationCoords.lat},${it.locationCoords.lng}`} target="_blank" rel="noreferrer">Voir sur la carte</a>
+                  <a className="incident-link" href={`https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`} target="_blank" rel="noreferrer">Voir sur la carte</a>
                 </div>
-              )}
+                );
+              })()}
               {it.contact && <p className="contact-info"><strong>Contact:</strong> {it.contact}</p>}
               {it.anonymous && <p className="contact-info">Signalement anonyme</p>}
             </div>

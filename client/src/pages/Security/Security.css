@@ -424,6 +424,40 @@
   box-shadow: 0 18px 60px rgba(0,0,0,0.08);
 }
 
+ .incident-att {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+ }
+
+ .incident-att__item {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-decoration: none;
+  color: inherit;
+ }
+
+ .incident-att__thumb {
+  width: 96px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  display: block;
+  background: rgba(15, 23, 42, 0.02);
+ }
+
+ .incident-att__label {
+  font-weight: 900;
+  font-size: 0.85rem;
+  color: #2563eb;
+ }
+
+ .incident-att__item[data-preview-error="1"] .incident-att__label {
+  color: #0f172a;
+ }
+
 .police-info h3 {
   margin: 0 0 0.6rem;
   color: #0f172a;

@@ -319,10 +319,10 @@ const AdminMessages = () => {
 
           <div className="messages-layout">
             <div className="messages-list">
-              {loading && <div className="card">Chargement...</div>}
-              {!loading && error && <div className="card error">{error}</div>}
+              {loading && <div className="messages-empty">Chargement…</div>}
+              {!loading && error && <div className="messages-empty messages-empty--error">{error}</div>}
               {!loading && !error && filtered.length === 0 && (
-                <div className="card">Aucun message</div>
+                <div className="messages-empty">Aucun message</div>
               )}
               {!loading && !error && filtered.map(m => (
                 <div key={m._id} className={`messages-item ${selected?._id===m._id?'is-active':''}`} onClick={()=>openDetail(m)}>
