@@ -83,7 +83,16 @@ app.use(express.urlencoded({ extended: true }));
 
 // Fichiers statiques (public et uploads)
 app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads'), {
+
+const getUploadDir = () => {
+  const fromEnv = process.env.UPLOAD_DIR;
+  if (typeof fromEnv === 'string' && fromEnv.trim()) {
+    return path.resolve(fromEnv.trim());
+  }
+  return path.join(__dirname, '..', 'public', 'uploads');
+};
+
+app.use('/uploads', express.static(getUploadDir(), {
   setHeaders: (res) => {
     // Aide la lecture vidéo cross-origin et la navigation par plages (Range)
     res.setHeader('Accept-Ranges', 'bytes');

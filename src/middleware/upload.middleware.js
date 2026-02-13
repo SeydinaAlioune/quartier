@@ -6,10 +6,18 @@ const fs = require('fs');
 // Par défaut: 300 Mo
 const MAX_FILE_MB = Number(process.env.MEDIA_MAX_FILE_MB || 300);
 
+const getUploadDir = () => {
+    const fromEnv = process.env.UPLOAD_DIR;
+    if (typeof fromEnv === 'string' && fromEnv.trim()) {
+        return path.resolve(fromEnv.trim());
+    }
+    return path.resolve('public/uploads');
+};
+
 // Configuration du stockage local
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadDir = 'public/uploads';
+        const uploadDir = getUploadDir();
         // Créer le dossier s'il n'existe pas
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
