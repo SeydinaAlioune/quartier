@@ -49,19 +49,28 @@ const mediaUrlToAbsolutePath = (mediaUrl = '') => {
     return path.resolve(path.join('public', relative));
 };
 
+const normalizeCloudinaryUrl = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (raw.startsWith('CLOUDINARY_URL=')) return raw.replace(/^CLOUDINARY_URL=/, '').trim();
+    return raw;
+};
+
 const isCloudinaryEnabled = () => {
     const flag = String(process.env.USE_CLOUDINARY || '').trim();
     if (flag !== '1') return false;
     if (!cloudinary) return false;
-    const hasUrl = Boolean(process.env.CLOUDINARY_URL);
+    const hasUrl = Boolean(normalizeCloudinaryUrl(process.env.CLOUDINARY_URL));
     const hasKeys = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
     return hasUrl || hasKeys;
 };
 
 const initCloudinary = () => {
     if (!cloudinary) return;
-    if (process.env.CLOUDINARY_URL) {
-        cloudinary.config({ cloudinary_url: process.env.CLOUDINARY_URL });
+    const normalizedUrl = normalizeCloudinaryUrl(process.env.CLOUDINARY_URL);
+    if (normalizedUrl) {
+        process.env.CLOUDINARY_URL = normalizedUrl;
+        cloudinary.config({ cloudinary_url: normalizedUrl, secure: true });
         return;
     }
     cloudinary.config({
@@ -92,6 +101,13 @@ exports.uploadMedia = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'Aucun fichier uploadé' });
         }
+
+        console.log('[media] uploadMedia', {
+            useCloudinary: String(process.env.USE_CLOUDINARY || ''),
+            cloudinaryEnabled: isCloudinaryEnabled(),
+            hasCloudinaryUrl: Boolean(normalizeCloudinaryUrl(process.env.CLOUDINARY_URL)),
+            hasCloudinaryKeys: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+        });
 
         const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
         const originalName = req.file.originalname ? path.parse(req.file.originalname).name : 'media';
