@@ -17,6 +17,20 @@ const mediaSchema = new mongoose.Schema({
         required: true
     },
     thumbnail: String,
+    storageProvider: {
+        type: String,
+        enum: ['local', 'cloudinary'],
+        default: 'local'
+    },
+    cloudinaryPublicId: {
+        type: String,
+        default: ''
+    },
+    cloudinaryResourceType: {
+        type: String,
+        enum: ['image', 'video', 'raw'],
+        default: 'image'
+    },
     category: {
         type: String,
         enum: ['event', 'project', 'history', 'general'],

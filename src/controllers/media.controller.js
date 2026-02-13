@@ -2,6 +2,12 @@ const Media = require('../models/media.model');
 const { deleteFile } = require('../middleware/upload.middleware');
 const path = require('path');
 const fs = require('fs');
+let cloudinary;
+try {
+    cloudinary = require('cloudinary').v2;
+} catch (e) {
+    cloudinary = null;
+}
 let ffmpeg;
 let ffmpegPath;
 try {
@@ -43,6 +49,43 @@ const mediaUrlToAbsolutePath = (mediaUrl = '') => {
     return path.resolve(path.join('public', relative));
 };
 
+const isCloudinaryEnabled = () => {
+    const flag = String(process.env.USE_CLOUDINARY || '').trim();
+    if (flag !== '1') return false;
+    if (!cloudinary) return false;
+    const hasUrl = Boolean(process.env.CLOUDINARY_URL);
+    const hasKeys = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+    return hasUrl || hasKeys;
+};
+
+const initCloudinary = () => {
+    if (!cloudinary) return;
+    if (process.env.CLOUDINARY_URL) {
+        cloudinary.config({ cloudinary_url: process.env.CLOUDINARY_URL });
+        return;
+    }
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+        secure: true
+    });
+};
+
+const cloudinaryVideoThumb = (publicId) => {
+    if (!cloudinary || !publicId) return '';
+    try {
+        return cloudinary.url(publicId, {
+            resource_type: 'video',
+            format: 'jpg',
+            secure: true,
+            transformation: [{ so: 0 }]
+        });
+    } catch {
+        return '';
+    }
+};
+
 // Ajouter un média
 exports.uploadMedia = async (req, res) => {
     try {
@@ -50,14 +93,40 @@ exports.uploadMedia = async (req, res) => {
             return res.status(400).json({ message: 'Aucun fichier uploadé' });
         }
 
-        const fileUrl = `/uploads/${req.file.filename}`;
         const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
         const originalName = req.file.originalname ? path.parse(req.file.originalname).name : 'media';
         const safeTitle = (req.body.title && String(req.body.title).trim()) || originalName;
         const safeCategory = req.body.category || 'project';
 
+        let fileUrl = `/uploads/${req.file.filename}`;
         let thumbnailUrl = undefined;
-        if (fileType === 'video') {
+        let storageProvider = 'local';
+        let cloudinaryPublicId = '';
+        let cloudinaryResourceType = fileType;
+
+        if (isCloudinaryEnabled()) {
+            initCloudinary();
+            const folder = String(process.env.CLOUDINARY_FOLDER || 'quartier').trim();
+            const uploadRes = await cloudinary.uploader.upload(req.file.path, {
+                folder,
+                resource_type: 'auto',
+                use_filename: false,
+                unique_filename: true
+            });
+
+            storageProvider = 'cloudinary';
+            cloudinaryPublicId = uploadRes?.public_id || '';
+            cloudinaryResourceType = uploadRes?.resource_type || fileType;
+            fileUrl = uploadRes?.secure_url || uploadRes?.url || fileUrl;
+
+            if (cloudinaryResourceType === 'video') {
+                thumbnailUrl = cloudinaryVideoThumb(cloudinaryPublicId) || undefined;
+            }
+
+            await deleteFile(req.file.path);
+        }
+
+        if (!isCloudinaryEnabled() && fileType === 'video') {
             const uploadedAbs = path.resolve(req.file.path);
             const thumbFilename = `thumb-${path.parse(req.file.filename).name}.jpg`;
             const thumbAbs = path.resolve(path.join(path.dirname(req.file.path), thumbFilename));
@@ -73,6 +142,9 @@ exports.uploadMedia = async (req, res) => {
             type: fileType,
             url: fileUrl,
             thumbnail: thumbnailUrl,
+            storageProvider,
+            cloudinaryPublicId,
+            cloudinaryResourceType,
             category: safeCategory,
             tags: req.body.tags ? JSON.parse(req.body.tags) : [],
             metadata: req.body.metadata ? JSON.parse(req.body.metadata) : {},
@@ -204,16 +276,23 @@ exports.deleteMedia = async (req, res) => {
             return res.status(403).json({ message: 'Non autorisé' });
         }
 
-        // Supprimer le fichier physique
-        // media.url commence généralement par '/uploads/...', il faut le rendre relatif
-        const relativeUrl = (media.url || '').replace(/^[\/\\]+/, '');
-        const filePath = path.join('public', relativeUrl);
-        await deleteFile(filePath);
+        if (media.storageProvider === 'cloudinary' && media.cloudinaryPublicId && isCloudinaryEnabled()) {
+            initCloudinary();
+            try {
+                await cloudinary.uploader.destroy(String(media.cloudinaryPublicId), { resource_type: media.cloudinaryResourceType || 'image' });
+            } catch (e) {}
+        } else {
+            // Supprimer le fichier physique
+            // media.url commence généralement par '/uploads/...', il faut le rendre relatif
+            const relativeUrl = (media.url || '').replace(/^[\/\\]+/, '');
+            const filePath = path.join('public', relativeUrl);
+            await deleteFile(filePath);
 
-        if (media.thumbnail) {
-            const relThumb = (media.thumbnail || '').replace(/^[\/\\]+/, '');
-            const thumbPath = path.join('public', relThumb);
-            await deleteFile(thumbPath);
+            if (media.thumbnail) {
+                const relThumb = (media.thumbnail || '').replace(/^[\/\\]+/, '');
+                const thumbPath = path.join('public', relThumb);
+                await deleteFile(thumbPath);
+            }
         }
 
         // Mongoose 7: remove() is deprecated on documents
