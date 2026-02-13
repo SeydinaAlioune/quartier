@@ -11,6 +11,24 @@ Plateforme communautaire de quartier : actualités, forum, projets, services, an
 - **UX**: Auth centralisée (AuthContext), feedback via toasts, design tokens CSS
 - **Emails**: Brevo (Sendinblue) comme provider principal (avec fallback selon configuration)
 
+## Stockage médias (Cloudinary)
+
+Le backend supporte 2 modes de stockage pour les images/vidéos :
+
+- **Local** (par défaut) : fichiers servis via `/uploads/...`
+- **Cloudinary** (recommandé en production) : URLs persistantes `https://res.cloudinary.com/...`
+
+Activation côté backend via variables d’environnement :
+
+- `USE_CLOUDINARY=1`
+- `CLOUDINARY_URL=cloudinary://...` (recommandé)
+- (optionnel) `CLOUDINARY_FOLDER=quartier`
+
+Comportement :
+
+- À l’upload : si `USE_CLOUDINARY=1` et credentials présents, le fichier est uploadé sur Cloudinary et l’URL Cloudinary est stockée en base.
+- À la suppression (dans l’app) : si le média est stocké sur Cloudinary, l’asset Cloudinary est supprimé (libère l’espace) puis l’enregistrement est supprimé.
+
 ## Notifications Admin
 
 - **Cloche globale** dans le header Admin (unread count + liste des derniers éléments)
