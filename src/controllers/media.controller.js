@@ -65,6 +65,13 @@ const isCloudinaryEnabled = () => {
     return hasUrl || hasKeys;
 };
 
+const hasCloudinaryCredentials = () => {
+    if (!cloudinary) return false;
+    const hasUrl = Boolean(normalizeCloudinaryUrl(process.env.CLOUDINARY_URL));
+    const hasKeys = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+    return hasUrl || hasKeys;
+};
+
 const initCloudinary = () => {
     if (!cloudinary) return;
     const normalizedUrl = normalizeCloudinaryUrl(process.env.CLOUDINARY_URL);
@@ -292,7 +299,7 @@ exports.deleteMedia = async (req, res) => {
             return res.status(403).json({ message: 'Non autorisé' });
         }
 
-        if (media.storageProvider === 'cloudinary' && media.cloudinaryPublicId && isCloudinaryEnabled()) {
+        if (media.storageProvider === 'cloudinary' && media.cloudinaryPublicId && hasCloudinaryCredentials()) {
             initCloudinary();
             try {
                 await cloudinary.uploader.destroy(String(media.cloudinaryPublicId), { resource_type: media.cloudinaryResourceType || 'image' });
