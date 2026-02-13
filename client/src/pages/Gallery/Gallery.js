@@ -1,13 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import './Gallery.css';
 import useSeo from '../../hooks/useSeo';
+import useAuth from '../../hooks/useAuth';
 
 const Gallery = () => {
   useSeo({
     title: 'Galerie',
     description: 'Galerie photo & vidéo du quartier : moments, projets, histoire et événements. Découvrez la vie du quartier en images.',
   });
+
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const API_BASE = (() => {
     const raw = (api.defaults.baseURL || process.env.REACT_APP_API_URL || '').replace(/\/$/, '');
@@ -305,6 +310,41 @@ const Gallery = () => {
     }, 2200);
   };
 
+   const handleShare = async () => {
+     if (!isAuthenticated) {
+       navigate('/login', { state: { from: '/galerie' } });
+       return;
+     }
+
+     const shareUrl = (typeof window !== 'undefined' && window.location?.href) ? window.location.href : '';
+     const sharePayload = {
+       title: 'Galerie - QuartierConnect',
+       text: 'Découvre la galerie du quartier',
+       url: shareUrl,
+     };
+
+     try {
+       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+         await navigator.share(sharePayload);
+         return;
+       }
+     } catch (e) {
+     }
+
+     try {
+       if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+         await navigator.clipboard.writeText(shareUrl);
+         return;
+       }
+     } catch (e) {
+     }
+
+     try {
+       if (shareUrl) window.prompt('Copiez le lien de la galerie :', shareUrl);
+     } catch (e) {
+     }
+   };
+
   const immToggleUi = () => {
     setImmUiVisible((v) => {
       const next = !v;
@@ -511,7 +551,7 @@ const Gallery = () => {
                 <button type="button" className="hero-btn" onClick={openImmersion}>
                   Immersion
                 </button>
-                <a className="hero-btn hero-btn--ghost" href="/espace-membres">Partager</a>
+                <button type="button" className="hero-btn hero-btn--ghost" onClick={handleShare}>Partager</button>
               </div>
             </div>
 
