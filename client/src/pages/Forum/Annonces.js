@@ -23,6 +23,15 @@ const Annonces = () => {
   const newImageInputRef = useRef(null);
   const editImageInputRef = useRef(null);
 
+  const toAbsoluteMediaUrl = (url = '') => {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    const fixedProto = raw.replace(/^https\//i, 'https://').replace(/^http\//i, 'http://');
+    if (/^https?:\/\//i.test(fixedProto)) return fixedProto;
+    if (fixedProto.startsWith('/')) return `${API_BASE}${fixedProto}`;
+    return `${API_BASE}/${fixedProto}`;
+  };
+
   // Charger depuis l'API
   const fetchAds = async () => {
     try {
@@ -252,7 +261,7 @@ const Annonces = () => {
                     {item.imageUrl && (
                       <img
                         className="ad-thumb"
-                        src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
+                        src={toAbsoluteMediaUrl(item.imageUrl)}
                         alt={item.titre}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         loading="lazy"
@@ -291,7 +300,7 @@ const Annonces = () => {
                     {item.imageUrl && (
                       <img
                         className="ad-thumb"
-                        src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
+                        src={toAbsoluteMediaUrl(item.imageUrl)}
                         alt={item.titre}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         loading="lazy"
@@ -329,7 +338,7 @@ const Annonces = () => {
                     {item.imageUrl && (
                       <img
                         className="ad-thumb"
-                        src={(String(item.imageUrl).startsWith('http') ? item.imageUrl : `${API_BASE}${item.imageUrl}`)}
+                        src={toAbsoluteMediaUrl(item.imageUrl)}
                         alt={item.titre}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         loading="lazy"
@@ -410,7 +419,7 @@ const Annonces = () => {
                   <div className="ad-thumbs">
                     {newAnnonce.images.map((u,idx)=> (
                       <div className="ad-thumb-mini" key={idx}>
-                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Illustration ${idx + 1}`} />
+                        <img src={toAbsoluteMediaUrl(u)} alt={`Illustration ${idx + 1}`} />
                         <button type="button" className="remove-img" onClick={()=>removeNewImageAt(idx)} aria-label={`Supprimer l’illustration ${idx + 1}`}>×</button>
                       </div>
                     ))}
@@ -486,7 +495,7 @@ const Annonces = () => {
                   <div className="ad-thumbs">
                     {editAd.images.map((u,idx)=> (
                       <div className="ad-thumb-mini" key={idx}>
-                        <img src={(String(u).startsWith('http') ? u : `${API_BASE}${u}`)} alt={`Illustration ${idx + 1}`} />
+                        <img src={toAbsoluteMediaUrl(u)} alt={`Illustration ${idx + 1}`} />
                         <button type="button" className="remove-img" onClick={()=>removeEditImageAt(idx)} aria-label={`Supprimer l’illustration ${idx + 1}`}>×</button>
                       </div>
                     ))}

@@ -32,10 +32,12 @@ const Security = () => {
 
   const API_BASE = (process.env.REACT_APP_API_URL || api.defaults.baseURL || window.location.origin).replace(/\/$/, '');
   const toAbsoluteUrl = (url = '') => {
-    if (!url) return '';
-    if (/^https?:\/\//i.test(url)) return url;
-    if (url.startsWith('/')) return `${API_BASE}${url}`;
-    return `${API_BASE}/${url}`;
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    const fixedProto = raw.replace(/^https\//i, 'https://').replace(/^http\//i, 'http://');
+    if (/^https?:\/\//i.test(fixedProto)) return fixedProto;
+    if (fixedProto.startsWith('/')) return `${API_BASE}${fixedProto}`;
+    return `${API_BASE}/${fixedProto}`;
   };
 
   const handleCloseReport = () => {

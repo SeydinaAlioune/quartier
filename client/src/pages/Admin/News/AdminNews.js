@@ -627,7 +627,7 @@ const AdminNews = () => {
           <div key={media._id} className="media-item">
             <button className="media-preview" type="button" onClick={() => setViewerMedia(media)} title="Aperçu" aria-label="Prévisualiser">
               {media.type === 'image' ? (
-                <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
+                <img src={toAbsoluteMediaUrl(media.url)} alt={media.title || media.name || 'media'} />
               ) : (
                 <div className="video-preview" aria-label="Vidéo">
                   <Film size={22} aria-hidden="true" />
@@ -919,10 +919,12 @@ const AdminNews = () => {
   };
 
   const toAbsoluteMediaUrl = (url = '') => {
-    if (!url) return '';
-    if (/^https?:\/\//i.test(url)) return url;
-    if (url.startsWith('/')) return `${API_BASE}${url}`;
-    return url;
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    const fixedProto = raw.replace(/^https\//i, 'https://').replace(/^http\//i, 'http://');
+    if (/^https?:\/\//i.test(fixedProto)) return fixedProto;
+    if (fixedProto.startsWith('/')) return `${API_BASE}${fixedProto}`;
+    return `${API_BASE}/${fixedProto}`;
   };
 
   const ArticlePreviewModal = () => (
@@ -970,10 +972,10 @@ const AdminNews = () => {
           </div>
           <div className="news-modal__body">
             {viewerMedia.type === 'image' ? (
-              <img className="news-modal__image" src={`${API_BASE}${viewerMedia.url}`} alt={viewerMedia.title || viewerMedia.name || 'media'} />
+              <img className="news-modal__image" src={toAbsoluteMediaUrl(viewerMedia.url)} alt={viewerMedia.title || viewerMedia.name || 'media'} />
             ) : (
               <video className="news-modal__video" controls preload="metadata" crossOrigin="anonymous">
-                <source src={`${API_BASE}${viewerMedia.url}`} type={inferMime(viewerMedia.url)} />
+                <source src={toAbsoluteMediaUrl(viewerMedia.url)} type={inferMime(viewerMedia.url)} />
               </video>
             )}
           </div>
@@ -1004,7 +1006,7 @@ const AdminNews = () => {
             {!mediaLoading && !mediaError && mediaList.filter(m => m.type === 'image').map((media) => (
               <div key={media._id} className="media-item news-modal__pick-item" onClick={() => applyMediaAsCover(media.url)}>
                 <button className="media-preview" type="button" title="Choisir" aria-label="Choisir">
-                  <img src={`${API_BASE}${media.url}`} alt={media.title || media.name || 'media'} />
+                  <img src={toAbsoluteMediaUrl(media.url)} alt={media.title || media.name || 'media'} />
                 </button>
                 <div className="media-info">
                   <span className="media-name">{media.title || media.name || '—'}</span>

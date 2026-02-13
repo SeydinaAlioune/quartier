@@ -62,10 +62,12 @@ const AdminSecurity = () => {
   const API_BASE = (api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin).replace(/\/$/, '');
 
   const toAbsoluteUrl = (url = '') => {
-    if (!url) return '';
-    if (/^https?:\/\//i.test(url)) return url;
-    if (url.startsWith('/')) return `${API_BASE}${url}`;
-    return `${API_BASE}/${url}`;
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    const fixedProto = raw.replace(/^https\//i, 'https://').replace(/^http\//i, 'http://');
+    if (/^https?:\/\//i.test(fixedProto)) return fixedProto;
+    if (fixedProto.startsWith('/')) return `${API_BASE}${fixedProto}`;
+    return `${API_BASE}/${fixedProto}`;
   };
 
   const handleOverlayMouseDown = (e, onClose) => {
